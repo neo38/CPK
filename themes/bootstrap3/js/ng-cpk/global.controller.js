@@ -2,7 +2,7 @@
 
     angular.module('cpk').controller('GlobalController', GlobalController).directive('ngModal', ngModal);
 
-    GlobalController.$inject = [ 'favsBroadcaster', '$rootScope', '$location', '$log', '$http' ];
+    GlobalController.$inject = [ '$rootScope', '$location', '$log', '$http' ];
 
     var linkedObjects = {
 	modal : {
@@ -20,9 +20,9 @@
     var jQueryModal = undefined;
 
     /**
-     * Initialize injected favsBroadcaster & show requested modal
+     * Initialized GlobalController
      */
-    function GlobalController(favsBroadcaster, $rootScope, $location, $log, $http) {
+    function GlobalController($rootScope, $location, $log, $http) {
 
 	var vm = this;
 
