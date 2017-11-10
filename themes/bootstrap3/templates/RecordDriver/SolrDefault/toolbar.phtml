@@ -97,12 +97,12 @@
   </li>
 
   <? if(method_exists($this->driver, "getRecordType") && $this->driver->getRecordType() != "library"): ?>
-    <? if ($this->userlist()->getMode() !== 'disabled'): 
-         $record_add_rem_url = $handleOfflineFavorites ? '#' : $this->recordLink()->getActionUrl($this->driver, 'Save');
+    <? if ($this->userlist()->getMode() !== 'disabled'):
+          $recordAddRemoveUrl = $handleOfflineFavorites ? '#' : $this->recordLink()->getActionUrl($this->driver, 'Save');
     ?>
       <li class="list-group-item">
         <a id="save-record" class="modal-link favorites-add-remove-link <?=$controllerClass?>"
-           href="<?=$record_add_rem_url?>"
+           href="<?=$recordAddRemoveUrl?>"
            title="<?=$this->transEsc('Add to favorites')?>" rel="nofollow">
           <i class="pr-interface-favoritestar"> </i>
           <span data-add-remove-record="add"><?=$this->transEsc('Add to favorites')?></span>
