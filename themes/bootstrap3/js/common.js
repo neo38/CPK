@@ -420,6 +420,18 @@ function keyboardShortcuts() {
     }
 }
 
+/**
+ * Helper function for searching in array.
+ * @param {Array} arr
+ * @param {String} value
+ * @returns {boolean}
+ */
+function arraySearch( arr, value ) {
+  arr.forEach( function( i, v ) { if ( v === value) { return i; } } );
+  //arr.forEach((i, v) => { if (v === value) { return i; }});
+  return false;
+};
+
 jQuery( document ).ready( function( $ ){
   // Setup search autocomplete
   setupAutocomplete();
