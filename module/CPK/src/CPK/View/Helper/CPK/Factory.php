@@ -27,6 +27,7 @@
  */
 namespace CPK\View\Helper\CPK;
 
+use CPK\Libraries\Entities\Service;
 use Zend\ServiceManager\ServiceManager,
     CPK\Db\Table\PortalPage as PortalPageTable;
 
@@ -151,5 +152,15 @@ class Factory
             ? 'https://cache.obalkyknih.cz'
             : $config->ObalkyKnih->cacheUrl;
         return new ObalkyKnih($cacheUrl);
+    }
+
+    public static function getAddUrlScalarParamsToJson(ServiceManager $sm)
+    {
+        return new AddUrlScalarParamsToJson();
+    }
+
+    public static function getAddUrlArrayParamsToJson(ServiceManager $sm)
+    {
+        return new AddUrlArrayParamsToJson();
     }
 }

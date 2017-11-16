@@ -66,55 +66,6 @@
   $this->showCartControls = $this->params->getOptions()->supportsCart() && $this->cart()->isActive();
   // Enable bulk options if appropriate:
   $this->showBulkOptions = $this->params->getOptions()->supportsCart() && $this->showBulkOptions;
-
-  /*
-   * Add Url array params to JSON. This function will return JS.
-   *
-   * @FIXME       Move this function to helper.
-   *
-   * @param       $jsonVarName    string
-   * @param       $paramName      string
-   * @param       $index          int
-   *
-   * @return      string
-   **/
-  function addUrlArrayParamsToJson($jsonVarName, $paramName, $index) {
-      if ($index == 0) {
-          echo $jsonVarName."['$paramName{$index}'] = [];";
-      }
-      $fullParamName = $paramName.$index;
-      if (isset($_GET[$fullParamName])) {
-          $paramValues = $_GET[$fullParamName];
-          if (is_array($paramValues)) {
-              foreach ($paramValues as $value) {
-                  echo $jsonVarName."['".$paramName.$index."'].push( '".htmlspecialchars($value)."' );\n";
-              }
-          } else {
-              echo $jsonVarName."['".$paramName.$index."'].push( '".htmlspecialchars($paramValues)."' );\n";
-          }
-      }
-      $index++;
-      if (isset($_GET[$fullParamName])) {
-          addUrlArrayParamsToJson($jsonVarName, $paramName, $index);
-      }
-  }
-
-  /*
-   * Add Url scalar params to JSON. This function will return JS.
-   *
-   * @FIXME       Move this function to helper.
-   *
-   * @param       $jsonVarName    string
-   * @param       $paramName      string
-   * @param       $index          string
-   *
-   * @return      string
-   **/
-  function addUrlScalarParamsToJson($jsonVarName, $paramName, $defaultValue = '') {
-      $paramValue =(! empty($_GET[$paramName])) ? htmlspecialchars($_GET[$paramName]) : $defaultValue;
-      echo $jsonVarName."['$paramName'] = '$paramValue';\n";
-  }
-
 ?>
 <div id='search-result-list' class="search-result-list">
     <div class='row' id='flashedMessage' style='display: none;'>
@@ -224,22 +175,22 @@
         var data = {};
 
 		<?php
-		  $index = 0;
-		  addUrlArrayParamsToJson('data', 'lookfor', $index);
-		  addUrlArrayParamsToJson('data', 'type', $index);
-		  addUrlArrayParamsToJson('data', 'bool', $index);
+        $index = 0;
+        $this->addUrlArrayParamsToJson('data', 'lookfor', $index);
+        $this->addUrlArrayParamsToJson('data', 'type', $index);
+        $this->addUrlArrayParamsToJson('data', 'bool', $index);
 
-		  addUrlScalarParamsToJson('data', 'filter');
-		  addUrlScalarParamsToJson('data', 'daterange');
-		  addUrlScalarParamsToJson('data', 'publishDatefrom');
-		  addUrlScalarParamsToJson('data', 'publishDateto');
-		  addUrlScalarParamsToJson('data', 'limit', '10');
-		  addUrlScalarParamsToJson('data', 'sort', 'relevance');
-		  addUrlScalarParamsToJson('data', 'page', '1');
-		  addUrlScalarParamsToJson('data', 'searchTypeTemplate', 'basic');
-          addUrlScalarParamsToJson('data', 'database', 'Solr');
-		  addUrlScalarParamsToJson('data', 'keepFacetsEnabled', 'true');
-		  addUrlScalarParamsToJson('data', 'join', 'AND');
+        $this->addUrlScalarParamsToJson('data', 'filter');
+        $this->addUrlScalarParamsToJson('data', 'daterange');
+        $this->addUrlScalarParamsToJson('data', 'publishDatefrom');
+        $this->addUrlScalarParamsToJson('data', 'publishDateto');
+        $this->addUrlScalarParamsToJson('data', 'limit', '10');
+        $this->addUrlScalarParamsToJson('data', 'sort', 'relevance');
+        $this->addUrlScalarParamsToJson('data', 'page', '1');
+        $this->addUrlScalarParamsToJson('data', 'searchTypeTemplate', 'basic');
+        $this->addUrlScalarParamsToJson('data', 'database', 'Solr');
+        $this->addUrlScalarParamsToJson('data', 'keepFacetsEnabled', 'true');
+        $this->addUrlScalarParamsToJson('data', 'join', 'AND');
 		?>
 		ADVSEARCH.updateUrl( data );
     });

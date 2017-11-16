@@ -335,34 +335,49 @@
                     console.error("Parsing search record author and authorLink failed!");
                 })();
                 fav.format = (function() {
-                    var iconDiv = desiredRecord.querySelector("div.format-list div.iconlabel");
+                    var iconDiv = record.querySelector("div.format-list div.iconlabel");
 
                     if (iconDiv) {
-                        vm.formatIconClass(iconDiv.getElementsByTagName("i")[0].getAttribute("class"));
+                        fav.formatIconClass(iconDiv.getElementsByTagName("i")[0].getAttribute("class"));
 
-                        return iconDiv.getElementsByTagName('span')[0].getAttribute('data-orig');
+                        return iconDiv.getElementsByTagName("span")[0].getAttribute("data-orig");
                     }
 
-                    console.error('Parsing format icon class failed!');
-                    console.error('Parsing record format failed!');
-                })();
-                fav.formatIconClass = (function() {
-                    //...
+                    console.error("Parsing format icon class failed!");
+                    console.error("Parsing record format failed!");
                 })();
                 fav.published = (function() {
-                    //...
+                    var span = record.querySelector("span.summDate");
+
+                    if (span) {
+                        return span.textContent.trim();
+                    }
+
+                    console.error("Parsing date of publishing failed!")
                 })();
                 fav.image = (function() {
-                    //...
-                })();
-                fav.icon = (function() {
-                    //...
-                })();
-                fav.iconStyle = (function() {
-                    //...
-                })();
-                fav.created = (function() {
-                    //...
+                    var err = "Parsing image or icon failed!";
+                    try {
+                        var thumb = record.getElementsByClassName("coverThumbnail")[0];
+                        var image = thumb.getElementsByTagName("img")[0];
+
+                        if (typeof image !== "undefined") {
+                            return image.getAttribute("src");
+                        }
+
+                        var icon = thumb.getElementsByTagName("i")[0];
+
+                        if (typeof icon !== "undefined") {
+                            fav.icon(icon.getAttribute("class"));
+                            fav.iconStyle(icon.getAttribute("style"));
+                            // Icon is set but image self is undefined
+                            return undefined;
+                        }
+
+                        console.log(err);
+                    } catch (e) {
+                        console.error(err, e);
+                    }
                 })();
 
                 resolve(fav);

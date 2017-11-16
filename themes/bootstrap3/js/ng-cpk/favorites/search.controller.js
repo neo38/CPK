@@ -219,7 +219,7 @@
             // record is favorite boolean is now being inverted ..
             recordIsFav[rank] = ! recordIsFav[rank];
         }
-    };
+    }
     
     function SearchDirective() {
         return {
@@ -270,6 +270,6 @@
             } else {
                 pubElementsLinked[rank] = true;
             }
-        };
-    };
+        }
+    }
 })();
