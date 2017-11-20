@@ -176,22 +176,23 @@
 
 		<?php
         $index = 0;
-        $this->addUrlArrayParamsToJson('data', 'lookfor', $index);
-        $this->addUrlArrayParamsToJson('data', 'type', $index);
-        $this->addUrlArrayParamsToJson('data', 'bool', $index);
+        echo $this->addUrlArrayParamsToJson('data', 'lookfor', $index);
+        echo $this->addUrlArrayParamsToJson('data', 'type', $index);
+        echo $this->addUrlArrayParamsToJson('data', 'bool', $index);
 
-        $this->addUrlScalarParamsToJson('data', 'filter');
-        $this->addUrlScalarParamsToJson('data', 'daterange');
-        $this->addUrlScalarParamsToJson('data', 'publishDatefrom');
-        $this->addUrlScalarParamsToJson('data', 'publishDateto');
-        $this->addUrlScalarParamsToJson('data', 'limit', '10');
-        $this->addUrlScalarParamsToJson('data', 'sort', 'relevance');
-        $this->addUrlScalarParamsToJson('data', 'page', '1');
-        $this->addUrlScalarParamsToJson('data', 'searchTypeTemplate', 'basic');
-        $this->addUrlScalarParamsToJson('data', 'database', 'Solr');
-        $this->addUrlScalarParamsToJson('data', 'keepFacetsEnabled', 'true');
-        $this->addUrlScalarParamsToJson('data', 'join', 'AND');
+        echo $this->addUrlScalarParamsToJson('data', 'filter');
+        echo $this->addUrlScalarParamsToJson('data', 'daterange');
+        echo $this->addUrlScalarParamsToJson('data', 'publishDatefrom');
+        echo $this->addUrlScalarParamsToJson('data', 'publishDateto');
+        echo $this->addUrlScalarParamsToJson('data', 'limit', '10');
+        echo $this->addUrlScalarParamsToJson('data', 'sort', 'relevance');
+        echo $this->addUrlScalarParamsToJson('data', 'page', '1');
+        echo $this->addUrlScalarParamsToJson('data', 'searchTypeTemplate', 'basic');
+        echo $this->addUrlScalarParamsToJson('data', 'database', 'Solr');
+        echo $this->addUrlScalarParamsToJson('data', 'keepFacetsEnabled', 'true');
+        echo $this->addUrlScalarParamsToJson('data', 'join', 'AND');
 		?>
+
 		ADVSEARCH.updateUrl( data );
     });
 </script>

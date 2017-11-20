@@ -36,7 +36,7 @@ $toRet = array(
 		'obalkyknih.js',
         'vendor/jquery.visible.min.js',
         'vendor/jquery.bootstrap-growl.js',
-	'favorites.js'
+        'favorites.js'
     ),
     'less' => array(
         'active' => false,
@@ -62,7 +62,10 @@ $toRet = array(
             'vudl' => 'VuDL\View\Helper\Bootstrap3\VuDL',
             'parseFilterOptions' => 'CPK\View\Helper\CPK\ParseFilterOptions',
             'renderarray' => 'CPK\View\Helper\CPK\RenderArray',
-            'currenturl' => 'CPK\View\Helper\CPK\CurrentURL'
+            'currenturl' => 'CPK\View\Helper\CPK\CurrentURL',
+            // These two are used in templates/search/results.phtml
+            'addUrlArrayParamsToJson' => 'CPK\View\Helper\CPK\AddUrlArrayParamsToJson',
+            'addUrlScalarParamsToJson' => 'CPK\View\Helper\CPK\AddUrlScalarParamsToJson',
         )
     )
 );

@@ -5,50 +5,28 @@
  * Date: 16.11.17
  * Time: 9:19
  */
-
 namespace CPK\View\Helper\CPK;
+use Zend\View\Helper\AbstractHelper;
 
 /**
  * Simple view helper moved from `themes/bootstrap3/templates/search/results.phtml`.
  * @package CPK\View\Helper\CPK
  */
-class AddUrlScalarParamsToJson extends \Zend\View\Helper\AbastractHelper
+class AddUrlScalarParamsToJson extends AbstractHelper
 {
     /**
      * Add Url array params to JSON. This function will return JS.
      *
      * @param $jsonVarName string
      * @param $paramName string
-     * @param $index int
+     * @param $defaultValue string
      * @return string
      */
-    public function __invoke($jsonVarName, $paramName, $index)
+    public function __invoke($jsonVarName, $paramName, $defaultValue = '')
     {
-        $fullParamName = $paramName.$index;
+        $_paramValue = filter_input( INPUT_GET, $paramName);
+        $paramValue  = empty($_paramValue) ? htmlspecialchars($_paramValue) : $defaultValue;
 
-        if ($index == 0) {
-            echo $jsonVarName . "['{$fullParamName}'] = [];" . PHP_EOL;
-        }
-
-        $escapeVal = function($val) { return str_replace("'", "\'", $val); };
-
-        if (!isset($_GET[$fullParamName])) {
-            return;
-        }
-
-        $paramValues = $_GET[$fullParamName];
-
-        if (is_array($paramValues)) {
-            foreach ($paramValues as $_val) {
-                $val = $escapeVal($_val);
-                echo $jsonVarName . "['{$fullParamName}'].push('{$val}');" . PHP_EOL;
-            }
-        } else {
-            $val = $escapeVal($paramValues);
-            echo $jsonVarName . "['{$fullParamName}'].push('{$val}');'" . PHP_EOL;
-        }
-
-        $index++;
-        $this->view->addUrlArrayParamsToJson($jsonVarName, $paramName, $index);
+        return $jsonVarName . "['{$paramName}'] = '{$paramValue}';" . PHP_EOL;
     }
 }

@@ -153,14 +153,4 @@ class Factory
             : $config->ObalkyKnih->cacheUrl;
         return new ObalkyKnih($cacheUrl);
     }
-
-    public static function getAddUrlScalarParamsToJson(ServiceManager $sm)
-    {
-        return new AddUrlScalarParamsToJson();
-    }
-
-    public static function getAddUrlArrayParamsToJson(ServiceManager $sm)
-    {
-        return new AddUrlArrayParamsToJson();
-    }
 }
