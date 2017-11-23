@@ -41,7 +41,6 @@
     /**
      * @param {Object} $q
      * @returns {NotificationsController}
-     * @constructor
      * @todo Resolve "$q"!
      */
     function NotificationsController($q) {

@@ -1,7 +1,7 @@
 /**
  * jQuery-based replacement for original Angular-based ng-cpk module.
  *
- * Application self is splited into several modules:
+ * Application self is split into several modules:
  *
  * Favorites
  * =========
