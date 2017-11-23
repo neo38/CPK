@@ -2,11 +2,14 @@
  * New implementation of notifications. Is based on jQuery but is based
  * previous Angular-based code.
  *
+ * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function($, $log, $location) {
-    $log.log("jquery-cpk/notifications.js");
+(function($) {
+    if (CPK.verbose === true) {
+        console.log("jquery-cpk/notifications.js");
+    }
 
     /**
      * Holds DOM elements of global notifications section
@@ -35,7 +38,13 @@
      */
     var onLinkerDone = function() {};
 
-    function NotificationsController($q, $log, $location) {
+    /**
+     * @param {Object} $q
+     * @returns {NotificationsController}
+     * @constructor
+     * @todo Resolve "$q"!
+     */
+    function NotificationsController($q) {
         var apiNonrelevantJobDoneFlag = false,
             onApiNonrelevantJobDone,
             unreadNotifsCount = 0,
@@ -46,8 +55,6 @@
         vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
         vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
         vm.notifClicked = notifClicked;
-
-        return vm;
 
         onLinkerDone = function() {
             if (!hasGlobalNotifications()) {
@@ -60,6 +67,8 @@
                 showWarningIcon();
             }
         };
+
+        return vm;
 
         /**
          * Initializes an empty array for an username provided in order
@@ -74,7 +83,7 @@
                 }
             ).catch(
                 function(reason) {
-                    $log.error(reason);
+                    console.error(reason);
                 }
             );
         }
@@ -89,7 +98,7 @@
                     apiNonrelevantJobDone();
                 }
             ).catch(function() {
-                $log.error(reason);
+                console.error(reason);
                 apiNonrelevantJobDone();
             });
         }
@@ -168,9 +177,9 @@
             if (typeof href !== "undefined") {
                 function followLocation() {
                     if (source === "user") {
-                        $location.url(href);
+                        window.location.url(href);
                     } else {
-                        location.href = href;
+                        window.location.href = href;
                     }
                     /**
                      * @todo Finish this!!!
@@ -199,7 +208,7 @@
         function print_response_errors(response) {
             if (typeof response.errors === "object") {
                 response.errors.forEach(function(e) {
-                    $log.error(e);
+                    console.error(e);
                 });
             }
         }
@@ -263,7 +272,6 @@
                     .fail(function(e) {
                         reject(e);
                     });
-
             });
         }
 
@@ -396,7 +404,7 @@
                     break;
 
                 default:
-                    $log.error("Linker for notifications controller failed to link global notifications element.");
+                    console.error("Linker for notifications controller failed to link global notifications element.");
                     break;
             }
 
@@ -426,7 +434,7 @@
                 if (typeof onLinkerDone === "function") {
                     onLinkerDone();
                 } else {
-                    $log.error("onLinkerDone must be a function!");
+                    console.error("onLinkerDone must be a function!");
                 }
             }
         }
@@ -450,10 +458,8 @@
     }
 
     /**
-     * Initialize notifications controller.
-     *
      * @type {NotificationsController}
      */
-    CPK.notifications = new NotificationsController();
+    CPK.notifications = new NotificationsController(null);
 
-}(jQuery, console, window.location));
+}(jQuery));
