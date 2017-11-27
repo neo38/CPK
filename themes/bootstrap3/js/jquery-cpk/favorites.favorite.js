@@ -252,12 +252,10 @@
                     reject("Invalid rank provided for parsing current search!");
                 }
 
-                /* $#[ */
                 if (typeof $searchItems === "undefined") {
                     window.addEventListener("searchResultsLoaded", updateSearchItems);
                     updateSearchItems();
                 }
-                /* ]#$ */
 
                 var record = $searchItems.get(rank);
                 record = record.getElementsByClassName("row")[0];

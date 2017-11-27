@@ -6,7 +6,7 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function($) {
+(function() {
     if (CPK.verbose === true) {
         console.log("jquery-cpk/admin.js");
     }
@@ -15,16 +15,14 @@
 
     /**
      * @returns {ApprovalController}
-     * @constructor
      */
     function ApprovalController() {
         var editedAt = undefined,
             currentTableRow = {
                 div : undefined,
                 input : undefined
-            };
-
-        var vm = this;
+            },
+            vm = this;
 
         vm.edit = edit;
         vm.inputKeyDown = inputKeyDown;
@@ -32,9 +30,15 @@
 
         return vm;
 
-        function edit($event) {
+        // Public
 
-            currentTableRow.div = $event.currentTarget.children[0];
+        /**
+         * Handler for edit event.
+         * @param {Event} event
+         * @todo Maybe we should check which elements we are get!
+         */
+        function edit(event) {
+            currentTableRow.div = event.currentTarget.children[0];
             currentTableRow.input = currentTableRow.div.nextElementSibling;
 
             showCurrentInput();
@@ -42,65 +46,62 @@
             editedAt = (new Date()).getTime();
         }
 
-        function inputKeyDown($event) {
-            if ($event.keyCode === 13) { // Enter
+        /**
+         * Handler for keyDown event.
+         * @param {Event} event
+         */
+        function inputKeyDown(event) {
+            if (event.keyCode === 13) { // Enter -> committing changes
+                event.preventDefault();
 
-                // Do not submit the form
-                $event.preventDefault();
-
-                var newValue = $event.target.value;
-
-                // Committing changes
-                if (setNewDivValue(newValue)) {
+                if (setNewDivValue(event.target.value)) {
                     hideCurrentInput();
                 } else {
-
                     // Perform dummy submit to show what's wrong
                     submitApprovalBtn.click();
                 }
-
-            } else if ($event.keyCode === 27) { // Esc
-
-                // Cancelling changes
-                $event.target.value = getNewDivValue();
+            } else if (event.keyCode === 27) { // Esc -> cancelling changes
+                event.target.value = getNewDivValue();
                 hideCurrentInput();
             }
         }
 
-        function inputBlurred($event) {
-
-            if ($event.target.type === 'number') {
+        /**
+         * Handler for blur event on input elements.
+         * @param {Event} event
+         * @todo What exactly means "special treatment" for number inputs?!
+         */
+        function inputBlurred(event) {
+            if (event.target.type === "number") {
                 // input of type number needs special treatment
-
-                if ((new Date()).getTime() - 100 < editedAt)
+                if ((new Date()).getTime() - 100 < editedAt) {
+                    // If I understand correctly - this checks timeout but that
+                    // depends on machine speed also... I don't think this can
+                    // be possibly good...
                     return;
+                }
             }
 
-            var newValue = undefined;
-
-            if ($event.target.type === 'checkbox')
-                newValue = $event.target.checked ? '1' : '0';
-            else
-                newValue = $event.target.value;
+            var newValue = event.target.type === "checkbox"
+                ? (event.target.checked ? "1" : "0")
+                : event.target.value;
 
             if (!setNewDivValue(newValue)) {
-
                 // Cancelling changes
-                $event.target.value = getNewDivValue();
+                event.target.value = getNewDivValue();
             }
+
             hideCurrentInput();
         }
 
-        // private
+        // Private
 
         /**
          * Shows input within current table row & hides current div
          */
         function showCurrentInput() {
-            currentTableRow.input.className = currentTableRow.input.className.replace(/\shidden|hidden\s?/g, '');
-
-            currentTableRow.div.setAttribute('hidden', 'hidden');
-
+            currentTableRow.input.className = currentTableRow.input.className.replace(/\shidden|hidden\s?/g, "");
+            CPK.global.hideDOM(currentTableRow.div);
             currentTableRow.input.focus();
         }
 
@@ -108,9 +109,8 @@
          * Hides input within current table row & shows current div
          */
         function hideCurrentInput() {
-            currentTableRow.input.className = currentTableRow.input.className + ' hidden';
-
-            currentTableRow.div.removeAttribute('hidden');
+            currentTableRow.input.className = currentTableRow.input.className + " hidden";
+            CPK.global.showDOM(currentTableRow.div);
         }
 
         /**
@@ -121,56 +121,59 @@
          *
          * Returns false only if the field being set is required & it's not met
          * the conditions
-         *
-         * @return boolean
+         * @param {String} val
+         * @returns {Boolean} Returns FALSE if the field being set is required
+         *                    but its conditions are not met.
          */
-        function setNewDivValue(value) {
-            if (value === '') {
+        function setNewDivValue(val) {
+            if (val === "") {
+                var isNumber = currentTableRow.input.type === "number",
+                    isRequired = currentTableRow.input.required;
 
-                var isNumber = currentTableRow.input.type === 'number';
-
-                var isRequired = currentTableRow.input.required;
-
-                if (isNumber)
-                    value = currentTableRow.input.currentTableRow.input.placeholder;
-                else if (isRequired) {
+                if (isNumber === true) {
+                    // Before here was this construct:
+                    //  `value = currentTableRow.input.currentTableRow.input.placeholder;`
+                    val = currentTableRow.input.placeholder;
+                } else if (isRequired === true) {
                     return false;
                 }
             }
-            var ins = currentTableRow.div.getElementsByTagName('ins');
+
+            var ins = currentTableRow.div.getElementsByTagName("ins");
 
             if (ins.length === 0) {
                 var contents = currentTableRow.div.textContent.trim();
 
-                if (contents === value.trim())
+                if (contents === val.trim()) {
                     return true;
+                }
 
-                if (contents.length)
-                    currentTableRow.div.innerHTML = '<del style="color: red">' + contents + '</del><br>';
+                if (contents.length) {
+                    /**
+                     * @todo There should be better of using class not directly written color!
+                     */
+                    currentTableRow.div.innerHTML = "<del style='color: red;'>" + contents + "</del><br>";
+                }
 
-                ins = document.createElement('ins');
-
-                ins.style.color = 'green';
-
+                ins = document.createElement("ins");
+                ins.style.color = "green";
                 currentTableRow.div.appendChild(ins);
             } else {
-
-                var del = currentTableRow.div.getElementsByTagName('del');
+                var del = currentTableRow.div.getElementsByTagName("del");
 
                 if (del.length) {
                     var previousContents = del[0].textContent.trim();
 
-                    if (previousContents === value.trim()) {
+                    if (previousContents === val.trim()) {
                         currentTableRow.div.innerHTML = previousContents;
                         return true;
                     }
-
                 }
 
                 ins = ins[0];
             }
 
-            ins.textContent = value;
+            ins.textContent = val;
 
             return true;
         }
@@ -181,9 +184,8 @@
          * If <ins> is not found, then are returned the contents of the div.
          */
         function getNewDivValue() {
-            var ins = currentTableRow.div.getElementsByTagName('ins');
-
-            var contents;
+            var ins = currentTableRow.div.getElementsByTagName("ins"),
+                contents;
 
             if (ins.length === 0) {
                 contents = currentTableRow.div.textContent.trim();
@@ -211,4 +213,4 @@
      */
     CPK.admin.ApprovalController = ApprovalController;
 
-}(jQuery));
+}());

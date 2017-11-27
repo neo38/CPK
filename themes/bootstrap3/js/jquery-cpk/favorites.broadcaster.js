@@ -23,28 +23,24 @@
     }
 
     /**
+     * Broadcaster for the favorites.
      * @returns {Object}
      */
     function FavoritesBroadcaster() {
-        /**
-         * @type {Object}
-         */
         var service = {
-            broadcastAdded : broadcastAdded,
-            broadcastRemoved : broadcastRemoved
-        };
-
-        /**
-         * ID of current tab to identify requests & responses
-         * @type {Number} tabId
-         */
-        var tabId;
-
-        /**
-         * ID of last tab which placed a request
-         * @type {Number} tabId
-         */
-        var lastKnownTabId;
+                broadcastAdded : broadcastAdded,
+                broadcastRemoved : broadcastRemoved
+            },
+            /**
+             * ID of current tab to identify requests & responses
+             * @type {Number} tabId
+             */
+            tabId,
+            /**
+             * ID of last tab which placed a request
+             * @type {Number} tabId
+             */
+            lastKnownTabId;
 
         init();
 
@@ -63,7 +59,7 @@
         /**
          * Broadcasts event called 'favRemoved' across all tabs listening on
          * storage event so they can update themselves.
-         * @param {String} favoriteId
+         * @param {Number} favoriteId
          */
         function broadcastRemoved(favoriteId) {
             broadcast("favoriteRemoved", favoriteId);
@@ -74,7 +70,7 @@
         /**
          * Just broadcast a message using localStorage's event
          * @param {String} key
-         * @param {String} val
+         * @param {Number} val
          */
         function broadcast(key, val) {
             localStorage.setItem(key, val);
@@ -271,7 +267,7 @@
          * @param {Boolean} active
          *
          * Determines if this tab is becoming master tab actively or passively
-         * (if it was told it to do so, or it decied itself by reaching the
+         * (if it was told it to do so or it decided itself by reaching the
          * timeout when no master returns response on init request)
          */
         function becomeMaster(active) {
@@ -369,7 +365,7 @@
          * Sends an broadcast to purge all favorites
          */
         function purgeAllTabs() {
-            broadcast("purgeAllTabs");
+            broadcast("purgeAllTabs", 0);
             CPK.favorites.storage.removeAll();
         }
     }

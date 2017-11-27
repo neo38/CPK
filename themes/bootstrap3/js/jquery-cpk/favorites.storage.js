@@ -35,7 +35,9 @@
     }
 
     if (!isSupported($usedStorageType)) {
-        console.log("Storage '" + $usedStorageType + "' is not available. We will use fake storage...");
+        if (CPK.verbose === true) {
+            console.log("Storage '" + $usedStorageType + "' is not available. We will use fake storage...");
+        }
 
         /**
          * @private Initializes fake storage.
@@ -50,7 +52,7 @@
                  * @param {String} val
                  * @returns {String}
                  */
-                setItem : function (id, val) {
+                setItem : function(id, val) {
                     return store[id] = String(val);
                 },
                 /**
@@ -58,7 +60,7 @@
                  * @param {String} id
                  * @returns {String}
                  */
-                getItem: function (id) {
+                getItem: function(id) {
                     return store.hasOwnProperty(id) ? String(store[id]) : undefined;
                 },
                 /**
@@ -66,16 +68,17 @@
                  * @param {String} id
                  * @returns {boolean}
                  */
-                removeItem: function (id) {
+                removeItem: function(id) {
                     return delete store[id];
                 },
                 /**
                  * Clears the storage.
                  */
-                clear: function () {
+                clear: function() {
                     initStorage(storageType);
                 }
             };
+
             window[storageType] = store;
         }
 
@@ -89,7 +92,9 @@
      * @constructor
      */
     var FavoritesStorage = function(storageType) {
-        console.log("Initializing FavoritesStorage with " + storageType + ".");
+        if (CPK.verbose === true) {
+            console.log("Initializing FavoritesStorage with " + storageType + ".");
+        }
 
         var $storage = window[storageType],
             $favorites = [],
@@ -100,7 +105,10 @@
 
         // Ensure that storage has name set
         if (!($storage.hasOwnProperty("name") && $storage.name !== "undefined")) {
-            console.log("Storage has no name - setting one...");
+            if (CPK.verbose === true) {
+                console.log("Storage has no name - setting one...");
+            }
+
             Object.defineProperty($storage, "name", { get: function() { return "_favs"; } });
         }
 
@@ -186,7 +194,7 @@
          */
         this.has = function(id) {
             return new Promise(function(resolve, reject) {
-                var job = function () {
+                var job = function() {
                     var regexp = new RegExp("\/" + id.replace(/\./,"\\."));
 
                     if (!$favorites) {
@@ -220,14 +228,12 @@
                     reject("Can not get Favorite without an identifier.");
                 }
 
-                var job = function () {
+                var job = function() {
                     /**
                      * @todo Tohle `favorite` se asi vytváří při parsování výsledků vyhledávání...
                      */
                     var favObj = favorite[id];
-
                     favorites.notifications.favAdded();
-
                     resolve(new favorites.Favorite().fromObject(favObj));
                 };
 
@@ -244,7 +250,6 @@
                 var job = function() {
                     resolve($favorites.map(function(fav) {
                         favorites.notifications.favAdded();
-
                         return new Favorite().fromObject(fav);
                     }));
                 };

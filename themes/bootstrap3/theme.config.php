@@ -37,7 +37,6 @@ $toRet = array(
         'vendor/jquery.visible.min.js',
         'vendor/jquery.bootstrap-growl.js',
         'jquery-cpk/common.js',
-        //'jquery-cpk/favorites.js',
         'jquery-cpk/favorites.notifications.js',
         'jquery-cpk/favorites.favorite.js',
         'jquery-cpk/favorites.storage.js',
@@ -46,9 +45,6 @@ $toRet = array(
         'jquery-cpk/notifications.js',
         'jquery-cpk/admin.js',
         'jquery-cpk/history.js',
-        //'jquery-cpk/module.js',
-        //'jquery-cpk/global.controller.js',
-        //'jquery-cpk/translate.filter.js',
     ),
     'less' => array(
         'active' => false,

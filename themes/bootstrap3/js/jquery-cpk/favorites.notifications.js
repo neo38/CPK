@@ -15,19 +15,17 @@
      * @returns {Object}
      */
     function FavoritesNotificationsService() {
-        // Public object
         var notifications = {
             favoriteAdded : favoriteAdded,
             allFavoritesRemoved : allFavoritesRemoved
         };
 
-        // Private vars
         var addedSomethingAlready = false,
             notificationsEnabled = typeof __notif !== "undefined";
 
         return notifications;
 
-        // Public methods
+        // Public
 
         /**
          * Notification about favorite was added.
@@ -60,7 +58,7 @@
             }
         }
 
-        // Private methods
+        // Private
 
         /**
          * Creates notification warning.

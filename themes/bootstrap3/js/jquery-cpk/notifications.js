@@ -12,6 +12,14 @@
     }
 
     /**
+     * @todo Before was the Angular module constructed like in code below we need to investigate how to correctly initialize "globalNotif" aka "globalNotifDirective".
+     *
+     * angular.module('notifications').controller('NotificationsController', NotificationsController).directive('globalNotif', globalNotifDirective).directive('institutionNotif', institutionNotif);
+     * NotificationsController.$inject = [ '$q', '$log', '$http', '$location', '$rootScope' ];
+     * globalNotifDirective.$inject = [ '$log' ];
+     */
+
+    /**
      * Holds DOM elements of global notifications section
      * @type {Object}
      */
@@ -53,8 +61,11 @@
         vm.notifications = {};
         vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
         vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
-        vm.notifClicked = notifClicked;
+        vm.onNotificationClick = onNotificationClick;
 
+        /**
+         * Helper function called when the linker is done.
+         */
         onLinkerDone = function() {
             if (!hasGlobalNotifications()) {
                 if (apiNonrelevantJobDoneFlag) {
@@ -72,20 +83,23 @@
         /**
          * Initializes an empty array for an username provided in order
          * to successfully bind data to this Controller.
+         * @param {String} source
+         * @param {String} username
          */
         function initApiRelevantNotificationsForUserCard(source, username) {
             vm.notifications[username] = [];
 
             $q.resolve(fetchNotificationsForUserCard(username)).then(function(notifications) {
-                    onGotNotificationsForUserCard(notifications, source, username);
+                onGotNotificationsForUserCard(notifications, source, username);
             }).catch(function(reason) {
-                    if (CPK.verbose === true) {
-                        console.error(reason);
-                    }
+                if (CPK.verbose === true) {
+                    console.error(reason);
+                }
             });
         }
 
         /**
+         * Initialize API non-relevant notifications.
          * @todo That "$q" is used!!!
          */
         function initApiNonrelevantNotifications() {
@@ -93,8 +107,8 @@
             vm.notifications.noAPI.user = [];
 
             $q.resolve(fetchNotificationsForUser()).then(function(notifications) {
-                    onGotNotificationsForUser(notifications);
-                    apiNonrelevantJobDone();
+                onGotNotificationsForUser(notifications);
+                apiNonrelevantJobDone();
             }).catch(function() {
                 if (CPK.verbose === true) {
                     console.error(reason);
@@ -127,7 +141,7 @@
                 updateUnreadNotificationsCount();
                 showWarningIcon();
             } else {
-                hideDOM(institutionNotifLoaderHolder[source + ".parent"]);
+                CPK.global.hideDOM(institutionNotifLoaderHolder[source + ".parent"]);
             }
 
             hideLoader(source);
@@ -149,9 +163,9 @@
             }
 
             notifications.forEach(function(notification) {
-                    if (notification.clazz.match(/unread/)) {
-                        ++unreadNotifsCount;
-                    }
+                if (notification.clazz.match(/unread/)) {
+                    ++unreadNotifsCount;
+                }
             });
 
             updateUnreadNotificationsCount();
@@ -160,6 +174,8 @@
 
         /**
          * A notification has been clicked .. follow the href if any.
+         * @param {Object} notification
+         * @param {String} source
          */
         function onNotificationClick(notification, source) {
             var clazz = notification.clazz,
@@ -201,9 +217,14 @@
 
         /**
          * Prints errors found in server's response onto console.
+         * (Only when "CPK.verbose" is TRUE.)
          * @param {Object} response
          */
         function print_response_errors(response) {
+            if (CPK.verbose !== true) {
+                return;
+            }
+
             if (typeof response.errors === "object") {
                 response.errors.forEach(function(e) {
                     console.error(e);
@@ -233,10 +254,9 @@
                             resolve(response.notifications);
 
                             if (response.notifications.length == 0) {
+                                var msg = VuFind.translate("without_notifications");
                                 $("ul#notificationsList > li#" + response.source).append(
-                                    '<div class="notif-default">' +
-                                    VuFind.translate("without_notifications") +
-                                    '</div>'
+                                    "<div class='notif-default'>" + msg + "</div>"
                                 );
                             }
                         } else {
@@ -279,7 +299,9 @@
          * @param {String} source
          */
         function hideLoader(source) {
-            hideDOM(typeof source === "undefined" ? globalNotifHolder.loader : institutionNotifLoaderHolder[source]);
+            CPK.global.hideDOM(typeof source === "undefined"
+                ? globalNotifHolder.loader
+                : institutionNotifLoaderHolder[source]);
 
             if (!hasGlobalNotifications()) {
                 hideGlobalNotifications();
@@ -292,7 +314,9 @@
          * @param {String} source
          */
         function showLoader(source) {
-            showDOM(typeof source === "undefined" ? globalNotifHolder.loader : institutionNotifLoaderHolder[source]);
+            CPK.global.showDOM(typeof source === "undefined"
+                ? globalNotifHolder.loader
+                : institutionNotifLoaderHolder[source]);
 
             if (hasGlobalNotifications()) {
                 showGlobalNotifications();
@@ -308,11 +332,9 @@
 
         /**
          * Shows warning icon by setting DOM element's style to nothing.
+         * @todo Shouldn't be "block" instead of empty string?!
          */
         function showWarningIcon() {
-            /**
-             * @todo Shouldn't be "block" instead of ""?!
-             */
             globalNotifHolder.warningIcon.style.display = "";
         }
 
@@ -328,22 +350,14 @@
          * Hides up the global notification section.
          */
         function hideGlobalNotifications() {
-            hideDOM(globalNotifHolder.parent);
+            CPK.global.hideDOM(globalNotifHolder.parent);
         }
 
         /**
          * Shows up the global notification section.
          */
         function showGlobalNotifications() {
-            showDOM(globalNotifHolder.parent);
-        }
-
-        function showDOM(dom) {
-            dom.removeAttribute("hidden");
-        }
-
-        function hideDOM(dom) {
-            dom.setAttribute("hidden", "hidden");
+            CPK.global.showDOM(globalNotifHolder.parent);
         }
 
         /**
@@ -351,12 +365,15 @@
          * @returns {boolean}
          */
         function hasGlobalNotifications() {
-            var hasSynchronousGlobalNotifications = globalNotifHolder.synchronousNotifications.children.length !== 0;
-            var hasApiNonrelevantNotifications = typeof vm.notifications.noAPI.user === "object" && vm.notifications.noAPI.user.length !== 0;
+            var hasSynchronousGlobalNotifications = globalNotifHolder.synchronousNotifications.children.length !== 0,
+                hasApiNonrelevantNotifications = typeof vm.notifications.noAPI.user === "object" && vm.notifications.noAPI.user.length !== 0;
 
             return hasSynchronousGlobalNotifications || hasApiNonrelevantNotifications;
         }
 
+        /**
+         * Called when API non-relevant job is done.
+         */
         function apiNonrelevantJobDone() {
             apiNonrelevantJobDoneFlag = true;
 
@@ -402,7 +419,9 @@
                     break;
 
                 default:
-                    console.error("Linker for notifications controller failed to link global notifications element.");
+                    if (CPK.verbose === true) {
+                        console.error("Linker for notifications controller failed to link global notifications element.");
+                    }
                     break;
             }
 
@@ -431,7 +450,7 @@
             if (++i === buf["globalNotifHolderKeysLength"]) {
                 if (typeof onLinkerDone === "function") {
                     onLinkerDone();
-                } else {
+                } else if (CPK.verbose === true) {
                     console.error("onLinkerDone must be a function!");
                 }
             }

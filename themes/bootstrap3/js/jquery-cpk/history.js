@@ -10,10 +10,11 @@
         console.log("jquery-cpk/history.js");
     }
 
-    var onHistoryUsernameLinked = function() {};
-    var pagesCountDOM = {};
+    var onHistoryUsernameLinked = function() {},
+        pagesCountDOM = {};
 
     /**
+     * History service controller
      * @param {Object} $q
      * @returns {CheckedOutHistoryController}
      * @constructor
@@ -29,8 +30,6 @@
         onHistoryUsernameLinked = onHistoryUsernameDirectiveLinked;
 
         var vm = this;
-
-        // Public
         vm.historyPage = [];
         vm.pageSelected = pageSelected;
         vm.perPage = 10;
@@ -46,7 +45,7 @@
          */
         function pageSelected(page) {
             // Show loader
-            loaderDiv.removeAttribute("hidden");
+            CPK.global.showDOM(loaderDiv);
 
             // Clear the page
             vm.historyPage = [];
@@ -57,7 +56,11 @@
 
             $q.resolve(getMyHistoryPage())
                 .then(onGotMyHistoryPage)
-                .catch(function(err) { console.error(err); });
+                .catch(function(err) {
+                    if (CPK.verbose === true) {
+                        console.error(err);
+                    }
+                });
 
             /**
              * @todo What is "$scope.$applyAsync"!
@@ -70,7 +73,9 @@
                     loaderDiv.setAttribute("hidden", "hidden");
                     vm.historyPage = historyPage;
                     return resolve();
-                }).then($scope.$applyAsync).then(downloadCovers(result["obalky"]));
+                }).then($scope.$applyAsync).then(function() {
+                    downloadCovers(result["obalky"])
+                });
             }
         }
 
@@ -160,7 +165,7 @@
 
             // Execute non-blocking Q
             $q.resolve(getMyHistoryPage()).then(onGotMyHistoryPage).catch(function(err) {
-                loaderDiv.innerHTML = '<span class="label label-danger">' + err.message + '</span>';
+                loaderDiv.innerHTML = "<span class='label label-danger'>" + err.message + "</span>";
             });
 
             /**
@@ -189,7 +194,9 @@
                     loaderDiv.setAttribute("hidden", "hidden");
                     vm.historyPage = historyPage;
                     resolve();
-                }).then($scope.$applyAsync).then(downloadCovers(result["obalky"]));
+                }).then($scope.$applyAsync).then(function() {
+                    downloadCovers(result["obalky"]);
+                });
             }
         }
 
@@ -198,13 +205,15 @@
          * @param {Object} covers
          */
         function downloadCovers(covers) {
-            console.log(covers);
+            if (CPK.verbose === true) {
+                console.log(covers);
+            }
 
             if (typeof covers !== "undefined") {
                 return;
             }
 
-            for ( var id in covers) {
+            for (var id in covers) {
                 if (covers.hasOwnProperty(id)) {
                     obalky.fetchImage(id, covers[id].bibInfo, covers[id].advert, "icon");
                 }
