@@ -261,7 +261,7 @@
             if (masterTabId === tabId || masterTabId === "rand") {
                 becomeMaster(true);
             } else if (CPK.verbose === true) {
-                console.debug(Being a slaveTab is nice!);
+                console.debug("Being a slaveTab is nice!");
             }
         }
 
@@ -311,10 +311,13 @@
              * @param {Event} event
              */
             function masterJob(event) {
-                if (event.key == "giveMeFavorites" && event.newValue) {
+                if (CPK.verbose === true) {
+                    console.log("FavoritesBroadcaster -> becomeMaster -> masterJob",
+                        event.key, event.key === "giveMeFavorites", event);
+                }
+                if (event.key === "giveMeFavorites" && event.newValue) {
                     // Some tab asked for the sessionStorage -> send it
                     lastKnownTabId = event.newValue;
-
                     broadcast(event.newValue, sessionStorage.getItem(storage.name));
                 }
             }
@@ -346,7 +349,7 @@
                 };
 
                 if (CPK.verbose) {
-                    console.debug('Pushing favorites on prompt ..', data);
+                    console.debug("Pushing favorites on prompt ...", data);
                 }
 
                 /**

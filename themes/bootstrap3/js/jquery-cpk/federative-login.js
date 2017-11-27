@@ -116,7 +116,9 @@
                 try {
                     lastIdps = JSON.parse(lastIdps);
                 } catch (e) {
-                    console.error("Could not parse lastIdps from localStorage", e);
+                    if (CPK.verbose === true) {
+                        console.error("Could not parse lastIdps from localStorage", e);
+                    }
                     lastIdps = [];
                 }
 

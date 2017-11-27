@@ -38,7 +38,7 @@
  * @todo Use CPK.verbose across all scripts!
  */
 
-if (typeof CPK == "undefined")
+if (typeof CPK === "undefined")
     /**
      * @type {Object}
      */
@@ -58,3 +58,10 @@ CPK.favorites = {};
  * @type {Object}
  */
 CPK.admin = {};
+
+/**
+ * @type {Object}
+ */
+CPK.global = {
+    //...
+};

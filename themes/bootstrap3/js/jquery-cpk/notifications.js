@@ -76,28 +76,29 @@
         function initApiRelevantNotificationsForUserCard(source, username) {
             vm.notifications[username] = [];
 
-            $q.resolve(fetchNotificationsForUserCard(username)).then(
-                function(notifications) {
+            $q.resolve(fetchNotificationsForUserCard(username)).then(function(notifications) {
                     onGotNotificationsForUserCard(notifications, source, username);
-                }
-            ).catch(
-                function(reason) {
-                    console.error(reason);
-                }
-            );
+            }).catch(function(reason) {
+                    if (CPK.verbose === true) {
+                        console.error(reason);
+                    }
+            });
         }
 
+        /**
+         * @todo That "$q" is used!!!
+         */
         function initApiNonrelevantNotifications() {
             vm.notifications.noAPI = {};
             vm.notifications.noAPI.user = [];
 
-            $q.resolve(fetchNotificationsForUser()).then(
-                function(notifications) {
+            $q.resolve(fetchNotificationsForUser()).then(function(notifications) {
                     onGotNotificationsForUser(notifications);
                     apiNonrelevantJobDone();
+            }).catch(function() {
+                if (CPK.verbose === true) {
+                    console.error(reason);
                 }
-            ).catch(function() {
-                console.error(reason);
                 apiNonrelevantJobDone();
             });
         }
@@ -147,13 +148,11 @@
                 return;
             }
 
-            notifications.forEach(
-                function(notification) {
+            notifications.forEach(function(notification) {
                     if (notification.clazz.match(/unread/)) {
                         ++unreadNotifsCount;
                     }
-                }
-            );
+            });
 
             updateUnreadNotificationsCount();
             showWarningIcon();
@@ -163,9 +162,9 @@
          * A notification has been clicked .. follow the href if any.
          */
         function onNotificationClick(notification, source) {
-            var clazz = notification.clazz;
-            var href  = notification.href;
-            var type  = notification.type;
+            var clazz = notification.clazz,
+                href  = notification.href,
+                type  = notification.type;
 
             if (clazz.match(/unread/)) {
                 --unreadNotifsCount;
