@@ -1,0 +1,3 @@
+# Standardy pro psaní kódu
+
+...
