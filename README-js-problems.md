@@ -15,9 +15,6 @@ U vlastního JavaScriptu:
 - kód je z větší části bez komentářů
 - občas jsou použité různé funkce pro stejný úkol
 
-Navrhovaný seznam úprav:
-
-
 ## Nalezené problémy
 
 ### Cizí JS knihovny
