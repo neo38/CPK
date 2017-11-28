@@ -1,5 +1,7 @@
 # CPK/themes/bootstrap3/js
 
+__UPOZORNĚNÍ: Toto je pracovní verze dokumentu!!! Není určena ke čtení!!!__
+
 ## Souhrn
 
 Níže je seznam problémů s použitým JS, nejprve stručně:
