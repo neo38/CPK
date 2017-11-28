@@ -8,8 +8,10 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function($) {
-    if (CPK.verbose === true) {
+(function($, $log, $cpk) {
+	"use strict";
+
+    if ($cpk.verbose === true) {
         console.log("jquery-cpk/favorites.favorite.js");
     }
 
@@ -58,8 +60,8 @@
         };
 
         // Create getter/setters according to $vars
-        $.each($vars, function(prop) {
-            if (CPK.verbose === true) {
+        Object.getOwnPropertyNames( $vars ).forEach(( prop ) => {
+            if ($cpk.verbose === true) {
                 console.log(prop);
             }
             if (prop === "created") {
@@ -79,9 +81,9 @@
          * @param {Object} obj
          */
         this.fromObject = function(obj) {
-            if (typeof obj !== "object" && CPK.verbose === true) {
+            if (typeof obj !== "object" && $cpk.verbose === true) {
                 console.error("Trying to create Favorite from object, but no object was passed!");
-            } else if (!obj.hasOwnProperty("created") && CPK.verbose === true) {
+            } else if (!obj.hasOwnProperty("created") && $cpk.verbose === true) {
                 console.error("Missing timestamp property in the passed object!");
             } else {
                 $vars = obj;
@@ -101,7 +103,7 @@
                  * @param {String} msg
                  */
                 function(msg) {
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error(msg);
                     }
                 }
@@ -122,7 +124,7 @@
                  * @param {String} msg
                  */
                 function(msg) {
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error(msg);
                     }
                 }
@@ -174,42 +176,42 @@
                     var expectedSiblingHeader = tablePointer.siblings("h2");
                     return (expectedSiblingHeader.length > 0)
                         ? expectedSiblingHeader.find("strong").text()
-                        : (CPK.verbose === true) ? console.error("Parsing record title failed!") : null;
+                        : ($cpk.verbose === true) ? console.error("Parsing record title failed!") : null;
                 })();
                 fav.authorLink = (function() {
                     var link = authorPointer.prop("href");
                     return (typeof link === "string")
                         ? link
-                        : CPK.verbose === true ? console.error("Parsing author's link failed!") : null;
+                        : $cpk.verbose === true ? console.error("Parsing author's link failed!") : null;
                 })();
                 fav.author = (function() {
                     var author = authorPointer.text();
                     return (typeof author === "string")
                         ? author
-                        : CPK.verbose === true ? console.error("Parsing author's name failed!") : null;
+                        : $cpk.verbose === true ? console.error("Parsing author's name failed!") : null;
                 })();
                 fav.formatIconClass = (function() {
                     var expectedIcon = formatPointer.children("i");
                     return (expectedIcon.length)
                         ? expectedIcon.attr("class")
-                        : CPK.verbose === true ? console.error("Parsing format icon class failed!") : null;
+                        : $cpk.verbose === true ? console.error("Parsing format icon class failed!") : null;
                 })();
                 fav.format = (function() {
                     var expectedSpan = formatPointer.children("span");
                     return (expectedSpan.length)
                         ? expectedSpan.attr("data-orig")
-                        : CPK.verbose === true ? console.error("Parsing record format failed!") : null;
+                        : $cpk.verbose === true ? console.error("Parsing record format failed!") : null;
                 })();
                 fav.published = (function() {
                     var expectedSpan = tablePointer.find("tbody tr td span[property=publicationDate]");
                     return (expectedSpan.length)
                         ? expectedSpan.text()
-                        : CPK.verbose === true ? console.error("Parsing publication year failed!") : null;
+                        : $cpk.verbose === true ? console.error("Parsing publication year failed!") : null;
                 })();
                 fav.image = (function() {
                     var expectedParentSiblingSmallDivision = tablePointer.parent().siblings("div.col-sm-3");
                     if (expectedParentSiblingSmallDivision.length <= 0) {
-                        return CPK.verbose === true ? console.error("Parsing record image's parent division failed!") : null;
+                        return $cpk.verbose === true ? console.error("Parsing record image's parent division failed!") : null;
                     }
 
                     var expectedImg = expectedParentSiblingSmallDivision.find("img");
@@ -221,7 +223,7 @@
                     // Parsing image has failed .. so try to parse an icon
                     var expectedIcon = expectedParentSiblingSmallDivision.find("i[class][style]");
                     if (expectedIcon.length <= 0) {
-                        return CPK.verbose === true ? console.error("Parsing record image source or icon failed!") : null;
+                        return $cpk.verbose === true ? console.error("Parsing record image source or icon failed!") : null;
                     }
 
                     // Set at least the icon to the object
@@ -269,7 +271,7 @@
                         return anchor.textContent.trim();
                     }
 
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error("Parsing search record title and titleLink failed!");
                     }
                 })();
@@ -281,7 +283,7 @@
                         return anchor.textContent.trim();
                     }
 
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error("Parsing search record author and authorLink failed!");
                     }
                 })();
@@ -293,7 +295,7 @@
                         return iconDiv.getElementsByTagName("span")[0].getAttribute("data-orig");
                     }
 
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error("Parsing format icon class failed!");
                         console.error("Parsing record format failed!");
                     }
@@ -305,7 +307,7 @@
                         return span.textContent.trim();
                     }
 
-                    if (CPK.verbose === true) {
+                    if ($cpk.verbose === true) {
                         console.error("Parsing date of publishing failed!")
                     }
                 })();
@@ -328,7 +330,7 @@
                             return undefined;
                         }
 
-                        if (CPK.verbose === true) {
+                        if ($cpk.verbose === true) {
                             console.log(err);
                         }
                     } catch (e) {
@@ -344,6 +346,6 @@
     /**
      * @type {Favorite}
      */
-    CPK.favorites.Favorite = Favorite;
+    $cpk.favorites.Favorite = Favorite;
 
-}(jQuery));
+}(jQuery, console, CPK));

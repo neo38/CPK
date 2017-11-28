@@ -22,6 +22,7 @@
     /**
      * Holds DOM elements of global notifications section
      * @type {Object}
+     * @see themes/bootstrap3/templates/notifications.phtml
      */
     var globalNotifHolder = {
         loader: undefined,
@@ -59,26 +60,83 @@
 
         // Public
         vm.notifications = {};
-        vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
-        vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
+        // Note (ondrejd): I think we don't need to expose those but I will
+        // delete it later... in fact at the end we should have only one
+        // public method - "onReady" called from initialization part of
+        // file "common.js".
+        //vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
+        //vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
         vm.onNotificationClick = onNotificationClick;
-
-        /**
-         * Helper function called when the linker is done.
-         */
-        onLinkerDone = function() {
-            if (!hasGlobalNotifications()) {
-                if (apiNonrelevantJobDoneFlag) {
-                    hideGlobalNotifications();
-                } else {
-                    onApiNonrelevantJobDone = onLinkerDone;
-                }
-            } else {
-                showWarningIcon();
-            }
-        };
+        vm.onReady = onReady;
+        vm.showWarningIcon = showWarningIcon;
+        vm.hideWarningIcon = hideWarningIcon;
 
         return vm;
+
+        /**
+         * Initializes notifications (just like linkers before for Angular app).
+         * @param {Event} event
+         * @return {Promise}
+         */
+        function onReady( event ) {
+            return new Promise(function( resolve, reject ) {
+                // If elements for `globalNotifHolder` are not found it means
+                // that there is no logged user...
+
+                // Initialize "globalNotifHolder"
+                globalNotifHolder.loader = document.getElementById( "notif_loader" );
+                globalNotifHolder.parent = document.getElementById( "notificationsList" ).getElementsByTagName( "li" ).item( 0 );
+                globalNotifHolder.synchronousNotifications = document.getElementById( "notif_synchronous_notifications" );
+                globalNotifHolder.warningIcon = document.getElementById( "notif_icon" );
+                globalNotifHolder.unreadNotifsCount = document.getElementById( "notif_unread_count" );
+
+                // Check if DOM bindings are initialized
+                var res = true;
+                Object.getOwnPropertyNames( globalNotifHolder ).forEach(function( prop ) {
+                    if ( globalNotifHolder[prop].nodeType !== 1 ) {
+                        res = false;
+                    }
+                });
+
+                if (res !== true) {
+                    if (CPK.verbose === true) {
+                        console.log("globalNotifHolder is not loaded -> probably no user is logged in...");
+                    }
+
+                    reject( "Notifications are disabled for this session..." );
+                } else {
+					resolve( "Notifications DOM binding is ready..." );
+                }
+
+                // Initialize API non relevant notifications for user card (initApiNonrelevantNotifications)
+                //initApiNonrelevantNotifications();
+
+
+                // 6) Initialize API relevant notifications for user card (initApiRelevantNotificationsForUserCard)
+                // 7) Attach handler for "notifCtrl.notifClicked(notification,"user")"
+                // 8) Attach handler for "notifCtrl.notifClicked(notification,"<?=$source ?>")"
+
+                // If everything is OK we can now check how to set up the UI
+                /*if (!hasGlobalNotifications()) {
+                    if (apiNonrelevantJobDoneFlag) {
+                        hideGlobalNotifications();
+                    } else {
+                        onApiNonrelevantJobDone()
+                    }
+                } else {
+                    showWarningIcon();
+                }*/
+            }).then(function( result ) {
+            	console.log( result );
+                if ( result === true ) {
+                    // Notifications DOM bindings are ready so continue with initializing notifications
+                    // that are not relevat to API.
+                    return new Promise().resolve( fetchNotificationsForUser() ).then(function(notifications) {
+						console.log(notifications);
+					});
+                }
+            });
+        }
 
         /**
          * Initializes an empty array for an username provided in order
@@ -106,7 +164,18 @@
             vm.notifications.noAPI = {};
             vm.notifications.noAPI.user = [];
 
-            $q.resolve(fetchNotificationsForUser()).then(function(notifications) {
+            (new Promise()).resolve(fetchNotificationsForUser())
+                .then(function(notifications) {
+
+                })
+                .catch(function(err) {
+                    if (CPK.verbose === true) {
+                        console.error(err);
+                    }
+
+                    apiNonrelevantJobDone();
+                });
+            /*$q.resolve(fetchNotificationsForUser()).then(function(notifications) {
                 onGotNotificationsForUser(notifications);
                 apiNonrelevantJobDone();
             }).catch(function() {
@@ -114,7 +183,7 @@
                     console.error(reason);
                 }
                 apiNonrelevantJobDone();
-            });
+            });*/
         }
 
         /**
@@ -253,7 +322,7 @@
                         if (typeof response.notifications !== "undefined") {
                             resolve(response.notifications);
 
-                            if (response.notifications.length == 0) {
+                            if (response.notifications.length === 0) {
                                 var msg = VuFind.translate("without_notifications");
                                 $("ul#notificationsList > li#" + response.source).append(
                                     "<div class='notif-default'>" + msg + "</div>"
@@ -380,52 +449,6 @@
             if (typeof onApiNonrelevantJobDone === "function") {
                 onApiNonrelevantJobDone.call();
             }
-        }
-    }
-
-    /**
-     * Hooks DOM elements to an variable associated with notifications linked
-     * with the portal, not the institutions within it.
-     * @returns {Object}
-     */
-    function globalNotifDirective() {
-        return {
-            restrict: "A",
-            link: linker
-        };
-
-        var buf = undefined;
-
-        function linker(scope, elms, attrs) {
-            switch (attrs.globalNotif) {
-                case "loader":
-                    globalNotifHolder.loader = elms.context;
-                    break;
-
-                case "parent":
-                    globalNotifHolder.parent = elms.context;
-                    break;
-
-                case "synchronousNotifications":
-                    globalNotifHolder.synchronousNotifications = elms.context;
-                    break;
-
-                case "warningIcon":
-                    globalNotifHolder.warningIcon = elms.context;
-                    break;
-
-                case "unreadNotifsCount":
-                    globalNotifHolder.unreadNotifsCount = elms.context;
-                    break;
-
-                default:
-                    if (CPK.verbose === true) {
-                        console.error("Linker for notifications controller failed to link global notifications element.");
-                    }
-                    break;
-            }
-
-            checkLinkerIsDone();
         }
     }
 

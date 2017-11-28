@@ -189,8 +189,7 @@
             'libraryCards' => $libraryCards,
             'notificationsEnabled' => $notificationsEnabled,
         ];
-    ?>
-    <?
+
       $root = rtrim($this->url('home'), '/');
       $translations = $this->jsTranslations()->getJSON();
       $dsb = DEFAULT_SEARCH_BACKEND;
@@ -231,8 +230,8 @@
                  <?=$this->render('search/searchbox.phtml'); ?>
                  <?=$this->render('shib-assertion.phtml')?>
                  <a href="/Search/Inspiration" class="pull-left arrow-link"><i class="pr-interface-arrowleft"></i> <?=$this->transEsc("frontpage-left-arrow-link")?></a>
-                 <a href="/Search/Results/?lookfor0[]=&type0[]=Libraries&bool0[]=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=10&sort=relevance&page=1&searchTypeTemplate=basic&keepFacetsEnabled=true&join=AND" class="pull-right arrow-link">
-                   <? $titleHtml = $this->transEsc("frontpage-right-arrow-link") ."<i class=\"pr-interface-arrowright\"></i>"; ?>
+                 <a href="/Search/Results/?lookfor0[]=&amp;type0[]=Libraries&amp;bool0[]=AND&amp;filter=&amp;daterange=&amp;publishDatefrom=&amp;publishDateto=&amp;limit=10&amp;sort=relevance&amp;page=1&amp;searchTypeTemplate=basic&amp;keepFacetsEnabled=true&amp;join=AND" class="pull-right arrow-link">
+                   <? $titleHtml = $this->transEsc('frontpage-right-arrow-link') . '<i class="pr-interface-arrowright"></i>'; ?>
                    <?= $this->help()->getElementHelp('element_help_frontpage_right_arrow', $titleHtml, "mzk") ?>
                  </a>
                </div>
@@ -250,7 +249,7 @@
         <? if ($this->layout()->frontpage != true): ?>
           <? if ($this->layout()->headerType != "libraries"): ?>
             <div class="clearfix">
-              <div class='container'>
+              <div class="container">
                 <?=$this->layout()->searchbox ?>
                 <?=$this->render('shib-assertion.phtml')?>
               </div>
@@ -273,9 +272,9 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 id="modalTitle" class="modal-title" data-ng-modal="global.header">&nbsp;</h4>
+            <h4 id="modalTitle" class="modal-title">&nbsp;</h4>
           </div>
-          <div class="modal-body" data-ng-modal="global.body"><?=$this->transEsc('Loading') ?>...</div>
+          <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
         </div>
       </div>
     </div>
@@ -283,18 +282,18 @@
     <!-- Modal for login -->
     <div class="modal fade" id="loginModal" role="dialog">
       <div class="modal-dialog" role="document">
-        <div class="modal-content" data-ng-controller="FederativeLoginController as fedLoginCtrl">
-          <div class="modal-header" data-ng-show='fedLoginCtrl.hasLastIdps()'>
+        <div class="modal-content">
+          <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title"><?=$this->translate('login_last_used')?></h4>
           </div>
-          <div class="modal-body last-idps" data-ng-last-used data-ng-show='fedLoginCtrl.hasLastIdps()'>
+          <div class="modal-body last-idps">
 		  </div>
-		  <div class="modal-header link" data-ng-click="fedLoginCtrl.showHelpContent()" style="cursor: pointer">
+		  <div class="modal-header link" style="cursor: pointer">
 		    <? $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]); ?>
 		    <h4 class="modal-title"><?=$portalPage['title']?></h4>
 		  </div>
-		  <div class="modal-body" data-ng-help-content hidden="hidden">
+		  <div class="modal-body" hidden="hidden">
 		    <?=$portalPage['content'] ?>
 		  </div>
           <div class="modal-header">
@@ -323,8 +322,11 @@
     </div>
     <? endif; ?>
     <? if (! $user && isset($_GET['AcceptTermsOfUse'])):
-      $agreeUrl = $this->url('myresearch-home').'?auth_method=Shibboleth&terms_of_use_accepted=yes'?>
+      $agreeUrl = $this->url('myresearch-home').'?auth_method=Shibboleth&amp;terms_of_use_accepted=yes'?>
     <!-- Modal for terms of use -->
+    <!--
+       - XXX This not should be here:
+       -->
     <script type="text/javascript">$(function(){$('#termsOfUseModal').modal('show').unbind('click');});</script>
     <div class="modal fade" id="termsOfUseModal" role="dialog">
       <div class="modal-dialog" role="document">

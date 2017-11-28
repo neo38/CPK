@@ -33,7 +33,8 @@
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo In code are used promises (regular "Promise" object) - would be better use pure jQuery solution!
+ * @todo Replace using of "Promise" by using "jQuery.Deferred().promise()".
+ * @todo When no "Promise" will be used we can move out "es6-promise.min.js" (loaded in layout.phtml).
  * @todo We need to replace all that ng-linker shit and replace it by jQuery-based solution!
  * @todo Would be great to make tests :)
  * @todo Use "CPK.verbose" across all scripts!
@@ -42,13 +43,16 @@
  * @todo Go through all TODOs and either fix them or remove.
  * @todo All code must be commented.
  * @todo We should also check help (for example here: https://cpk-front.mzk.cz/Portal/Page/napoveda#1.2)
+ * @todo File "jquery-cpk/admin.js" load only conditionally.
+ * @todo Reformat changed PHTML templates! --> all JS/PHTML files produced for this task should follow coding styles!
  */
 
-if (typeof CPK === "undefined")
+if (typeof CPK === "undefined") {
     /**
      * @type {Object}
      */
     var CPK = {};
+}
 
 /**
  * Should be jquery-cpk package executed in verbose mode?
@@ -75,24 +79,68 @@ CPK.global = {
      * Removes "hidden" attribute from the given element.
      * @param {Element} elm
      */
-    showDOM: function(elm) {
-        dom.removeAttribute("hidden");
+    showDOM: function (elm) {
+		"use strict";
+        elm.removeAttribute("hidden");
     },
 
     /**
      * Sets "hidden" attribute for the given element.
      * @param {Element} elm
      */
-    hideDOM: function(elm) {
-        dom.setAttribute("hidden", "hidden");
+    hideDOM: function (elm) {
+    	"use strict";
+		elm.setAttribute("hidden", "hidden");
+    },
+
+    controller: undefined
+};
+
+/**
+ * @todo This should be the only document.onReady handler.
+ */
+jQuery(document).ready(function(e) {
+	"use strict";
+
+    /**
+     * Array of messages returned by one-by-one initialized components.
+     * @type {Array}
+     */
+    var messages = [];
+
+    /**
+     * @callback
+     * @param {Array|String} message
+     * @returns {Promise}
+     */
+    function onNotificationsReady( message ) {
+        console.log( "CPK.notifications.onReady -> RESOLVED", message );
+
+        if ( jQuery.isArray( message ) === true ) {
+            messages.every(function( val ) { messages.push( val ); });
+        } else if ( message !== undefined ) {
+            messages.push( message );
+        }
     }
 
+    // In this moment should be already loaded Favorites.storage,
+    // Favorites.notifications and some others. Here are initialized
+    // only those modules which require to be bind with existing DOM.
+
+    // Initialize rest of jquery-cpk modules one by one:
+
+    // 1) Initialize notifications
+    CPK.notifications.onReady(e)
+        .then(onNotificationsReady)
+        .catch(function(error) {
+            console.log("CPK.notifications.onReady -> REJECTED", error);
+        });
+});
 
 
-
-    angular.module('cpk').controller('GlobalController', GlobalController).directive('ngModal', ngModal);
-
-    GlobalController.$inject = [ 'favsBroadcaster', '$rootScope', '$location', '$log', '$http' ];
+(function($) {
+    //angular.module('cpk').controller('GlobalController', GlobalController).directive('ngModal', ngModal);
+    //GlobalController.$inject = [ 'favsBroadcaster', '$rootScope', '$location', '$log', '$http' ];
 
     var linkedObjects = {
         modal : {
@@ -210,7 +258,7 @@ CPK.global = {
 
     /**
      * Handles calling the callback function appropriate to a modalId after are
-     * linked all the neccessarry modal attributes.
+     * linked all the necessary modal attributes.
      *
      * The callback must be set by onLinkedModal(modalId, callback)
      */
@@ -259,4 +307,4 @@ CPK.global = {
         }
     }
 
-};
+})(jQuery);

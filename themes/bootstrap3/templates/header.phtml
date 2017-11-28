@@ -1,6 +1,6 @@
 <div class="navbar-header">
   <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#header-collapse">
-    <span class="sr-only">Toggle navigation</span>
+    <span class="sr-only"><?=$this->translate('Toggle navigation')?></span>
     <i class="fa fa-bars"></i>
   </button>
   <a class="navbar-brand lang-<?=$this->layout()->userLang ?>" href="/Search/Home" style="padding: 0px;">
@@ -20,7 +20,7 @@
             <a href="/Search/Inspiration" title="<?=$this->translate('Inspiration')?>"><?=$this->translate('Inspiration')?></a>
         </li>
         <li <? if ($this->layout()->headerType == "newlibraries"): ?>class="active"<? endif; ?> id="librariesSearchLink">
-            <a href="/Search/Results/?lookfor0[]=&type0[]=Libraries&bool0[]=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=10&sort=relevance&page=1&searchTypeTemplate=basic&keepFacetsEnabled=true&join=AND">
+            <a href="/Search/Results/?lookfor0[]=&amp;type0[]=Libraries&amp;bool0[]=AND&amp;filter=&amp;daterange=&amp;publishDatefrom=&amp;publishDateto=&amp;limit=10&amp;sort=relevance&amp;page=1&amp;searchTypeTemplate=basic&amp;keepFacetsEnabled=true&amp;join=AND">
                 <? $titleHtml = $this->translate('Libraries') ?>
                 <?= $this->help()->getElementHelp('element_help_header_libraries', $titleHtml) ?>
             </a>
@@ -56,8 +56,7 @@
             } else {
                 $fullname = $this->transEsc("Your Account");
             } ?>
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?=$fullname?> <b
-					class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?=$fullname?> <b class="caret"></b></a>
 				<ul class="dropdown-menu">
 					<li class="myAccountOptions"><a
 						href="<?=$this->url('myresearch-home', array(), array('query' => array('redirect' => 0)))?>"
@@ -83,11 +82,9 @@
                     </li>
 				</ul>
 			</li>
-		  <? else: ?>
+		  <? else: $link_title = $this->transEsc('Your Favorites'); ?>
 		    <li>
-		      <a href="<?=$this->url('myresearch-favorites')?>"
-		        class="modal-link" title="<?=$this->transEsc('Your Favorites')?>"><i
-		        class="icon-oblibene"></i> <?=$this->transEsc('Your Favorites')?></a>
+		      <a href="<?=$this->url('myresearch-favorites')?>" class="modal-link" title="<?=$link_title?>"><i class="icon-oblibene"></i> <?=$link_title?></a>
 		    </li>
 		  <? endif ?>
 
@@ -101,7 +98,7 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?=$this->transEsc("Theme")?> <b class="caret"></b></a>
             <ul class="dropdown-menu">
               <? foreach ($this->layout()->themeOptions as $current): ?>
-                <li<?=$current['selected'] ? ' class="active"' : ''?>><a href="#" onClick="document.themeForm.ui.value='<?=$this->escapeHtmlAttr($current['name'])?>';document.themeForm.submit()"><?=$this->transEsc($current['desc'])?></a></li>
+                <li<?=$current['selected'] ? ' class="active"' : ''?>><a href="#" onclick="document.themeForm.ui.value='<?=$this->escapeHtmlAttr($current['name'])?>';document.themeForm.submit()"><?=$this->transEsc($current['desc'])?></a></li>
               <? endforeach; ?>
             </ul>
           </li>
@@ -126,8 +123,8 @@
             <? endif; ?>
           <? endforeach; ?>
           <? if (($this->layout()->userLang == 'dg')): ?>
-            <span class='questionmark-help' data-target='#modal_dg' data-toggle='modal'>
-            <span class='icon'>DG</span>
+            <span class="questionmark-help" data-target="#modal_dg" data-toggle="modal">
+            <span class="icon">DG</span>
             <!-- Modal -->
             <div class="modal fade" id="modal_dg" tabindex="-1" role="dialog" aria-labelledby="label_dg" style='z-index: 1234;'>
               <div class="modal-dialog" role="document" style="width: 100%;">
@@ -141,6 +138,9 @@
               </div>
             </div>
             </span>
+            <!--
+               - XXX Scripts below should not be here!
+               -->
             <script>
             jQuery( document ).ready( function( $ ) {
                 $( '#modal_dg' ).appendTo( 'body' );

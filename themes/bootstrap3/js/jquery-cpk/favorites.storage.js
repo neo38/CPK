@@ -316,6 +316,6 @@
     /**
      * @type {FavoritesStorage}
      */
-    CPK.favorites.storage = new FavoritesStorage($usedStorageType);
+    CPK.favorites.FavoritesStorage = new FavoritesStorage($usedStorageType);
 
 }(jQuery));

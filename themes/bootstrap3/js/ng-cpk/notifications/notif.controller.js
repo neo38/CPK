@@ -7,7 +7,10 @@
  */
 (function() {
 
-    angular.module('notifications').controller('NotificationsController', NotificationsController).directive('globalNotif', globalNotifDirective).directive('institutionNotif', institutionNotif);
+    angular.module('notifications')
+		.controller('NotificationsController', NotificationsController)
+		.directive('globalNotif', globalNotifDirective)
+		.directive('institutionNotif', institutionNotif);
 
     NotificationsController.$inject = [ '$q', '$log', '$http', '$location', '$rootScope' ];
     
