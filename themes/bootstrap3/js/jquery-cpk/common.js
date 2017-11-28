@@ -76,6 +76,12 @@ CPK.admin = {};
 CPK.global = {
 
     /**
+     * TRUE if notifications are available.
+     * @type {boolean}
+     */
+    areNotificationsAvailable: false,
+
+    /**
      * Removes "hidden" attribute from the given element.
      * @param {Element} elm
      */
@@ -131,10 +137,18 @@ jQuery(document).ready(function(e) {
 
     // 1) Initialize notifications
     CPK.notifications.onReady(e)
-        .then(onNotificationsReady)
+        .then(function(result) {
+            CPK.areNotificationsAvailable = ( result === true );
+        })
         .catch(function(error) {
             console.log("CPK.notifications.onReady -> REJECTED", error);
         });
+
+    // 2) Initialize federative login
+
+
+
+    CPK.login.onReady()
 });
 
 

@@ -3,15 +3,15 @@
   <head>
     <?$this->headThemeResources()?>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <?=$this->headMeta()?>
-    <meta property="og:url"                content="https://knihovny.cz/" />
-    <meta property="og:title"              content="Knihovny.cz" />
-    <meta property="og:description"  content="Knihovny pod jednou střechou. Využijte komfort a jednoduchost prohledávání fondů desítek českých knihoven současně. Využijte služeb knihoven, objednávejte, stahujte - kdykoliv a kdekoliv." />
-    <meta property="og:image"              content="https://knihovny.cz/themes/bootstrap3/images/screenshot.png" />
-    <meta property="og:image:secure_url"   content="https://knihovny.cz/themes/bootstrap3/images/screenshot.png" />
-    <meta name="referrer" content="unsafe-url" />
+    <meta property="og:url" content="https://knihovny.cz/">
+    <meta property="og:title" content="Knihovny.cz" />
+    <meta property="og:description" content="Knihovny pod jednou střechou. Využijte komfort a jednoduchost prohledávání fondů desítek českých knihoven současně. Využijte služeb knihoven, objednávejte, stahujte - kdykoliv a kdekoliv.">
+    <meta property="og:image" content="https://knihovny.cz/themes/bootstrap3/images/screenshot.png">
+    <meta property="og:image:secure_url" content="https://knihovny.cz/themes/bootstrap3/images/screenshot.png">
+    <meta name="referrer" content="unsafe-url">
     <?=$this->headTitle()?>
     <?
       // Set up OpenSearch link:
@@ -23,17 +23,18 @@
           'rel' => 'search'
         )
       );
-    ?>
-    <!-- RTL styling -->
-    <? if ($this->layout()->rtl) {
-      $this->headLink()->appendStylesheet('vendor/bootstrap-rtl.min.css');
-    } ?>
-    <?=$this->headLink()?>
-    <?=$this->render("layout/fonts.phtml")?>
-    <?=$this->headStyle()?>
-    <?
+
+      // RTL styling
+      if ($this->layout()->rtl) {
+        $this->headLink()->appendStylesheet('vendor/bootstrap-rtl.min.css');
+      }
+
+      echo $this->headLink();
+      echo $this->render("layout/fonts.phtml");
+      echo $this->headStyle();
+
+      // Add translation strings
       if (!isset($this->renderingError)) {
-        // Add translation strings
         $this->jsTranslations()->addStrings(
           array(
             'bulk_email_success' => 'bulk_email_success',
@@ -82,27 +83,21 @@
             'caslin_tab_link' => 'caslin_tab_link',
             'Expand or collapse' => 'Expand or collapse',
             'Do not forget to update search results' => 'Do not forget to update search results',
-            'warning_safety_login' => 'warning_safety_login'
-          )
-        );
-        // Add libphonenumber.js strings
-        $this->jsTranslations()->addStrings(
-          array(
+            'warning_safety_login' => 'warning_safety_login',
+            // Add libphonenumber.js strings
             "'Phone number invalid'" => 'libphonenumber_invalid',
             "'Invalid country calling code'" => 'libphonenumber_invalidcountry',
             "'Invalid region code'" => 'libphonenumber_invalidregion',
             "'The string supplied did not seem to be a phone number'" => 'libphonenumber_notanumber',
             "'The string supplied is too long to be a phone number'" => 'libphonenumber_toolong',
             "'The string supplied is too short to be a phone number'" => 'libphonenumber_tooshort',
-            "'Phone number too short after IDD'" => 'libphonenumber_tooshortidd'
-          )
-        );
-        // Add translation for sorting
-        $this->jsTranslations()->addStrings(
-          array(
+            "'Phone number too short after IDD'" => 'libphonenumber_tooshortidd',
+            // Add translation for sorting
             'date_newest' => 'date_newest',
             'date_oldest' => 'date_oldest',
             'sort_relevance' => 'sort_relevance',
+            // data-ng-app translations ..
+            'you_have_unsaved_favorites' => 'you_have_unsaved_favorites'
           )
         );
 
@@ -145,13 +140,6 @@
         );
       }
 
-      // data-ng-app translations ..
-      $this->jsTranslations()->addStrings(
-          array(
-              'you_have_unsaved_favorites' => 'you_have_unsaved_favorites'
-          )
-      );
-
       // Prompt 'offline' favorites to push to the server
       if(isSeT($_ENV['justLoggedIn'])) {
           $this->headScript()->appendScript('var sendMeFavs=()=>true');
@@ -159,8 +147,7 @@
 
       // Session keep-alive
       if ($this->KeepAlive()) {
-          $this->headScript()->appendScript('var keepAliveInterval = '
-            . $this->KeepAlive());
+          $this->headScript()->appendScript('var keepAliveInterval = ' . $this->KeepAlive());
           $this->headScript()->appendFile("keep_alive.js");
       }
 
@@ -198,7 +185,7 @@
     ?>
     <?=$this->headScript()->appendFile("geolocation.js");?>
   </head>
-  <body data-ng-app="cpk" data-ng-controller="GlobalController as ctrl" class="<?=$this->layoutClass('offcanvas-row')?><? if ($this->layout()->rtl): ?> rtl<? endif; ?>">
+  <body class="<?=$this->layoutClass('offcanvas-row')?><? if ($this->layout()->rtl): ?> rtl<? endif; ?>">
     <?=$this->render('cookies-agreement.phtml')?>
     <?=$this->render('info.phtml')?>
     <? // Set up the search box -- there are three possible cases:
