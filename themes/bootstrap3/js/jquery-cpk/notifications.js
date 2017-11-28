@@ -17,6 +17,8 @@
      * angular.module('notifications').controller('NotificationsController', NotificationsController).directive('globalNotif', globalNotifDirective).directive('institutionNotif', institutionNotif);
      * NotificationsController.$inject = [ '$q', '$log', '$http', '$location', '$rootScope' ];
      * globalNotifDirective.$inject = [ '$log' ];
+	 *
+	 * @todo Do not forgot to remove this!
      */
 
     /**
@@ -79,64 +81,89 @@
          * @return {Promise}
          */
         function onReady( event ) {
-            return new Promise(function( resolve, reject ) {
-                // If elements for `globalNotifHolder` are not found it means
-                // that there is no logged user...
+        	return Promise
+				.resolve( initGlobalNotificationsHolder() )
+				.then(function() {
+					// Notifications DOM bindings are ready so continue with initializing notifications
+					// that are not relevant to API.
+					return Promise.resolve( fetchNotificationsForUser() );
+				})
+				.then(function( notifications ) {
+					// Use obtained notifications
+					return Promise.resolve( useNotificationsForUser( notifications ) );
+				})
+				.then(function( result ) {
+					if (CPK.verbose === true) {
+						console.log( result );
+					}
 
-                // Initialize "globalNotifHolder"
-                globalNotifHolder.loader = document.getElementById( "notif_loader" );
-                globalNotifHolder.parent = document.getElementById( "notificationsList" ).getElementsByTagName( "li" ).item( 0 );
-                globalNotifHolder.synchronousNotifications = document.getElementById( "notif_synchronous_notifications" );
-                globalNotifHolder.warningIcon = document.getElementById( "notif_icon" );
-                globalNotifHolder.unreadNotifsCount = document.getElementById( "notif_unread_count" );
+					// XXX apiNonrelevantJobDone();
 
-                // Check if DOM bindings are initialized
-                var res = true;
-                Object.getOwnPropertyNames( globalNotifHolder ).forEach(function( prop ) {
-                    if ( globalNotifHolder[prop].nodeType !== 1 ) {
-                        res = false;
-                    }
-                });
-
-                if (res !== true) {
-                    if (CPK.verbose === true) {
-                        console.log("globalNotifHolder is not loaded -> probably no user is logged in...");
-                    }
-
-                    reject( "Notifications are disabled for this session..." );
-                } else {
-					resolve( "Notifications DOM binding is ready..." );
-                }
-
-                // Initialize API non relevant notifications for user card (initApiNonrelevantNotifications)
-                //initApiNonrelevantNotifications();
-
-
-                // 6) Initialize API relevant notifications for user card (initApiRelevantNotificationsForUserCard)
-                // 7) Attach handler for "notifCtrl.notifClicked(notification,"user")"
-                // 8) Attach handler for "notifCtrl.notifClicked(notification,"<?=$source ?>")"
-
-                // If everything is OK we can now check how to set up the UI
-                /*if (!hasGlobalNotifications()) {
-                    if (apiNonrelevantJobDoneFlag) {
-                        hideGlobalNotifications();
-                    } else {
-                        onApiNonrelevantJobDone()
-                    }
-                } else {
-                    showWarningIcon();
-                }*/
-            }).then(function( result ) {
-            	console.log( result );
-                if ( result === true ) {
-                    // Notifications DOM bindings are ready so continue with initializing notifications
-                    // that are not relevat to API.
-                    return new Promise().resolve( fetchNotificationsForUser() ).then(function(notifications) {
-						console.log(notifications);
-					});
-                }
-            });
+					return Promise.resolve( true );
+				});
         }
+
+		/**
+		 * Initializes {@see globalNotifHolder}.
+		 * @returns {Promise}
+		 */
+		function initGlobalNotificationsHolder() {
+			return new Promise(function( resolve, reject ) {
+				// If elements for `globalNotifHolder` are not found it means
+				// that there is no logged user...
+
+				// Initialize "globalNotifHolder"
+				globalNotifHolder.loader = document.getElementById( "notif_loader" );
+				globalNotifHolder.parent = document.getElementById( "notificationsList" );
+
+				if (globalNotifHolder.parent !== null) {
+					globalNotifHolder.parent = globalNotifHolder.parent.getElementsByTagName( "li" ).item( 0 );
+				}
+
+				globalNotifHolder.synchronousNotifications = document.getElementById( "notif_synchronous_notifications" );
+				globalNotifHolder.warningIcon = document.getElementById( "notif_icon" );
+				globalNotifHolder.unreadNotifsCount = document.getElementById( "notif_unread_count" );
+
+				// Check if DOM bindings are initialized
+				var res = true;
+				Object.getOwnPropertyNames( globalNotifHolder ).forEach(function( prop ) {
+					if ( globalNotifHolder[prop] !== null ) {
+						if (globalNotifHolder[prop].nodeType !== 1) {
+							res = false;
+						}
+					}
+				});
+
+				if (res !== true) {
+					if (CPK.verbose === true) {
+						console.log("globalNotifHolder is not loaded -> probably no user is logged in...");
+					}
+
+					reject( "Notifications are disabled for this session..." );
+				} else {
+					resolve( "Notifications DOM binding is ready..." );
+				}
+
+				// Initialize API non relevant notifications for user card (initApiNonrelevantNotifications)
+				//initApiNonrelevantNotifications();
+
+
+				// 6) Initialize API relevant notifications for user card (initApiRelevantNotificationsForUserCard)
+				// 7) Attach handler for "notifCtrl.notifClicked(notification,"user")"
+				// 8) Attach handler for "notifCtrl.notifClicked(notification,"<?=$source ?>")"
+
+				// If everything is OK we can now check how to set up the UI
+				/*if (!hasGlobalNotifications()) {
+					if (apiNonrelevantJobDoneFlag) {
+						hideGlobalNotifications();
+					} else {
+						onApiNonrelevantJobDone()
+					}
+				} else {
+					showWarningIcon();
+				}*/
+			});
+		}
 
         /**
          * Initializes an empty array for an username provided in order
@@ -154,36 +181,6 @@
                     console.error(reason);
                 }
             });
-        }
-
-        /**
-         * Initialize API non-relevant notifications.
-         * @todo That "$q" is used!!!
-         */
-        function initApiNonrelevantNotifications() {
-            vm.notifications.noAPI = {};
-            vm.notifications.noAPI.user = [];
-
-            (new Promise()).resolve(fetchNotificationsForUser())
-                .then(function(notifications) {
-
-                })
-                .catch(function(err) {
-                    if (CPK.verbose === true) {
-                        console.error(err);
-                    }
-
-                    apiNonrelevantJobDone();
-                });
-            /*$q.resolve(fetchNotificationsForUser()).then(function(notifications) {
-                onGotNotificationsForUser(notifications);
-                apiNonrelevantJobDone();
-            }).catch(function() {
-                if (CPK.verbose === true) {
-                    console.error(reason);
-                }
-                apiNonrelevantJobDone();
-            });*/
         }
 
         /**
@@ -214,31 +211,6 @@
             }
 
             hideLoader(source);
-        }
-
-        /**
-         * Process the notifications on user_card scale after we got them.
-         * @param {Array} notifications
-         */
-        function onGotNotificationsForUser(notifications) {
-            if (!(notifications instanceof Array)) {
-                return;
-            }
-
-            vm.notifications.noAPI.user = notifications;
-
-            if (notifications.length < 1) {
-                return;
-            }
-
-            notifications.forEach(function(notification) {
-                if (notification.clazz.match(/unread/)) {
-                    ++unreadNotifsCount;
-                }
-            });
-
-            updateUnreadNotificationsCount();
-            showWarningIcon();
         }
 
         /**
@@ -339,28 +311,58 @@
         }
 
         /**
-         * Fetches notifications for current user asynchronously.
+         * @private Fetches notifications for current user asynchronously.
          * @returns {Promise}
          */
         function fetchNotificationsForUser() {
-            return new Promise(function(resolve, reject) {
-                $.get("/AJAX/JSON?method=getMyNotificationsForUser")
-                    .done(function(response) {
-                        response = response.data.data;
+            return new Promise(function( resolve, reject ) {
+                $.get( "/AJAX/JSON?method=getMyNotificationsForUser", null, null, "json" )
+                    .done(function( response ) {
+                        print_response_errors( response );
 
-                        print_response_errors(response);
-
-                        if (typeof response.notifications !== "undefined") {
-                            resolve(resolve.notifications);
+                        if ( typeof response.data.notifications !== "undefined" ) {
+                            resolve( response.data.notifications );
                         } else {
-                            reject("No notifications for current user returned!");
+                            reject( "No notifications for current user returned!" );
                         }
                     })
-                    .fail(function(e) {
-                        reject(e);
+                    .fail(function( e ) {
+                        reject( e );
                     });
             });
         }
+
+		/**
+		 * @private Use notifications for current user asynchronously.
+		 * @param {Object} notifications
+		 * @returns {Promise}
+		 */
+		function useNotificationsForUser( notifications ) {
+        	return new Promise(function( resolve, reject ) {
+				if ( ! ( notifications instanceof Array ) ) {
+					reject( "No notifications passed!" );
+				}
+
+				if ( typeof vm.notifications.noApi !== "object" ) {
+					vm.notifications.noApi = {};
+				}
+
+				vm.notifications.noApi.user = notifications;
+
+				notifications.forEach(function( notification ) {
+					if ( notification.clazz.match( /unread/ ) ) {
+						++unreadNotifsCount;
+					}
+				});
+
+				updateUnreadNotificationsCount();
+				showWarningIcon();
+
+				// XXX apiNonrelevantJobDone();
+
+				resolve( "User's notifications successfully used" );
+			});
+		}
 
         /**
          * Hides a loader for an institution. It hides a loader associated
@@ -396,7 +398,9 @@
          * Hides warning icon.
          */
         function hideWarningIcon() {
-            globalNotifHolder.warningIcon.style.display = "none";
+        	if ( unreadNotifsCount === 0 ) {
+				globalNotifHolder.warningIcon.style.display = "none";
+			}
         }
 
         /**
@@ -404,15 +408,16 @@
          * @todo Shouldn't be "block" instead of empty string?!
          */
         function showWarningIcon() {
-            globalNotifHolder.warningIcon.style.display = "";
+        	if ( unreadNotifsCount > 0 ) {
+				globalNotifHolder.warningIcon.style.display = "";
+			}
         }
 
         /**
          * Sets the count to the counter of unread notifications.
          */
         function updateUnreadNotificationsCount() {
-            unreadNotifsCount < 0 && (unreadNotifsCount = 0);
-            globalNotifHolder.unreadNotifsCount.textContent = unreadNotifsCount;
+            globalNotifHolder.unreadNotifsCount.textContent = parseInt( unreadNotifsCount );
         }
 
         /**

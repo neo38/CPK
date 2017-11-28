@@ -138,17 +138,30 @@ jQuery(document).ready(function(e) {
     // 1) Initialize notifications
     CPK.notifications.onReady(e)
         .then(function(result) {
-            CPK.areNotificationsAvailable = ( result === true );
-        })
-        .catch(function(error) {
-            console.log("CPK.notifications.onReady -> REJECTED", error);
+			CPK.areNotificationsAvailable = ( result === true );
+
+			if (CPK.verbose) {
+				console.log("CPK.notifications.onReady -> RESOLVED", CPK.areNotificationsAvailable);
+			}
+		})
+        .catch(function( error ) {
+			if (CPK.verbose) {
+				console.log( "CPK.notifications.onReady -> REJECTED", error );
+			}
         });
 
     // 2) Initialize federative login
-
-
-
-    CPK.login.onReady()
+    CPK.login.onReady( e )
+        .then(function( result ) {
+            if ( CPK.verbose === true ) {
+                console.log( result );
+            }
+        })
+        .catch(function( error ) {
+            if (CPK.verbose) {
+				console.log( "CPK.login.onReady -> REJECTED", error );
+            }
+        });
 });
 
 

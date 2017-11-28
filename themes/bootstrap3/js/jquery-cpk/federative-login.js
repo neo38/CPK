@@ -76,10 +76,21 @@
         vm.hasLastIdps = hasLastIdps;
         vm.getLastIdps = getLastIdps;
         vm.showHelpContent = showHelpContent;
+        vm.onReady = onReady;
 
         return vm;
 
-        // Public
+		/**
+		 * Initializes notifications (just like linkers before for Angular app).
+		 * @param {Event} event
+		 * @return {Promise}
+		 */
+		function onReady( event ) {
+		    return new Promise(function( resolve, reject ) {
+		        reject( "XXX Finish FederativeLoginController->onReady" );
+            });
+		}
+
 
         /**
          * Performs login operation.
