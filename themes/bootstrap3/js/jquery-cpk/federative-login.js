@@ -5,6 +5,8 @@
  *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
+ *
+ * @todo We need to add handler on lip because we doesn't save new lips now!
  */
 
 (function () {

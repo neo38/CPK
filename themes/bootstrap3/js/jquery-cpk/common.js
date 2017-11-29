@@ -135,15 +135,15 @@ jQuery(document).ready(function(e) {
 	// Initialize storage
 	CPK.storage.initStorage()
 		.then(function( result ) {
-			if ( CPK.storage.isStorage( result ) === true ) {
-				CPK.localStorage = result;
-				CPK.global.isStorageAvailable = true;
-
-				if ( CPK.verbose === true ) {
-					console.info( "Storage was initialized." );
-				}
-			} else {
+			if ( CPK.storage.isStorage( result ) !== true ) {
 				return Promise.reject( "Not an instance of storage was returned!" );
+			}
+
+			CPK.localStorage = result;
+			CPK.global.isStorageAvailable = true;
+
+			if ( CPK.verbose === true ) {
+				console.info( "Storage was initialized.", result );
 			}
 		}).
 		catch(function( error ) {
@@ -161,7 +161,7 @@ jQuery(document).ready(function(e) {
 				CPK.global.areNotificationsAvailable = ( result === true );
 
 				if ( CPK.verbose === true ) {
-					console.info( "Notifications were initialized." );
+					console.info( "Notifications were initialized.", result );
 				}
 			})
 			.catch(function( error ) {

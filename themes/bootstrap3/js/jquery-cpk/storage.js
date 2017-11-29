@@ -155,8 +155,19 @@
 	CPK.storage.isStorage = isStorage;
 	CPK.storage.FakeStorage = FakeStorage;
 
-	// Please note that storage used in application runtime is instance
-	// created in `common.js` in `document.onReady` event handler and
-	// than is available through `CPK.localStorage`.
+	/**
+	 * Please note that storage used in application runtime is instance
+	 * created in `common.js` in `document.onReady` event handler and
+	 * is available as `CPK.localStorage`.
+	 *
+	 * E.g.:
+	 *
+	 * <pre>
+	 * // Set data (an object) to the storage
+	 * CPK.localStorage.setItem( "my_key", JSON.stringify( data );
+	 * // Read data
+	 * var data = JSON.parse( CPK.localStorage.getItem( "my_key" ) );
+	 * </pre>
+ 	 */
 
 }());
