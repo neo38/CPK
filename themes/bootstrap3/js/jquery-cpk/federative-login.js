@@ -7,6 +7,7 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
  * @todo We need to add handler on lip because we doesn't save new lips now!
+ * @todo That link on "themes/bootstrap3/templates/librarycards/home.phtml" should be implemented by two promises (will be allways rendered)...
  */
 
 (function () {
