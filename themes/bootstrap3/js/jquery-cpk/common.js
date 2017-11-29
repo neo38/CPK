@@ -45,61 +45,72 @@
  * @todo We should also check help (for example here: https://cpk-front.mzk.cz/Portal/Page/napoveda#1.2)
  * @todo File "jquery-cpk/admin.js" load only conditionally.
  * @todo Reformat changed PHTML templates! --> all JS/PHTML files produced for this task should follow coding styles!
+ * @todo Move comments above (about jquery-cpk) to the standalone README.md file
  */
 
-if (typeof CPK === "undefined") {
+if ( typeof CPK === "undefined" ) {
     /**
      * @type {Object}
      */
-    var CPK = {};
+    var CPK = Object.create( null );
 }
 
 /**
  * Should be jquery-cpk package executed in verbose mode?
- * @type {boolean}
+ * @type {Boolean}
  */
 CPK.verbose = true;
 
 /**
+ * Holds instance of local storage (either window.localStorage or FakeStorage).
  * @type {Object}
  */
-CPK.favorites = {};
+CPK.localStorage = Object.create( null );
 
 /**
  * @type {Object}
  */
-CPK.admin = {};
+CPK.favorites = Object.create( null );
+
+/**
+ * @type {Object}
+ */
+CPK.admin = Object.create( null );
 
 /**
  * @type {Object}
  */
 CPK.global = {
+	/**
+	 * TRUE if notifications are available.
+	 * @type {boolean}
+	 */
+	areNotificationsAvailable: false,
 
-    /**
-     * TRUE if notifications are available.
-     * @type {boolean}
-     */
-    areNotificationsAvailable: false,
+	/**
+	 * TRUE if CPK.localStorage is available.
+	 */
+	isStorageAvailable: false,
 
-    /**
-     * Removes "hidden" attribute from the given element.
-     * @param {Element} elm
-     */
-    showDOM: function (elm) {
+	/**
+	 * Removes "hidden" attribute from the given element.
+	 * @param {Element} elm
+	 */
+	showDOM: function( elm ) {
 		"use strict";
-        elm.removeAttribute("hidden");
-    },
+		elm.removeAttribute( "hidden" );
+	},
 
-    /**
-     * Sets "hidden" attribute for the given element.
-     * @param {Element} elm
-     */
-    hideDOM: function (elm) {
-    	"use strict";
-		elm.setAttribute("hidden", "hidden");
-    },
+	/**
+	 * Sets "hidden" attribute for the given element.
+	 * @param {Element} elm
+	 */
+	hideDOM: function( elm ) {
+		"use strict";
+		elm.setAttribute( "hidden", "hidden" );
+	},
 
-    controller: undefined
+	controller: undefined
 };
 
 /**
@@ -108,60 +119,55 @@ CPK.global = {
 jQuery(document).ready(function(e) {
 	"use strict";
 
-    /**
-     * Array of messages returned by one-by-one initialized components.
-     * @type {Array}
-     */
-    var messages = [];
+	// Initialize storage
+	CPK.storage.initStorage()
+		.then(function( result ) {
+			if ( CPK.storage.isStorage( result ) === true ) {
+				CPK.localStorage = result;
+				CPK.global.isStorageAvailable = true;
 
-    /**
-     * @callback
-     * @param {Array|String} message
-     * @returns {Promise}
-     */
-    function onNotificationsReady( message ) {
-        console.log( "CPK.notifications.onReady -> RESOLVED", message );
+				if ( CPK.verbose === true ) {
+					console.info( "Storage was initialized." );
+				}
+			} else {
+				return Promise.reject( "Not an instance of storage was returned!" );
+			}
+		}).
+		catch(function( error ) {
+			if ( CPK.verbose === true) {
+				console.error( "Initialization of CPK.localStorage failed!", error );
+			}
 
-        if ( jQuery.isArray( message ) === true ) {
-            messages.every(function( val ) { messages.push( val ); });
-        } else if ( message !== undefined ) {
-            messages.push( message );
-        }
-    }
+			CPK.global.isStorageAvailable = false;
+		});
 
-    // In this moment should be already loaded Favorites.storage,
-    // Favorites.notifications and some others. Here are initialized
-    // only those modules which require to be bind with existing DOM.
+	// Initialize notifications
+	CPK.notifications.onReady( e )
+		.then(function( result ) {
+			CPK.global.areNotificationsAvailable = ( result === true );
 
-    // Initialize rest of jquery-cpk modules one by one:
-
-    // 1) Initialize notifications
-    CPK.notifications.onReady(e)
-        .then(function(result) {
-			CPK.areNotificationsAvailable = ( result === true );
-
-			if (CPK.verbose) {
-				console.log("CPK.notifications.onReady -> RESOLVED", CPK.areNotificationsAvailable);
+			if ( CPK.verbose === true ) {
+				console.info( "Notifications were initialized." );
 			}
 		})
-        .catch(function( error ) {
-			if (CPK.verbose) {
-				console.log( "CPK.notifications.onReady -> REJECTED", error );
+		.catch(function( error ) {
+			if ( CPK.verbose === true ) {
+				console.error( "Initialization of notifications was rejected.", error );
 			}
-        });
+		});
 
-    // 2) Initialize federative login
-    CPK.login.onReady( e )
-        .then(function( result ) {
-            if ( CPK.verbose === true ) {
-                console.log( result );
-            }
-        })
-        .catch(function( error ) {
-            if (CPK.verbose) {
-				console.log( "CPK.login.onReady -> REJECTED", error );
-            }
-        });
+	// Initialize login
+	CPK.login.onReady( e )
+		.then(function( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( "Login service was initialized.", result );
+			}
+		})
+		.catch(function( error ) {
+			if ( CPK.verbose === true ) {
+				console.error( "Initialization of the login service was rejected.", error );
+			}
+		});
 });
 
 
