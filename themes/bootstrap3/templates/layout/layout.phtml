@@ -274,8 +274,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <h4 class="modal-title"><?=$this->translate('login_last_used')?></h4>
           </div>
-          <div class="modal-body last-idps">
-		  </div>
+          <div class="modal-body last-idps" id="last-identity-providers"><?php/* Here will be generated last identity providers from jquery-cpk/federative-login.js */?></div>
 		  <div class="modal-header link" style="cursor: pointer">
 		    <? $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]); ?>
 		    <h4 class="modal-title"><?=$portalPage['title']?></h4>

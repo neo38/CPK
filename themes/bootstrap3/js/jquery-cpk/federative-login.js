@@ -1,64 +1,22 @@
 /**
  * New implementation of "federative login".
  *
- * Uses localStorage to store information about last used identity providers.
+ * Uses CPK.localStorage to store information about last used identity providers.
  *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function($) {
-    if (CPK.verbose === true) {
-        console.log("jquery-cpk/federative-login.js");
+(function() {
+    "use strict";
+
+    if ( CPK.verbose === true ) {
+        console.info( "jquery-cpk/federative-login.js" );
     }
 
     var DOMHolder = {
         lastUsed : undefined
     };
-
-    // From "layout.phtml" about line 282:
-    /*
-    <div class="modal fade" id="loginModal" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content" data-ng-controller="FederativeLoginController as fedLoginCtrl">
-          <div class="modal-header" data-ng-show='fedLoginCtrl.hasLastIdps()'>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_last_used')?></h4>
-          </div>
-          <div class="modal-body last-idps" data-ng-last-used data-ng-show='fedLoginCtrl.hasLastIdps()'>
-		  </div>
-		  <div class="modal-header link" data-ng-click="fedLoginCtrl.showHelpContent()" style="cursor: pointer">
-		    <? $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]); ?>
-		    <h4 class="modal-title"><?=$portalPage['title']?></h4>
-		  </div>
-		  <div class="modal-body" data-ng-help-content hidden="hidden">
-		    <?=$portalPage['content'] ?>
-		  </div>
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_with')?></h4>
-          </div>
-          <div class="modal-body">
-          	<?=$this->render('login/identity-providers.phtml', [
-          	    'idps' => $this->identityProviders()->getLibraries()
-          	]) ?>
-		  </div>
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_other')?></h4>
-          </div>
-          <div class="modal-body">
-          	<?=$this->render('login/identity-providers.phtml', [
-          	    'idps' => $this->identityProviders()->getOthers()
-          	]) ?>
-		  </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->translate('close')?></button>
-          </div>
-        </div>
-      </div>
-    </div>
-     */
 
     /**
      * Federative login controller
@@ -68,9 +26,8 @@
         var lastIdpsTag = "__luidps",
             lastIdps = [],
             initializedLastIdps = false,
-            helperHidden = true;
-
-        var vm = this;
+            helperHidden = true,
+			vm = this;
 
         vm.login = login;
         vm.hasLastIdps = hasLastIdps;
@@ -87,6 +44,9 @@
 		 */
 		function onReady( event ) {
 		    return new Promise(function( resolve, reject ) {
+
+
+                // 2) zobrazit naposledy pouzite identity providery
 		        reject( "XXX Finish FederativeLoginController->onReady" );
             });
 		}
@@ -211,6 +171,6 @@
     /**
      * @type {Object}
      */
-    CPK.login = FederativeLoginController();
+    CPK.login = new FederativeLoginController();
 
-}(jQuery));
+}());
