@@ -110,6 +110,19 @@ CPK.global = {
 		elm.setAttribute( "hidden", "hidden" );
 	},
 
+	/**
+	 * Toggles "hidden" attribute on the given element.
+	 * @param {Element} elm
+	 */
+	toggleDOM: function( elm ) {
+		"use strict";
+		if ( elm.hasAttribute( "hidden" ) ) {
+			CPK.global.hideDOM( elm );
+		} else {
+			CPK.global.showDOM( elm );
+		}
+	},
+
 	controller: undefined
 };
 
@@ -142,32 +155,36 @@ jQuery(document).ready(function(e) {
 		});
 
 	// Initialize notifications
-	CPK.notifications.onReady( e )
-		.then(function( result ) {
-			CPK.global.areNotificationsAvailable = ( result === true );
+	setTimeout(() => {
+		CPK.notifications.onReady( e )
+			.then(function( result ) {
+				CPK.global.areNotificationsAvailable = ( result === true );
 
-			if ( CPK.verbose === true ) {
-				console.info( "Notifications were initialized." );
-			}
-		})
-		.catch(function( error ) {
-			if ( CPK.verbose === true ) {
-				console.error( "Initialization of notifications was rejected.", error );
-			}
-		});
+				if ( CPK.verbose === true ) {
+					console.info( "Notifications were initialized." );
+				}
+			})
+			.catch(function( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( "Initialization of notifications was rejected.", error );
+				}
+			});
+	});
 
 	// Initialize login
-	CPK.login.onReady( e )
-		.then(function( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( "Login service was initialized.", result );
-			}
-		})
-		.catch(function( error ) {
-			if ( CPK.verbose === true ) {
-				console.error( "Initialization of the login service was rejected.", error );
-			}
-		});
+	setTimeout(() => {
+		CPK.login.initialize( e )
+			.then(function( result ) {
+				if ( CPK.verbose === true ) {
+					console.info( "Login service was initialized.", result );
+				}
+			})
+			.catch(function( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( "Initialization of the login service was rejected.", error );
+				}
+			});
+	});
 });
 
 

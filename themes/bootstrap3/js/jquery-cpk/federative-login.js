@@ -7,170 +7,219 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function() {
-    "use strict";
+(function () {
+	"use strict";
 
-    if ( CPK.verbose === true ) {
-        console.info( "jquery-cpk/federative-login.js" );
-    }
+	if ( CPK.verbose === true ) {
+		console.info( "jquery-cpk/federative-login.js" );
+	}
 
-    var DOMHolder = {
-        lastUsed : undefined
-    };
-
-    /**
-     * Federative login controller
-     * @returns {Object}
-     */
-    function FederativeLoginController() {
-        var lastIdpsTag = "__luidps",
-            lastIdps = [],
-            initializedLastIdps = false,
-            helperHidden = true,
+	/**
+	 * Federative login controller
+	 * @returns {Object}
+	 */
+	function FederativeLoginController() {
+		var _storageKey = "__luidps",
+			lastIdentityProviders = null,
+			initializedLastIdps = false,
 			vm = this;
-
-        vm.login = login;
-        vm.hasLastIdps = hasLastIdps;
-        vm.getLastIdps = getLastIdps;
-        vm.showHelpContent = showHelpContent;
-        vm.onReady = onReady;
-
-        return vm;
 
 		/**
 		 * Initializes notifications (just like linkers before for Angular app).
 		 * @param {Event} event
 		 * @return {Promise}
 		 */
-		function onReady( event ) {
-		    return new Promise(function( resolve, reject ) {
-
-
-                // 2) zobrazit naposledy pouzite identity providery
-		        reject( "XXX Finish FederativeLoginController->onReady" );
-            });
+		function initialize( event ) {
+			return Promise
+				.resolve( initLips() )
+				.then( resolveInitLips )
+				.then( resolveParseLips )
+				.then( resolveUpdateLips )
+				.then( resolveRenderLips );
 		}
 
+		/**
+		 * @returns {Promise}
+		 * @private
+		 */
+		function initLips() {
+			return new Promise( function ( resolve, reject ) {
+				try {
+					var lips;
+					lips = CPK.localStorage.getItem( _storageKey );
+					resolve( lips );
+				} catch ( error ) {
+					if ( CPK.verbose === true ) {
+						console.error( "Local storage is not initialized yet!", error );
+					}
 
-        /**
-         * Performs login operation.
-         * @param {Object|String} identityProvider
-         */
-        function login(identityProvider) {
-            if (typeof identityProvider === "string") {
-                identityProvider = JSON.parse(identityProvider);
-            }
+					// XXX We are trying it again?!
+					return Promise.resolve( initLips() );
+				}
+			} );
+		}
 
-            if (!identityProvider.isConsolidation) {
-                getLastIdps();
+		/**
+		 * @param {string} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveInitLips( lips ) {
+			return Promise.resolve( parseLips( lips ) );
+		}
 
-                // IE 11 :(
-                var lastIdpsLength = lastIdps.length;
+		/**
+		 * @param {string} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function parseLips( lips ) {
+			return new Promise( function ( resolve, reject ) {
+				if ( lips === null || lips.length <= 0 ) {
+					resolve( [] );
+					return;
+				}
 
-                // If saved already, just push it in front
-                for (var i = 0; i < lastIdpsLength; ++i) {
-                    var lastIdp = lastIdps[i];
+				try {
+					var lip;
+					lip = JSON.parse( lips );
+					resolve( lip );
+				} catch ( error ) {
+					if ( CPK.verbose === true ) {
+						console.error( "Could not parse the last identity provider from localStorage", error, lips );
+					}
 
-                    if (lastIdp.name === identityProvider.name) {
-                        // Remove yourself
-                        lastIdps.splice(i, 1);
-                        break;
-                    }
-                }
+					resolve( [] );
+				}
+			} );
+		}
 
-                // Set as first
-                lastIdps.unshift(identityProvider);
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveParseLips( lips ) {
+			return Promise.resolve( updateLips( lips ) );
+		}
 
-                // Maximally we will have 3 institutions
-                if (lastIdps.length > 3) {
-                    lastIdps.pop();
-                }
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 * @todo Check if "lips" are really updated!
+		 */
+		function updateLips( lips ) {
+			return new Promise( function ( resolve, reject ) {
+				try {
+					// Setup default language
+					var lang = document.body.parentNode.getAttribute( "lang" ),
+						newTarget = location.pathname + location.search;
 
-                var source = JSON.stringify(lastIdps);
-                localStorage.setItem(lastIdpsTag, source);
-            }
+					newTarget += ( newTarget.indexOf( "?" ) >= 0 ? "&" : "?" ) + "auth_method=Shibboleth";
 
-            if (identityProvider.warn_msg) {
-                alert(VuFind.translate("warning_safety_login"));
-            }
+					lips.forEach( function ( lip ) {
+						lip.name = lip[ "name_" + lang ];
+						lip.href = lip.href.replace( /target=[^&]*/, "target=" + encodeURIComponent( newTarget ) );
+					} );
 
-            window.location.replace(identityProvider.href);
-        }
+					resolve( lips );
+				} catch ( error ) {
+					if ( CPK.verbose === true ) {
+						console.error( "Updating of last identity providers by document's language failed!", error );
+					}
 
-        /**
-         * Check if there is any last identity provider.
-         * @returns {Boolean}
-         */
-        function hasLastIdps() {
-            getLastIdps();
+					reject( e );
+				}
+			} );
+		}
 
-            return lastIdps !== null && lastIdps instanceof Array && lastIdps.length !== 0;
-        }
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveUpdateLips( lips ) {
+			lastIdentityProviders = lips;
+			initializedLastIdps = true;
 
-        /**
-         * Returns the last identity provider.
-         * @returns {Array}
-         */
-        function getLastIdps() {
-            if (initializedLastIdps === false) {
-                initializeLastIdps();
-            }
+			return Promise.resolve( renderLips( lips ) );
+		}
 
-            return lastIdps;
-        }
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function renderLips( lips ) {
+			return new Promise( function ( resolve, reject ) {
+				try {
+					var parent = document.getElementById( "last-identity-providers" ),
+						table = document.createElement( "table" ),
+						tbody = document.createElement( "tbody" );
 
-        /**
-         * Shows login help.
-         */
-        function showHelpContent() {
-            if (helperHidden) {
-                CPK.global.showDOM(DOMHolder.helpContent);
-            } else {
-                CPK.global.hideDOM(DOMHolder.helpContent);
-            }
+					lips.forEach( function ( lip ) {
+						var tr = document.createElement( "tr" ),
+							td1 = document.createElement( "td" ),
+							td2 = document.createElement( "td" ),
+							img = document.createElement( "img" ),
+							a = document.createElement( "a" );
 
-            helperHidden = !helperHidden;
-        }
+						img.setAttribute( "src", lip.logo );
+						td1.classList.add( "col-sm-4" );
+						td1.appendChild( img );
+						a.setAttribute( "href", lip.href );
+						a.appendChild( document.createTextNode( lip.name ) );
+						td2.appendChild( a );
+						tr.appendChild( td1 );
+						tr.appendChild( td2 );
+						tbody.appendChild( tr );
+					} );
 
-        // Private
+					parent.appendChild( table.appendChild( tbody ) );
+				} catch ( e ) {
+					// We doesn't need to break workflow because of this
+					if ( CPK.verbose === true ) {
+						console.error( e );
+					}
+				}
 
-        /**
-         * Initializes the last identity provider.
-         */
-        function initializeLastIdps() {
-            lastIdps = localStorage.getItem(lastIdpsTag);
+				resolve( lips );
+			} );
+		}
 
-            if (lastIdps === null) {
-                lastIdps = [];
-            } else {
-                try {
-                    lastIdps = JSON.parse(lastIdps);
-                } catch (e) {
-                    if (CPK.verbose === true) {
-                        console.error("Could not parse the last identity provider from localStorage", e);
-                    }
-                    lastIdps = [];
-                }
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveRenderLips( lips ) {
+			return Promise.resolve( true );
+		}
 
-                // Setup default language
-                var lang = document.body.parentNode.getAttribute("lang"),
-                    newTarget = location.pathname + location.search;
+		/**
+		 * Toggle help content.
+		 * @param {Event} event
+		 * @see themes/bootstrap3/templates/librarycards/home.tpl
+		 */
+		function toggleHelpContent( event ) {
+			var elm = document.getElementById( "login-help-content" );
 
-                newTarget += (newTarget.indexOf("?") >= 0 ? "&" : "?") + "auth_method=Shibboleth";
+			if ( elm.nodeType === 1 ) {
+				CPK.global.toggleDOM( elm );
+			}
+		}
 
-                lastIdps.forEach(function(lastIdp) {
-                    lastIdp.name = lastIdp["name_" + lang];
-                    lastIdp.href = lastIdp.href.replace(/target=[^&]*/, "target=" + encodeURIComponent(newTarget));
-                });
-            }
+		// Public API
+		vm.initialize = initialize;
+		vm.toggleHelpContent = toggleHelpContent;
 
-            initializedLastIdps = true;
-        }
-    }
+		return vm;
+	}
 
-    /**
-     * @type {Object}
-     */
-    CPK.login = new FederativeLoginController();
+	/**
+	 * @type {Object}
+	 */
+	CPK.login = new FederativeLoginController();
 
 }());
