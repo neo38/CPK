@@ -114,7 +114,7 @@
 		  <div class="modal-body">
 		    <?=$consolidationWarning['content'] ?>
 		  </div>
-          <div class="modal-header link" onclick="CPK.login.toggleHelpContent( event )" style="cursor: pointer">
+          <div class="modal-header link" id="login-help-content-link" style="cursor: pointer">
 		    <? $portalPage = $this->portalPages()->getPage('napoveda-pro-prihlaseni-a-registraci', explode("-", $this->layout()->userLang)[0]); ?>
 		    <h4 class="modal-title"><?=$portalPage['title']?></h4>
 		  </div>

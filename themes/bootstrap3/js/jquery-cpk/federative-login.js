@@ -2,12 +2,12 @@
  * New implementation of "federative login".
  *
  * Uses CPK.localStorage to store information about last used identity providers.
+ * Initialized is in `jquery-cpk/common.js`.
  *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo We need to add handler on lip because we doesn't save new lips now!
- * @todo That link on "themes/bootstrap3/templates/librarycards/home.phtml" should be implemented by two promises (will be allways rendered)...
+ * @todo We need to add handler on links of identity providers because we doesn't save new "lips" now!
  */
 
 (function () {
@@ -24,8 +24,7 @@
 	function FederativeLoginController() {
 		var _storageKey = "__luidps",
 			lastIdentityProviders = null,
-			initializedLastIdps = false,
-			vm = this;
+			initializedLastIdps = false;
 
 		/**
 		 * Initializes notifications (just like linkers before for Angular app).
@@ -164,6 +163,7 @@
 						tbody = document.createElement( "tbody" );
 
 					lips.forEach( function ( lip ) {
+						console.log( lip );
 						var tr = document.createElement( "tr" ),
 							td1 = document.createElement( "td" ),
 							td2 = document.createElement( "td" ),
@@ -182,14 +182,16 @@
 					} );
 
 					parent.appendChild( table.appendChild( tbody ) );
+
+					resolve( true );
 				} catch ( e ) {
 					// We doesn't need to break workflow because of this
 					if ( CPK.verbose === true ) {
 						console.error( e );
 					}
-				}
 
-				resolve( true );
+					resolve( false );
+				}
 			} );
 		}
 
@@ -199,17 +201,29 @@
 		 * @private
 		 */
 		function resolveRenderLips( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "The last identity providers were rendered."
+					: "The last identity providers were not rendered." );
+			}
+
 			return Promise.resolve( registerLipsHandler() );
 		}
 
 		/**
-		 * @private Registers onclick event handler on rendered "lips".
+		 * @private Registers onclick event handler on rendered indentity providers.
 		 * @returns {Promise}
-		 * @todo Finish this!!!
 		 */
 		function registerLipsHandler() {
-			return new Promise(function( resolve, reject ) {
-				reject( "XXX Not implemented yet!" );
+			return new Promise(function( resolve ) {
+				if ( jQuery.isArray( rows ) !== true ) {
+					resolve( false );
+				} else {
+					rows.forEach( (row) => {
+						jQuery( row ).onClick( lipClickHandler );
+					});
+					resolve( true );
+				}
 			});
 		}
 
@@ -218,18 +232,33 @@
 		 * @returns {Promise}
 		 * @private
 		 */
-		function resolveRegisterLipsHandler( lips ) {
-			return Promise.resolve( updateLips( libraryCardsHomeLinkHandler ) );
+		function resolveRegisterLipsHandler( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "Links of identity providers were initialized."
+					: "Links of identity providers were not initialized." );
+			}
+
+			var elm = document.getElementById( "login-help-content-link" );
+			return Promise.resolve( libraryCardsHomeLinkHandler( elm ) );
 		}
 
 		/**
 		 * @private Registers onclick event handler on link in librarycards/home.phtml.
+		 * @param {Element} elm
 		 * @returns {Promise}
-		 * @todo Finish this!!!
 		 */
-		function libraryCardsHomeLinkHandler() {
-			return new Promise(function( resolve, reject ) {
-				reject( "XXX Not implemented yet!" );
+		function libraryCardsHomeLinkHandler( elm ) {
+			// This promise is always be resolved but that's ok - we can be on wrong page
+			return new Promise(function( resolve ) {
+				if ( typeof elm === "object" ) {
+					resolve ( false );
+				} else if ( elm.nodeType !== 1) {
+					resolve( false );
+				} else {
+					jQuery( elm ).onClick( toggleHelpContent );
+					resolve( true );
+				}
 			});
 		}
 
@@ -239,13 +268,18 @@
 		 * @private
 		 */
 		function resolveLibrarycardsHomeLinkHandler( result ) {
-			return Promise.result( result );
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "Librarycards home link was initialized."
+					: "Librarycards home link was not initialized." );
+			}
+
+			return Promise.result( true );
 		}
 
 		/**
-		 * Toggle help content.
+		 * @private Toggles help content.
 		 * @param {Event} event
-		 * @see themes/bootstrap3/templates/librarycards/home.tpl
 		 */
 		function toggleHelpContent( event ) {
 			var elm = document.getElementById( "login-help-content" );
@@ -255,11 +289,22 @@
 			}
 		}
 
-		// Public API
-		vm.initialize = initialize;
-		vm.toggleHelpContent = toggleHelpContent;
+		/**
+		 * @private Handler for click on
+		 * @param {Event} event
+		 */
+		function lipClickHandler( event ) {
+			event.preventDefault();
+			event.stopPropagation();
 
-		return vm;
+			console.log( "lipClickHandler" );
+		}
+
+		// Public API
+		var Login = Object.create( null );
+		Login.initialize = initialize;
+
+		return Login;
 	}
 
 	/**
