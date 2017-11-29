@@ -156,7 +156,7 @@ jQuery(document).ready(function(e) {
 
 	// Initialize notifications
 	setTimeout(() => {
-		CPK.notifications.onReady( e )
+		CPK.notifications.initialize( e )
 			.then(function( result ) {
 				CPK.global.areNotificationsAvailable = ( result === true );
 

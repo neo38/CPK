@@ -54,7 +54,7 @@
 		//vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
 		//vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
 		vm.onNotificationClick = onNotificationClick;
-		vm.onReady = onReady;
+		vm.initialize = initialize;
 		vm.showWarningIcon = showWarningIcon;
 		vm.hideWarningIcon = hideWarningIcon;
 
@@ -65,18 +65,13 @@
 		 * @param {Event} event
 		 * @return {Promise}
 		 */
-		function onReady( event ) {
+		function initialize( event ) {
 			return Promise
 				.resolve( initGlobalNotificationsHolder() )
-				.then(function() {
-					// Notifications DOM bindings are ready so continue with initializing notifications
-					// that are not relevant to API.
-					return Promise.resolve( fetchNotificationsForUser() );
-				})
-				.then(function( notifications ) {
-					// Use obtained notifications
-					return Promise.resolve( useNotificationsForUser( notifications ) );
-				})
+				.then( resolveInitGlobalNotificationsHolder )
+				.then( resolveFetchNotificationsForUser )
+				.then( resolveUseNotificationsForUser )
+				.then( resolveFetchNotificationsForUserCard )
 				.then(function( result ) {
 					if ( CPK.verbose === true ) {
 						console.log( result );
@@ -124,9 +119,9 @@
 						console.log( "globalNotifHolder is not loaded -> probably no user is logged in..." );
 					}
 
-					reject( "Notifications are disabled for this session..." );
+					reject( false );
 				} else {
-					resolve( "Notifications DOM binding is ready..." );
+					resolve( true );
 				}
 
 				// Initialize API non relevant notifications for user card (initApiNonrelevantNotifications)
@@ -151,21 +146,12 @@
 		}
 
 		/**
-		 * Initializes an empty array for an username provided in order
-		 * to successfully bind data to this Controller.
-		 * @param {String} source
-		 * @param {String} username
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
 		 */
-		function initApiRelevantNotificationsForUserCard(source, username) {
-			vm.notifications[username] = [];
-
-			$q.resolve(fetchNotificationsForUserCard(username)).then(function(notifications) {
-				onGotNotificationsForUserCard(notifications, source, username);
-			}).catch(function(reason) {
-				if ( CPK.verbose === true ) {
-					console.error(reason);
-				}
-			});
+		function resolveInitGlobalNotificationsHolder( result ) {
+			return Promise.resolve( fetchNotificationsForUser() );
 		}
 
 		/**
@@ -242,8 +228,7 @@
 		// Private
 
 		/**
-		 * Prints errors found in server's response onto console.
-		 * (Only when "CPK.verbose" is TRUE.)
+		 * @private Prints errors found in server's response onto console.
 		 * @param {Object} response
 		 */
 		function print_response_errors( response ) {
@@ -259,7 +244,7 @@
 		}
 
 		/**
-		 * Fetches notifications for provided username asynchronously.
+		 * @private Fetches notifications for provided username asynchronously.
 		 * @param {String} username
 		 * @returns {Promise}
 		 */
@@ -318,6 +303,15 @@
 		}
 
 		/**
+		 * @param {Object} notifications
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveFetchNotificationsForUser( notifications ) {
+			return Promise.resolve( useNotificationsForUser( notifications ) );
+		}
+
+		/**
 		 * @private Use notifications for current user asynchronously.
 		 * @param {Object} notifications
 		 * @returns {Promise}
@@ -345,8 +339,54 @@
 
 				// XXX apiNonrelevantJobDone();
 
-				resolve( "User's notifications successfully used" );
+				resolve( true );
 			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 * @todo Get "source" and "username"!
+		 */
+		function resolveUseNotificationsForUser( notifications ) {
+			var source = undefined,
+				username = undefined;
+
+			return Promise.resolve( fetchNotificationsForUserCard( source, username ) );
+		}
+
+		/**
+		 * @private Fetches notifications for source and username.
+		 * @param {String} source
+		 * @param {String} username
+		 * @returns Promise
+		 */
+		function fetchNotificationsForUserCard( source, username ) {
+			return new Promise(function( resolve, reject ) {
+				/*vm.notifications[username] = [];
+
+				$q.resolve(fetchNotificationsForUserCard(username)).then(function(notifications) {
+					onGotNotificationsForUserCard(notifications, source, username);
+				}).catch(function(reason) {
+					if ( CPK.verbose === true ) {
+						console.error(reason);
+					}
+				});*/
+				reject( "XXX Not implemented yet!" );
+			});
+		}
+
+		/**
+		 * @param {Object} notifications
+		 * @param {String} source
+		 * @param {String} username
+		 * @returns {Promise}
+		 * @private
+		 * @todo Get "source" and "username"!
+		 */
+		function resolveFetchNotificationsForUserCard( notifications ) {
+			return Promise.reject( "XXX Not implemented yet!" );
 		}
 
 		/**

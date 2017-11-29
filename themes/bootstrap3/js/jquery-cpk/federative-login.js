@@ -38,7 +38,9 @@
 				.then( resolveInitLips )
 				.then( resolveParseLips )
 				.then( resolveUpdateLips )
-				.then( resolveRenderLips );
+				.then( resolveRenderLips )
+				.then( resolveRegisterLipsHandler )
+				.then( resolveLibrarycardsHomeLinkHandler );
 		}
 
 		/**
@@ -187,17 +189,57 @@
 					}
 				}
 
-				resolve( lips );
+				resolve( true );
 			} );
 		}
 
 		/**
-		 * @param {Array} lips
+		 * @param {boolean} result
 		 * @returns {Promise}
 		 * @private
 		 */
-		function resolveRenderLips( lips ) {
-			return Promise.resolve( true );
+		function resolveRenderLips( result ) {
+			return Promise.resolve( registerLipsHandler() );
+		}
+
+		/**
+		 * @private Registers onclick event handler on rendered "lips".
+		 * @returns {Promise}
+		 * @todo Finish this!!!
+		 */
+		function registerLipsHandler() {
+			return new Promise(function( resolve, reject ) {
+				reject( "XXX Not implemented yet!" );
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveRegisterLipsHandler( lips ) {
+			return Promise.resolve( updateLips( libraryCardsHomeLinkHandler ) );
+		}
+
+		/**
+		 * @private Registers onclick event handler on link in librarycards/home.phtml.
+		 * @returns {Promise}
+		 * @todo Finish this!!!
+		 */
+		function libraryCardsHomeLinkHandler() {
+			return new Promise(function( resolve, reject ) {
+				reject( "XXX Not implemented yet!" );
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveLibrarycardsHomeLinkHandler( result ) {
+			return Promise.result( result );
 		}
 
 		/**
