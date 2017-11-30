@@ -1,18 +1,29 @@
-# Standardy pro psaní kódu
+# Standardy pro psaní kódu (JavaScript)
 
-__UPOZORNĚNÍ: Toto je pracovní verze dokumentu!!! Není určena ke čtení!!!__
+__UPOZORNĚNÍ: Toto je pracovní verze dokumentu!!!__
 
-V zásadě přeužijeme základní dokumenty od [jQuery][1] - [JavaScript Style Guide][2] a [Code Organization Concepts][3]. Pro přečtení ovšem nejsou špatné ani ty další na obou rozcestníkových stránkách - [Style Guide][4] a [Code Organization][5].
+Při psaní JavaScript kódu je třeba následovat [JavaScript Style Guide][2] od [jQuery][1]. Pro základní přehled jsou zde tyto odkazy:
 
-~~Je zde pouze několik změn, které bych oproti jejich standardům navrhoval:~~
+- [Style Guide][4]
+- [Code Organization][5]
 
-~~Doporučil bych jen jednu výjimku a to používat __místo odsazení tabulátorem mezery__ a to proto, že nám lépe pasují ke stylu použitému v PHP, ale v zásadě je to jedno. Další výjimkou by mohlo být zrušení mezery v závorkách (normální, složené i hranaté) - opět jde o to, že to nepoužíváme nikde jinde, tak by to mohlo být matoucí.~~
+Obecně výborným zdrojem pro informace o JavaScriptu je [MDN][7] - kvalitní a otestované ukázky, přehledy podpory v prohlížečích atp. Pro věci okolo [Promise][8] se mi výborně osvědčil [tento tutoriál][9] - ale i celý ten web [javascript.info][10] je poměrně kvalitní.
+
+Zde je několik dalších bodů, které by měly být při psaní JavaScriptu dodržovány:
+
+- programátor __nemůže__ svévolně přidat novou externí knihovnu
+- programátor __nemůže__ svévolně vkládat JavaScript do _views_
+- na celý web __by měl__ být jen jeden handler pro `document.onReady`
+- všude, kde to jde, __dávat přednost__ nativním _JS_ prostředkům před [jQuery][1]
+- přiřazení handlerů nemá být přímo v HTML, ale __vždy__ prostřednictvím skriptu
+- _dlouhodobým cílem je veškerý _JS_ načítat pomocí [RequireJS][11] na jednom místě (na konci stránky)_
+
 
 ## Ukázky z existujících kódů
 
 Následuje sekce opravdu špatných ukázek z existujícího kódu:
 
-### Práce s poli
+### Práce s [poli][6]
 
 První příklad je pokus, jak odstranit určitý prvek z pole objektů:
 ```javascript
@@ -71,3 +82,9 @@ document.getElementById( "#id_elementu" ).classList.add( "nejaka_trida" );
 [3]:https://learn.jquery.com/code-organization/concepts/
 [4]:https://contribute.jquery.org/style-guide/
 [5]:https://learn.jquery.com/code-organization/
+[6]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+[7]:https://developer.mozilla.org/en-US/docs/Web/JavaScript
+[8]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[9]:https://javascript.info/promise-chaining
+[10]:https://javascript.info/
+[11]:http://requirejs.org/
