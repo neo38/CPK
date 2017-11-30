@@ -3,42 +3,35 @@
     <i style="font-size: 20px;" class="pr-web-warningwarnalert"></i>
     <span id="notif_unread_count" class="notificationWarning"></span>
   </a>
-
   <ul id="notificationsList" class="dropdown-menu">
-  	<li>
-  	  <div class="notif-header"> <?=$this->translate('source_cpk', null, 'Knihovny.cz')?>
-	    <i class="pull-right icon-logo-komplet notif-knihovny-logo"></i>
-	  </div>
-	  <div id="notif_synchronous_notifications" <?=$this->globalNotifications()->isEnabled() || ! $user ? '' : 'hidden="hidden"' ?>>
-	    <?=$this->globalNotifications()->renderAll() ?>
-	  </div>
-      <div id="notif_loader" class="notif-default" hidden="hidden">
-	    <i class="fa fa-spinner fa-spin"></i>
-	    <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
+    <li>
+      <div class="notif-header"> <?=$this->translate('source_cpk', null, 'Knihovny.cz')?>
+        <i class="pull-right icon-logo-komplet notif-knihovny-logo"></i>
       </div>
-      <!-- XXX <div data-repeat='notification in notifCtrl.notifications["noAPI"]["user"]'>
-	     <div class="notif-{{ notification.clazz }}" data-click='notifCtrl.notifClicked(notification,"user")'>
-	       {{ notification.message }}
-	     </div>
-	   </div> -->
-	</li>
-  <? if ($user): foreach ($libraryCards as $libraryCard):
-	   $source = explode('.', $libraryCard['cat_username'])[0];
-  ?><pre><?php var_dump($libraryCard)?></pre>
-	<li data-institution="<?=$source?>.parent" data-username="<?=libraryCard['cat_username']?> id="<?=$source?>">
-	   <div class="notif-header"> <?=$this->translate('source_' . $source, null, $source)?>
-	     <img height="20" class="pull-right" src="<?=$this->logos()->getLogo($source) ?>">
-	     <div data-institution="<?=$source?>" class="notif-default">
-	       <i class="fa fa-spinner fa-spin"></i>
-	       <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
-         </div>
-	   </div>
-	   <!-- XXX <div data-repeat='notification in notifCtrl.notifications["<?=$libraryCard['cat_username'] ?>"]'>
-	     <div class="notif-{{ notification.clazz }}" data-ng-click='notifCtrl.notifClicked(notification,"<?=$source ?>")'>
-	       {{ notification.message }}
-	     </div>
-	   </div> -->
-	</li>
-     <? endforeach; endif;?>
+      <div id="notif_synchronous_notifications" <?=$this->globalNotifications()->isEnabled() || !$user ? '' : 'hidden="hidden"'?>>
+        <?=$this->globalNotifications()->renderAll()?>
+      </div>
+      <div id="notif_loader" class="notif-default" hidden="hidden">
+        <i class="fa fa-spinner fa-spin"></i>
+        <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
+      </div>
+      <div id="notifications_list_cont"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
+    </li>
+    <?php if ($user):
+        foreach ($libraryCards as $libraryCard):
+            $source = explode('.', $libraryCard['cat_username'])[0];
+    ?>
+    <li data-institution="<?=$source?>.parent" data-username="<?=libraryCard['cat_username']?> id="<?=$source?>">
+      <pre><?php var_dump($libraryCard)?></pre>
+      <div class="notif-header"> <?=$this->translate('source_' . $source, null, $source)?>
+        <img height="20" class="pull-right" src="<?=$this->logos()->getLogo($source)?>">
+        <div data-institution="<?=$source?>" class="notif-default">
+          <i class="fa fa-spinner fa-spin"></i>
+          <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
+        </div>
+      </div>
+      <div id="notifications_list_cont-<?=libraryCard['cat_username']?>"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
+    </li>
+    <?php endforeach; endif;?>
   </ul>
 </li>

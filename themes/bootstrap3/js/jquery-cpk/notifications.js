@@ -5,10 +5,16 @@
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo Finish "initApiRelevantNotificationsForUserCard"!!!
+ * @todo První notifikace (v notifications.phtml):
+ * @todo data-repeat='notification in notifCtrl.notifications["noAPI"]["user"]'
+ * @todo div.addEventHandler( 'click', ( event ) => { notifClicked( notification, "user", event ); }, true )
+ *
+ * @todo Druhé notifikace:
+ * @todo data-repeat='notification in notifCtrl.notifications["<?= $libraryCard['cat_username'] ?>"]'
+ * @todo div.addEventHandler( 'click', ( event ) => { notifClicked( notification, source, event ); }, true )
  */
 
-(function( $ ) {
+(function() {
 	"use strict";
 
 	if ( CPK.verbose === true ) {
@@ -36,6 +42,7 @@
 	var institutionNotifLoaderHolder = Object.create( null );
 
 	/**
+	 * Notifications controller.
 	 * @constructor
 	 * @returns {NotificationsController}
 	 */
@@ -43,22 +50,7 @@
 		var apiNonrelevantJobDoneFlag = false,
 			onApiNonrelevantJobDone,
 			unreadNotifsCount = 0,
-			vm = this;
-
-		// Public
-		vm.notifications = {};
-		// Note (ondrejd): I think we don't need to expose those but I will
-		// delete it later... in fact at the end we should have only one
-		// public method - "onReady" called from initialization part of
-		// file "common.js".
-		//vm.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
-		//vm.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
-		vm.onNotificationClick = onNotificationClick;
-		vm.initialize = initialize;
-		vm.showWarningIcon = showWarningIcon;
-		vm.hideWarningIcon = hideWarningIcon;
-
-		return vm;
+			notificationsCache = Object.create( null );
 
 		/**
 		 * Initializes notifications (just like linkers before for Angular app).
@@ -71,7 +63,10 @@
 				.then( resolveInitGlobalNotificationsHolder )
 				.then( resolveFetchNotificationsForUser )
 				.then( resolveUseNotificationsForUser )
+				.then( resolveUpdateUnreadCount )
 				.then( resolveFetchNotificationsForUserCard )
+				.then( resolveUseNotificationsForUserCard )
+				//.then( resolveUpdateUnreadCount )
 				.then(function( result ) {
 					if ( CPK.verbose === true ) {
 						console.log( result );
@@ -88,6 +83,10 @@
 		 * @returns {Promise}
 		 */
 		function initGlobalNotificationsHolder() {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->initGlobalNotificationsHolder" );
+			}
+
 			return new Promise(function( resolve, reject ) {
 				// If elements for `globalNotifHolder` are not found it means
 				// that there is no logged user...
@@ -151,7 +150,182 @@
 		 * @private
 		 */
 		function resolveInitGlobalNotificationsHolder( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveInitGlobalNotificationsHolder", result );
+			}
+
 			return Promise.resolve( fetchNotificationsForUser() );
+		}
+
+		/**
+		 * @private Fetches notifications for current user asynchronously.
+		 * @returns {Promise}
+		 */
+		function fetchNotificationsForUser() {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->fetchNotificationsForUser" );
+			}
+
+			return new Promise(function( resolve, reject ) {
+				jQuery.get( "/AJAX/JSON?method=getMyNotificationsForUser", null, null, "json" )
+					.done(function( response ) {
+						if ( CPK.verbose === true ) {
+							console.log( response );
+						}
+
+						resolve( response.data.notifications !== undefined
+							? response.data.notifications
+							: [] );
+					})
+					.fail(function( e ) {
+						reject( e );
+					});
+			});
+		}
+
+		/**
+		 * @param {Array} notifications
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveFetchNotificationsForUser( notifications ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveFetchNotificationsForUser", notifications );
+			}
+
+			return Promise.resolve( useNotificationsForUser( notifications ) );
+		}
+
+		/**
+		 * @private Use notifications for current user asynchronously.
+		 * @param {Array} notifications
+		 * @returns {Promise}
+		 */
+		function useNotificationsForUser( notifications ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->useNotificationsForUser", notifications );
+			}
+
+			return new Promise(function( resolve ) {
+				if ( ! ( notifications instanceof Array ) ) {
+					resolve( [] );
+				}
+
+				notifications.forEach(notification => {
+					if ( notification.clazz.match( /unread/ ) ) {
+						unreadNotifsCount += 1;
+					}
+				});
+
+				if ( typeof notificationsCache.noApi !== "object" ) {
+					notificationsCache.noApi = Object.create( null );
+				}
+
+				notificationsCache.noApi.user = notifications;
+				resolve( unreadNotifsCount );
+			});
+		}
+
+		/**
+		 * @param {Number} unreadCount
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveUseNotificationsForUser( unreadCount ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveUseNotificationsForUser", unreadCount );
+			}
+
+			return Promise.resolve( updateUnreadCount( unreadCount ) );
+		}
+
+		/**
+		 * @private Updates count of unread notifications
+		 * @param {Number} unreadCount
+		 * @returns {Promise}
+		 */
+		function updateUnreadCount( unreadCount ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->updateUnreadCount", unreadCount );
+			}
+
+			return new Promise(function( resolve ) {
+				globalNotifHolder.unreadNotifsCount.textContent = parseInt( unreadNotifsCount );
+
+				showWarningIcon();
+				resolve( true );
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 * @todo Get "source" and "username"!
+		 */
+		function resolveUpdateUnreadCount( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveUpdateUnreadCount", result );
+			}
+
+			var source = undefined,
+				username = undefined;
+
+			return Promise.resolve( fetchNotificationsForUserCard( source, username ) );
+		}
+
+		/**
+		 * @private Fetches notifications for source and username.
+		 * @param {String} source
+		 * @param {String} username
+		 * @returns Promise
+		 */
+		function fetchNotificationsForUserCard( source, username ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->fetchNotificationsForUserCard", source, username );
+			}
+
+			return new Promise(function( resolve, reject ) {
+				var data = { cat_username: username };
+
+				jQuery.post( "/AJAX/JSON?method=getMyNotificationsForUserCard", data )
+					.done(function( response ) {
+						console.log( response );
+						response = response.data.data;
+
+						if ( typeof response.notifications !== "undefined" ) {
+							resolve( response.notifications, source, username );
+
+							if ( response.notifications.length === 0 ) {
+								var msg = VuFind.translate( "without_notifications" );
+
+								jQuery( "#" + response.source, "#notificationsList" ).append(
+									"<div class='notif-default'>" + msg + "</div>"
+								);
+							}
+						} else {
+							resolve( response.notifications, source, username );
+						}
+					})
+					.fail(function( error ) {
+						reject( "XHR request failed!", error );
+					});
+			});
+		}
+
+		/**
+		 * @param {Object} notifications
+		 * @param {String} source
+		 * @param {String} username
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveFetchNotificationsForUserCard( notifications, source, username ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveFetchNotificationsForUserCard", notifications, source, username );
+			}
+
+			return Promise.resolve( useNotificationsForUserCard( notifications, source, username ) );
 		}
 
 		/**
@@ -159,29 +333,50 @@
 		 * @param {Array} notifications
 		 * @param {String} source
 		 * @param {String} username
+		 * @returns {Promise}
 		 */
-		function onGotNotificationsForUserCard(notifications, source, username) {
-			if (!(notifications instanceof Array)) {
-				return;
+		function useNotificationsForUserCard( notifications, source, username ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->useNotificationsForUserCard", notifications, source, username );
 			}
 
-			vm.notifications[username] = notifications;
+			return new Promise(function( resolve ) {
+				if (!(notifications instanceof Array)) {
+					resolve( false );
+				}
 
-			if (notifications.length !== 0) {
-				notifications.forEach(
-					function(notification) {
-						if (notification.clazz.match(/unread/)) {
-							++unreadNotifsCount;
+				notificationsCache[ username ] = notifications;
+
+				if ( notifications.length !== 0 ) {
+					notifications.forEach(function( notification ) {
+						if ( notification.clazz.match( /unread/ ) ) {
+							unreadNotifsCount += 1;
 						}
-					}
-				);
-				updateUnreadNotificationsCount();
-				showWarningIcon();
-			} else {
-				CPK.global.hideDOM(institutionNotifLoaderHolder[source + ".parent"]);
+					});
+
+					// XXX updateUnreadNotificationsCount();
+					// XXX showWarningIcon();
+				} else {
+					CPK.global.hideDOM( institutionNotifLoaderHolder[ source + ".parent" ] );
+				}
+
+				hideLoader(source);
+
+				resolve( true );
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveUseNotificationsForUserCard( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( "NotificationsController->resolveUseNotificationsForUserCard", result );
 			}
 
-			hideLoader(source);
+			throw new Error( "Not implemented yet!" );
 		}
 
 		/**
@@ -221,173 +416,11 @@
 				/**
 				 * @todo Test if this working properly!!!
 				 */
-				$.post("/AJAX/JSON?method=notificationRead", data).done(followLocation);
+				jQuery.post("/AJAX/JSON?method=notificationRead", data).done(followLocation);
 			}
 		}
 
 		// Private
-
-		/**
-		 * @private Prints errors found in server's response onto console.
-		 * @param {Object} response
-		 */
-		function print_response_errors( response ) {
-			if ( CPK.verbose !== true ) {
-				return;
-			}
-
-			if ( typeof response.errors === "object" ) {
-				response.errors.forEach(function( e ) {
-					console.error( e );
-				});
-			}
-		}
-
-		/**
-		 * @private Fetches notifications for provided username asynchronously.
-		 * @param {String} username
-		 * @returns {Promise}
-		 */
-		function fetchNotificationsForUserCard(username) {
-			return new Promise(function(resolve, reject) {
-				var data = {
-					cat_username: username
-				};
-
-				$.post("/AJAX/JSON?method=getMyNotificationsForUserCard", data)
-					.done(function(response) {
-						response = response.data.data;
-
-						// Print errors if any
-						print_response_errors(response);
-
-						if (typeof response.notifications !== "undefined") {
-							resolve(response.notifications);
-
-							if (response.notifications.length === 0) {
-								var msg = VuFind.translate("without_notifications");
-								$("ul#notificationsList > li#" + response.source).append(
-									"<div class='notif-default'>" + msg + "</div>"
-								);
-							}
-						} else {
-							reject("No notifications for user card returned!");
-						}
-					})
-					.fail(function(e) {
-						reject(e);
-					});
-			});
-		}
-
-		/**
-		 * @private Fetches notifications for current user asynchronously.
-		 * @returns {Promise}
-		 */
-		function fetchNotificationsForUser() {
-			return new Promise(function( resolve, reject ) {
-				$.get( "/AJAX/JSON?method=getMyNotificationsForUser", null, null, "json" )
-					.done(function( response ) {
-						print_response_errors( response );
-
-						if ( typeof response.data.notifications !== "undefined" ) {
-							resolve( response.data.notifications );
-						} else {
-							reject( "No notifications for current user returned!" );
-						}
-					})
-					.fail(function( e ) {
-						reject( e );
-					});
-			});
-		}
-
-		/**
-		 * @param {Object} notifications
-		 * @returns {Promise}
-		 * @private
-		 */
-		function resolveFetchNotificationsForUser( notifications ) {
-			return Promise.resolve( useNotificationsForUser( notifications ) );
-		}
-
-		/**
-		 * @private Use notifications for current user asynchronously.
-		 * @param {Object} notifications
-		 * @returns {Promise}
-		 */
-		function useNotificationsForUser( notifications ) {
-			return new Promise(function( resolve, reject ) {
-				if ( ! ( notifications instanceof Array ) ) {
-					reject( "No notifications passed!" );
-				}
-
-				if ( typeof vm.notifications.noApi !== "object" ) {
-					vm.notifications.noApi = {};
-				}
-
-				vm.notifications.noApi.user = notifications;
-
-				notifications.forEach(function( notification ) {
-					if ( notification.clazz.match( /unread/ ) ) {
-						++unreadNotifsCount;
-					}
-				});
-
-				updateUnreadNotificationsCount();
-				showWarningIcon();
-
-				// XXX apiNonrelevantJobDone();
-
-				resolve( true );
-			});
-		}
-
-		/**
-		 * @param {boolean} result
-		 * @returns {Promise}
-		 * @private
-		 * @todo Get "source" and "username"!
-		 */
-		function resolveUseNotificationsForUser( notifications ) {
-			var source = undefined,
-				username = undefined;
-
-			return Promise.resolve( fetchNotificationsForUserCard( source, username ) );
-		}
-
-		/**
-		 * @private Fetches notifications for source and username.
-		 * @param {String} source
-		 * @param {String} username
-		 * @returns Promise
-		 */
-		function fetchNotificationsForUserCard( source, username ) {
-			return new Promise(function( resolve, reject ) {
-				/*vm.notifications[username] = [];
-
-				$q.resolve(fetchNotificationsForUserCard(username)).then(function(notifications) {
-					onGotNotificationsForUserCard(notifications, source, username);
-				}).catch(function(reason) {
-					if ( CPK.verbose === true ) {
-						console.error(reason);
-					}
-				});*/
-				reject( "XXX Not implemented yet!" );
-			});
-		}
-
-		/**
-		 * @param {Object} notifications
-		 * @param {String} source
-		 * @param {String} username
-		 * @returns {Promise}
-		 * @private
-		 * @todo Get "source" and "username"!
-		 */
-		function resolveFetchNotificationsForUserCard( notifications ) {
-			return Promise.reject( "XXX Not implemented yet!" );
-		}
 
 		/**
 		 * Hides a loader for an institution. It hides a loader associated
@@ -439,13 +472,6 @@
 		}
 
 		/**
-		 * Sets the count to the counter of unread notifications.
-		 */
-		function updateUnreadNotificationsCount() {
-			globalNotifHolder.unreadNotifsCount.textContent = parseInt( unreadNotifsCount );
-		}
-
-		/**
 		 * Hides up the global notification section.
 		 */
 		function hideGlobalNotifications() {
@@ -480,51 +506,36 @@
 				onApiNonrelevantJobDone.call();
 			}
 		}
-	}
 
-	/**
-	 * Checks if the linker is done linking by checking variables within {@see globalNotifHolder}
-	 * variable are all set to same value.
-	 *
-	 * It calls {@see onLinkerDone()} if it is done.
-	 */
-	function checkLinkerIsDone() {
-		if (typeof buf === "undefined") {
-			buf = {};
-			buf["globalNotifHolderKeys"] = Object.keys(globalNotifHolder);
-			buf["globalNotifHolderKeysLength"] = buf["globalNotifHolderKeys"].length;
+		/**
+		 * @private Creates <div> with presentation of given notification.
+		 * @param {Object} notification
+		 * @returns {HTMLDivElement}
+		 */
+		function createNotificationDiv( notification ) {
+			var div = document.createElement( "div" );
+
+			div.classList.add( "notif-" + notification.clazz );
+			div.appendChild( document.createTextNode( notification.message ) );
+
+			return div;
 		}
 
-		for (var i = 0; i < buf["globalNotifHolderKeysLength"];) {
-			if (typeof globalNotifHolder[buf["globalNotifHolderKeys"][i]] === "undefined") {
-				break;
-			}
+		// Public API
+		var Notifications = Object.create( null );
+		Notifications.notifications = {};
+		// Note (ondrejd): I think we don't need to expose those but I will
+		// delete it later... in fact at the end we should have only one
+		// public method - "onReady" called from initialization part of
+		// file "common.js".
+		//Notifications.initApiRelevantNotificationsForUserCard = initApiRelevantNotificationsForUserCard;
+		//Notifications.initApiNonrelevantNotifications = initApiNonrelevantNotifications;
+		Notifications.initialize = initialize;
+		Notifications.hideWarningIcon = hideWarningIcon;
+		Notifications.showWarningIcon = showWarningIcon;
+		Notifications.onNotificationClick = onNotificationClick;
 
-			if (++i === buf["globalNotifHolderKeysLength"]) {
-				if (typeof onLinkerDone === "function") {
-					onLinkerDone();
-				} else if ( CPK.verbose === true ) {
-					console.error("onLinkerDone must be a function!");
-				}
-			}
-		}
-	}
-
-	/**
-	 * Hooks DOM elements to an variable associated with particular institution identity.
-	 * @returns {Object}
-	 */
-	function institutionNotif() {
-		return {
-			restrict: "A",
-			link: linker
-		};
-
-		function linker(scope, elms, attrs) {
-			var source = attrs.institutionNotif;
-			// Now we really need to hook only the warning icons to each
-			institutionNotifLoaderHolder[source] = elms.context;
-		}
+		return Notifications;
 	}
 
 	/**
@@ -532,4 +543,4 @@
 	 */
 	CPK.notifications = new NotificationsController();
 
-}( jQuery ));
+}());
