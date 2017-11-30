@@ -20,6 +20,7 @@
 	/**
 	 * Federative login controller
 	 * @returns {Object}
+	 * @constructor
 	 */
 	function FederativeLoginController() {
 		var _storageKey = "__luidps",

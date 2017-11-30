@@ -18,11 +18,6 @@
 	}
 
 	/**
-	 * @type {String}
-	 */
-	var storageName;
-
-	/**
 	 * @type {Object}
 	 */
 	var fakeStore = Object.create( null );
@@ -135,13 +130,6 @@
 				storage = new FakeStorage();
 			} else {
 				storage = window.localStorage;
-
-				if ( storage.hasOwnProperty( "name" ) !== true ) {
-					Object.defineProperty( storage, "name", {
-						get: function() { return storageName; },
-						set: function( val ) { storageName = val; }
-					} );
-				}
 			}
 
 			resolve( storage );
@@ -156,9 +144,9 @@
 	CPK.storage.FakeStorage = FakeStorage;
 
 	/**
-	 * Please note that storage used in application runtime is instance
-	 * created in `common.js` in `document.onReady` event handler and
-	 * is available as `CPK.localStorage`.
+	 * Please note that storage used in application runtime is an instance
+	 * created in `common.js` when `document.onReady` event handler is running
+	 * and is available as `CPK.localStorage`.
 	 *
 	 * E.g.:
 	 *
@@ -168,6 +156,8 @@
 	 * // Read data
 	 * var data = JSON.parse( CPK.localStorage.getItem( "my_key" ) );
 	 * </pre>
+	 *
+	 * For more details about usage see `favorites.js` or `federative-login.js`.
  	 */
 
 }());

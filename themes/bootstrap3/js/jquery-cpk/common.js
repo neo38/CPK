@@ -126,6 +126,16 @@ CPK.global = {
 	controller: undefined
 };
 
+// This is here because of unhandled rejected promises (if there are any).
+window.addEventListener("unhandledrejection", ( event ) => {
+	// The event object has two special properties: "promise" and "reason".
+	if ( CPK.verbose === true ) {
+		console.error( event );
+	}
+
+	//...
+});
+
 /**
  * @todo This should be the only document.onReady handler.
  */
@@ -184,6 +194,11 @@ jQuery(document).ready(function(e) {
 					console.error( "Initialization of the login service was rejected.", error );
 				}
 			});
+	});
+
+	// Initialize favorites
+	setTimeout(() => {
+		//...
 	});
 });
 
