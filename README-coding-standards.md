@@ -21,11 +21,12 @@ Zde je několik dalších bodů, které by měly být při psaní JavaScriptu do
 
 ## Ukázky z existujících kódů
 
-Následuje sekce opravdu špatných ukázek z existujícího kódu:
+K výše uvedeným pravidlům si uvedeme příklady špatných řešení ve stávajícím kódu:
 
 ### Práce s [poli][6]
 
 První příklad je pokus, jak odstranit určitý prvek z pole objektů:
+
 ```javascript
 for (var i = 0; i < lastIdpsLength; ++i) {
   var lastIdp = lastIdps[i];
@@ -36,48 +37,370 @@ for (var i = 0; i < lastIdpsLength; ++i) {
   }
 };
 ```
-Samozřejmě, že je tam chyba s inkrementem `i`, ale zároveň se tyto věci píšou takto:
+
+Pomineme-li podivný inkrement `i`, je jasné, že není třeba přepisovat nativní funkce:
+
 ```javascript
 lastIdpsLength.filter(function( ip ) {
   return ip.name !== idp.name;
 });
 ```
-Nebo dokonce takto:
+
+Jde to dokonce zkrátit až takto (i když jen od _ES6_):
+
 ```javascript
 lastIdpsLength.filter( ip => { return ip.name !== idp.name; } );
 ```
 
-Následuje ukázka, jak chtěl někdo zkrátit pole na tři prvky:
+Následuje ukázka, jak nezkracovat pole na určitý počet prvků:
+
 ```javascript
 // Maximally we will have 3 institutions
 if (lastIdps.length > 3)
     lastIdps.pop();
 ```
-Nejprve to zjevně předpokládá, že pole bude mít max. 4 prvky, jinak by tam muselo být toto:
+
+Na první pohled je zřejmé, že skript předpokládá, že pole bude mít max. 4 prvky, protože jenak by tam muselo být toto:
+
 ```javascript
 while ( lastIdps.length > 3 ) {
   lastIdps.pop();
 }
 ```
-Ale tak jako tak, to jde napsat takto:
+
+Ale tak jako tak, i na toto je nativní funkce objektu [Array][6]
+
 ```javascript
 lastIdps = lastIdps.slice( 0, 3 );
 ```
 
 #### Shrnutí
 
-Každý by si měl projít, jaké vlastně JavaScript nabízí možnosti a co jeho [základní objekty][12] umí... Vždy totiž platí, že je třeba využívat nativní součásti JavaScriptu než na všechno zneužívat [jQuery][1].
+Každý by si měl projít, jaké vlastně JavaScript nabízí možnosti a co jeho [základní objekty][12] umí... Vždy totiž platí, že je třeba využívat nativní součásti JavaScriptu než na všechno zneužívat [jQuery][1] nebo dokonce nativní možnosti implementovat po svém.
+
+### Přístup k elementům
+
+__Pro přístup k jednotlivým elementům použít vždy jejich _ID_ namísto CSS třídy.__
+
+Pokud také chci přistoupit k jednotlivému elementu, tak je zbytečné psát `jQuery( "#id" )`, daleko lepší je rovnou `document.getElementById( "id" )`.
 
 Např. pokud chci přidat třídu k elementu u kterého znám ID, tak místo
+
 ```javascript
 jQuery( "#id_elementu" ).addClass( "nejaka_trida" );
 ```
+
 rozhodně musím použít toto:
+
 ```javascript
 document.getElementById( "#id_elementu" ).classList.add( "nejaka_trida" );
 ```
 
-Je také doporučeno pro přístup k __jednotlivým__ elementům použít vždy jejich _ID_ namísto CSS třídy. Pak už je opravdu zbytečné psát `jQuery( "#id" )` místo `document.getElementById( "id" )`.
+Jiný příklad - pokud potřebuji přidat _event handlery_ pro řádky v tabulce bude přístup přes [jQuery][1] nejlepší - ale i tak to můžeme zrychlit tím, že selektoru specifikujeme oblast, kde se mají prvky vyskytovat, např.:
+
+```javascript
+jQuery( ".trida", "#id" )
+```
+
+Vybere všechny prvky s CSS třídou `.trida`, které jsou pod elementem s _ID_ `id`.
+
+#### Shrnutí
+
+[jQuery][1] se musí užívat v rozmné míře, není nutné základní operace nedělat v čistém JavaScriptu, který prohlížeče zpracovávají nejrychleji.
+
+## Doporučené postupy
+
+Níže najdete doporučené postupy pro některé běžné operace.
+
+### Modul s jednoduchou funkčností
+
+Nejprve si ukážeme, jak jedoduše splnit požadavek na externí skript a nepřidávání _event handlerů_ přímo do HTML.
+
+Zde je jednoduchý modul, který zpracovává tzv. _federative login_:
+
+```javascript
+(function () {
+	"use strict";
+
+	/**
+	 * Federative login controller
+	 * @returns {Object}
+	 * @constructor
+	 */
+	function FederativeLoginController() {
+		var _storageKey = "__luidps",
+			lastIdentityProviders = null;
+
+		/**
+		 * Initializes notifications (just like linkers before for Angular app).
+		 * @param {Event} event
+		 * @return {Promise}
+		 */
+		function initialize( event ) {
+			return Promise
+				.resolve( initLips() )
+				.then( resolveInitLips )
+				.then( resolveParseLips )
+				.then( resolveUpdateLips )
+				.then( resolveRenderLips )
+				.then( resolveRegisterLipsHandler )
+				.then( resolveLibrarycardsHomeLinkHandler );
+		}
+
+		/**
+		 * @returns {Promise}
+		 * @private
+		 */
+		function initLips() {
+			return new Promise( function ( resolve ) {
+				try {
+					var lips;
+					lips = CPK.localStorage.getItem( _storageKey );
+					resolve( lips );
+				} catch ( error ) {
+					return reject( error );
+				}
+			} );
+		}
+
+		/**
+		 * @param {string} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveInitLips( lips ) {
+			return Promise.resolve( parseLips( lips ) );
+		}
+
+		/**
+		 * @param {string} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function parseLips( lips ) {
+			return new Promise( function ( resolve ) {
+				if ( lips === null || lips.length <= 0 ) {
+					resolve( [] );
+					return;
+				}
+
+				try {
+					var lip;
+					lip = JSON.parse( lips );
+					resolve( jQuery.isArray( lip ) ? lip : [] );
+				} catch ( error ) {
+					resolve( [] );
+				}
+			} );
+		}
+
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveParseLips( lips ) {
+			return Promise.resolve( updateLips( lips ) );
+		}
+
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function updateLips( lips ) {
+			return new Promise( function ( resolve, reject ) {
+				try {
+					// Setup default language
+					var lang = document.body.parentNode.getAttribute( "lang" ),
+						newTarget = location.pathname + location.search;
+
+					newTarget += ( newTarget.indexOf( "?" ) >= 0 ? "&" : "?" ) + "auth_method=Shibboleth";
+
+					lips.forEach( function ( lip ) {
+						lip.name = lip[ "name_" + lang ];
+						lip.href = lip.href.replace( /target=[^&]*/, "target=" + encodeURIComponent( newTarget ) );
+					} );
+
+					resolve( lips );
+				} catch ( error ) {
+					reject( error );
+				}
+			} );
+		}
+
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveUpdateLips( lips ) {
+			lastIdentityProviders = lips;
+
+			return Promise.resolve( renderLips( lips ) );
+		}
+
+		/**
+		 * @param {Array} lips
+		 * @returns {Promise}
+		 * @private
+		 */
+		function renderLips( lips ) {
+			return new Promise( function ( resolve ) {
+				try {
+					var parent = document.getElementById( "last-identity-providers" ),
+						table = document.createElement( "table" ),
+						tbody = document.createElement( "tbody" );
+
+					lips.forEach( function ( lip ) {
+						var tr = document.createElement( "tr" ),
+							td1 = document.createElement( "td" ),
+							td2 = document.createElement( "td" ),
+							img = document.createElement( "img" ),
+							a = document.createElement( "a" );
+
+						// XXX This should be done via CSS...
+						img.setAttribute( "height", "30" );
+						img.setAttribute( "src", lip.logo );
+						td1.classList.add( "col-sm-4" );
+						td1.appendChild( img );
+						a.setAttribute( "href", lip.href );
+						a.appendChild( document.createTextNode( lip.name ) );
+						td2.appendChild( a );
+						tr.appendChild( td1 );
+						tr.appendChild( td2 );
+						tbody.appendChild( tr );
+					} );
+
+					table.appendChild( tbody );
+					parent.appendChild( table );
+
+					resolve( true );
+				} catch ( error ) {
+					resolve( false );
+				}
+			} );
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveRenderLips( result ) {
+			return Promise.resolve( registerLipsHandler() );
+		}
+
+		/**
+		 * @private Registers onclick event handler on rendered indentity providers.
+		 * @returns {Promise}
+		 */
+		function registerLipsHandler() {
+			return new Promise(function( resolve ) {
+				jQuery( "tr", "#table-regular_identity_providers" ).click( lipClickHandler );
+				resolve( true );
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveRegisterLipsHandler( result ) {
+			var elm = document.getElementById( "login-help-content-link" );
+			return Promise.resolve( libraryCardsHomeLinkHandler( elm ) );
+		}
+
+		/**
+		 * @private Registers onclick event handler on link in librarycards/home.phtml.
+		 * @param {HTMLElement} elm
+		 * @returns {Promise}
+		 */
+		function libraryCardsHomeLinkHandler( elm ) {
+			return new Promise(function( resolve ) {
+				if ( typeof elm === "object" ) {
+					resolve ( false );
+				} else if ( elm.nodeType !== 1) {
+					resolve( false );
+				} else {
+					elm.addEventListener( "click", toggleHelpContent, true );
+					resolve( true );
+				}
+			});
+		}
+
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise}
+		 * @private
+		 */
+		function resolveLibrarycardsHomeLinkHandler( result ) {
+			return Promise.resolve( true );
+		}
+
+		/**
+		 * @private Toggles help content.
+		 * @param {Event} event
+		 */
+		function toggleHelpContent( event ) {
+			var elm = document.getElementById( "login-help-content" );
+
+			if ( elm.nodeType === 1 ) {
+				CPK.global.toggleDOM( elm );
+			}
+		}
+
+		/**
+		 * @private Handler for click on identity provider.
+		 * @param {Event} event
+		 */
+		function lipClickHandler( event ) {
+			try {
+				if ( event.target.nodeName.toLowerCase() !== "a" ) {
+					return;
+				}
+
+				var ipJson = event.currentTarget.getAttribute( "data-identityprovider" );
+				var ip = JSON.parse( ipJson ),
+					i = 0;
+
+				if ( typeof ip !== "object" ) {
+					return;
+				}
+
+				// If identity provider is already saved, remove it.
+				lastIdentityProviders = lastIdentityProviders.filter(( lip ) => { return lip.name !== ip.name; });
+
+				// And set it as the first one.
+				lastIdentityProviders.unshift( ip );
+
+				// Save updated last identity providers (but max. 3!).
+				var source = JSON.stringify( lastIdentityProviders.slice( 0, 3 ) );
+				CPK.localStorage.setItem( _storageKey, source );
+
+				// And now just continue as event will bubble...
+			} catch ( error ) {
+				//...
+			}
+		}
+
+		// Public API
+		var Login = Object.create( null );
+		Login.initialize = initialize;
+
+		return Login;
+	}
+
+	/**
+	 * @type {Object}
+	 */
+	CPK.login = new FederativeLoginController();
+
+}());
+```
+
+__TBD__
 
 [1]:https://jquery.com/
 [2]:https://contribute.jquery.org/style-guide/js/
