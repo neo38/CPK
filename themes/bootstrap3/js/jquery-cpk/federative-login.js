@@ -240,7 +240,7 @@
 
 		/**
 		 * @private Registers onclick event handler on link in librarycards/home.phtml.
-		 * @param {Element} elm
+		 * @param {HTMLElement} elm
 		 * @returns {Promise}
 		 */
 		function libraryCardsHomeLinkHandler( elm ) {
@@ -250,7 +250,7 @@
 				} else if ( elm.nodeType !== 1) {
 					resolve( false );
 				} else {
-					document.addEventListener( "click", toggleHelpContent, true );
+					elm.addEventListener( "click", toggleHelpContent, true );
 					resolve( true );
 				}
 			});

@@ -154,7 +154,7 @@
         /**
          * Handles the call of an improvised "onload" event when script links
          * the loader div with the username in it.
-         * @param {Element} domElement
+         * @param {HTMLElement} domElement
          * @param {String} parsedUsername
          */
         function onHistoryUsernameDirectiveLinked(domElement, parsedUsername) {

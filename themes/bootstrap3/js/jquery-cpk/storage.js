@@ -26,7 +26,7 @@
 	 * @private Returns TRUE if localStorage is supported.
 	 * @returns {boolean}
 	 */
-	function isStorageSupported() {
+	function isSupported() {
 		try {
 			var storage = window.localStorage,
 				x = "__storage_test__";
@@ -115,15 +115,15 @@
 	}
 
 	/**
-	 * Initializes storage (localStorage or fake)
+	 * Initializes storage (`window.localStorage` or `FakeStorage`).
 	 * @returns {Promise}
 	 */
 	function initStorage() {
-		return new Promise(function( resolve, reject ) {
+		return new Promise(function( resolve ) {
 			var storage;
 
-			if ( ! isStorageSupported() ) {
-				if (CPK.verbose === true) {
+			if ( isSupported() !== true ) {
+				if ( CPK.verbose === true ) {
 					console.info("Normal local storage is not available. We will use fake storage...");
 				}
 
@@ -139,8 +139,8 @@
 	// Public API
 	CPK.storage = Object.create( null );
 	CPK.storage.initStorage = initStorage;
-	CPK.storage.isStorageSupported = isStorageSupported;
-	CPK.storage.isStorage = isStorage;
+	CPK.storage.isSupported = isSupported;
+	CPK.storage.isStorage   = isStorage;
 	CPK.storage.FakeStorage = FakeStorage;
 
 	/**

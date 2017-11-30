@@ -94,7 +94,7 @@ CPK.global = {
 
 	/**
 	 * Removes "hidden" attribute from the given element.
-	 * @param {Element} elm
+	 * @param {HTMLElement} elm
 	 */
 	showDOM: function( elm ) {
 		"use strict";
@@ -103,7 +103,7 @@ CPK.global = {
 
 	/**
 	 * Sets "hidden" attribute for the given element.
-	 * @param {Element} elm
+	 * @param {HTMLElement} elm
 	 */
 	hideDOM: function( elm ) {
 		"use strict";
@@ -112,7 +112,7 @@ CPK.global = {
 
 	/**
 	 * Toggles "hidden" attribute on the given element.
-	 * @param {Element} elm
+	 * @param {HTMLElement} elm
 	 */
 	toggleDOM: function( elm ) {
 		"use strict";
@@ -164,6 +164,21 @@ jQuery(document).ready(function(e) {
 			CPK.global.isStorageAvailable = false;
 		});
 
+	// Initialize login
+	setTimeout(() => {
+		CPK.login.initialize( e )
+			.then(function( result ) {
+				if ( CPK.verbose === true ) {
+					console.info( "Login service was initialized.", result );
+				}
+			})
+			.catch(function( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( "Initialization of the login service was rejected.", error );
+				}
+			});
+	});
+
 	// Initialize notifications
 	setTimeout(() => {
 		CPK.notifications.initialize( e )
@@ -181,25 +196,10 @@ jQuery(document).ready(function(e) {
 			});
 	});
 
-	// Initialize login
-	setTimeout(() => {
-		CPK.login.initialize( e )
-			.then(function( result ) {
-				if ( CPK.verbose === true ) {
-					console.info( "Login service was initialized.", result );
-				}
-			})
-			.catch(function( error ) {
-				if ( CPK.verbose === true ) {
-					console.error( "Initialization of the login service was rejected.", error );
-				}
-			});
-	});
-
 	// Initialize favorites
-	setTimeout(() => {
+	/*setTimeout(() => {
 		//...
-	});
+	});*/
 });
 
 
