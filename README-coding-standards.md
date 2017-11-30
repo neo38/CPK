@@ -66,16 +66,18 @@ lastIdps = lastIdps.slice( 0, 3 );
 
 #### Shrnutí
 
-Nebylo by na škodu, aby si všichni prohlédli, jaké vlastně JavaScript nabízí objekty a co všechno tyto objekty umí... tak jako tak totiž platí, že je lépe využívat nativní věci JavaScriptu než na všechno zneužívat jQuery.
+Každý by si měl projít, jaké vlastně JavaScript nabízí možnosti a co jeho [základní objekty][12] umí... Vždy totiž platí, že je třeba využívat nativní součásti JavaScriptu než na všechno zneužívat [jQuery][1].
 
 Např. pokud chci přidat třídu k elementu u kterého znám ID, tak místo
 ```javascript
 jQuery( "#id_elementu" ).addClass( "nejaka_trida" );
 ```
-__rozhodně musím použít__ toto:
+rozhodně musím použít toto:
 ```javascript
 document.getElementById( "#id_elementu" ).classList.add( "nejaka_trida" );
 ```
+
+Je také doporučeno pro přístup k __jednotlivým__ elementům použít vždy jejich _ID_ namísto CSS třídy. Pak už je opravdu zbytečné psát `jQuery( "#id" )` místo `document.getElementById( "id" )`.
 
 [1]:https://jquery.com/
 [2]:https://contribute.jquery.org/style-guide/js/
@@ -88,3 +90,4 @@ document.getElementById( "#id_elementu" ).classList.add( "nejaka_trida" );
 [9]:https://javascript.info/promise-chaining
 [10]:https://javascript.info/
 [11]:http://requirejs.org/
+[12]:https://developer.mozilla.org/cs/docs/Web/JavaScript/Reference/Global_Objects
