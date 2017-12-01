@@ -420,6 +420,30 @@ Zde je jednoduchý modul, který zpracovává tzv. _federative login_:
 }());
 ```
 
+Ten se inicializuje tímto způsobem v [common.js][15]:
+
+```javascript
+// Initialize notifications
+setTimeout(() => {
+    CPK.notifications.initialize( e )
+        .then(function( result ) {
+            CPK.global.areNotificationsAvailable = ( result === true );
+
+            if ( CPK.verbose === true ) {
+                console.info( "Notifications were initialized.", result );
+            }
+        })
+        .catch(function( error ) {
+            if ( CPK.verbose === true ) {
+                console.error( "Initialization of notifications was rejected.", error );
+            }
+        });
+});
+``` 
+
+Nyní k tomu vysvětlení:
+
+
 __TBD__
 
 [1]:https://jquery.com/
@@ -436,3 +460,4 @@ __TBD__
 [12]:https://developer.mozilla.org/cs/docs/Web/JavaScript/Reference/Global_Objects
 [13]:https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
 [14]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L160
+[15]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L174
