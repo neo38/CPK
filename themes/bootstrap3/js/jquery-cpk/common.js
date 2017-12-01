@@ -88,11 +88,6 @@ CPK.global = {
 	areNotificationsAvailable: false,
 
 	/**
-	 * TRUE if CPK.localStorage is available.
-	 */
-	isStorageAvailable: false,
-
-	/**
 	 * Removes "hidden" attribute from the given element.
 	 * @param {HTMLElement} elm
 	 */
@@ -150,7 +145,6 @@ jQuery(document).ready(function(e) {
 			}
 
 			CPK.localStorage = result;
-			CPK.global.isStorageAvailable = true;
 
 			if ( CPK.verbose === true ) {
 				console.info( "Storage was initialized.", result );
@@ -160,8 +154,6 @@ jQuery(document).ready(function(e) {
 			if ( CPK.verbose === true) {
 				console.error( "Initialization of CPK.localStorage failed!", error );
 			}
-
-			CPK.global.isStorageAvailable = false;
 		});
 
 	// Initialize login
@@ -196,13 +188,24 @@ jQuery(document).ready(function(e) {
 			});
 	});
 
-	// Initialize favorites
-	/*setTimeout(() => {
-		//...
-	});*/
+	// Initialize favorites broadcaster
+	setTimeout(() => {
+		CPK.favorites.broadcaster.initialize( e )
+			.then(function( result ) {
+				if ( CPK.verbose === true ) {
+					console.info( "Favorites broadcaster was initialized.", result );
+				}
+			})
+			.catch(function( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( "Initialization of favorites broadcaster was rejected.", error );
+				}
+			});
+	});
 });
 
 
+// XXX Process this below (originall GlobalController)!
 (function($) {
     //angular.module('cpk').controller('GlobalController', GlobalController).directive('ngModal', ngModal);
     //GlobalController.$inject = [ 'favsBroadcaster', '$rootScope', '$location', '$log', '$http' ];
