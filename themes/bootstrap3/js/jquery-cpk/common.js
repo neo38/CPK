@@ -1,4 +1,14 @@
 /**
+ * XXX Měli by jsme se uživatele zeptat zda chce ukládat citlivé údaje
+ *     do paměti svého počítače - nejen cookies ale i localStorage
+ *
+ * XXX Základní "FakeStorage" by měla být na základě `cookies` -> ale je to špaténka...
+ *
+ * XXX Musíme si rozmyslet, jak udělat testy pro JavaScript!
+ *
+ *
+ *
+ *
  * jQuery-based replacement for original Angular-based ng-cpk module.
  *
  * Application self is split into several modules:
@@ -33,19 +43,17 @@
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo Replace using of "Promise" by using "jQuery.Deferred().promise()".
- * @todo When no "Promise" will be used we can move out "es6-promise.min.js" (loaded in layout.phtml).
  * @todo We need to replace all that ng-linker shit and replace it by jQuery-based solution!
  * @todo Would be great to make tests :)
- * @todo Use "CPK.verbose" across all scripts!
  * @todo Move all shared methods to "CPK.global"!
  * @todo Check code styling in all files of this module.
  * @todo Go through all TODOs and either fix them or remove.
  * @todo All code must be commented.
  * @todo We should also check help (for example here: https://cpk-front.mzk.cz/Portal/Page/napoveda#1.2)
- * @todo File "jquery-cpk/admin.js" load only conditionally.
  * @todo Reformat changed PHTML templates! --> all JS/PHTML files produced for this task should follow coding styles!
  * @todo Move comments above (about jquery-cpk) to the standalone README.md file
+ *
+ * @todo Notifications and "Federative login" should be implemented as jQuery UI/Bootstrap widgets (but in unobstructive way)...
  */
 
 if ( typeof CPK === "undefined" ) {
@@ -118,23 +126,32 @@ CPK.global = {
 		}
 	},
 
+	/**
+	 * Handler for unhandled rejected promises (if there are any).
+	 * @param {Event} event Event object has special properties: "promise" & "reason"
+	 * @todo Finish this!
+	 */
+	handleMissedPromises: function( event ) {
+		if ( CPK.verbose === true ) {
+			console.error( event );
+		}
+
+		//...
+	},
+
+	/**
+	 * @type {GlobalController} controller
+	 */
 	controller: undefined
 };
 
 // This is here because of unhandled rejected promises (if there are any).
-window.addEventListener("unhandledrejection", ( event ) => {
-	// The event object has two special properties: "promise" and "reason".
-	if ( CPK.verbose === true ) {
-		console.error( event );
-	}
-
-	//...
-});
+window.addEventListener( "unhandledrejection", CPK.global.handleMissedPromises );
 
 /**
  * @todo This should be the only document.onReady handler.
  */
-jQuery(document).ready(function(e) {
+jQuery(document).ready(function() {
 	"use strict";
 
 	// Initialize storage
@@ -157,8 +174,8 @@ jQuery(document).ready(function(e) {
 		});
 
 	// Initialize login
-	setTimeout(() => {
-		CPK.login.initialize( e )
+	setTimeout(function() {
+		CPK.login.initialize()
 			.then(function( result ) {
 				if ( CPK.verbose === true ) {
 					console.info( "Login service was initialized.", result );
@@ -172,8 +189,8 @@ jQuery(document).ready(function(e) {
 	});
 
 	// Initialize notifications
-	setTimeout(() => {
-		CPK.notifications.initialize( e )
+	setTimeout(function() {
+		CPK.notifications.initialize()
 			.then(function( result ) {
 				CPK.global.areNotificationsAvailable = ( result === true );
 
@@ -189,8 +206,8 @@ jQuery(document).ready(function(e) {
 	});
 
 	// Initialize favorites broadcaster
-	setTimeout(() => {
-		CPK.favorites.broadcaster.initialize( e )
+	setTimeout(function() {
+		CPK.favorites.broadcaster.initialize()
 			.then(function( result ) {
 				if ( CPK.verbose === true ) {
 					console.info( "Favorites broadcaster was initialized.", result );
@@ -202,177 +219,116 @@ jQuery(document).ready(function(e) {
 				}
 			});
 	});
-});
 
+	// Initialize global controller
+	/**
+	 * @type {Object} jQueryModal
+	 */
+	var jQueryModal = undefined;
 
-// XXX Process this below (originall GlobalController)!
-(function($) {
-    //angular.module('cpk').controller('GlobalController', GlobalController).directive('ngModal', ngModal);
-    //GlobalController.$inject = [ 'favsBroadcaster', '$rootScope', '$location', '$log', '$http' ];
+	/**
+	 * Global controller
+	 * @todo Find what is injected `$location` object!
+	 * @todo Initialize requested modal!
+	 */
+	function GlobalController() {
+		// We need to initialize requested modal
+		//if ( typeof vm.getParams['viewModal'] !== 'undefined' ) {
+		//	viewModal( vm.getParams['viewModal'] );
+		//}
+		//$rootScope.$on( 'notificationClicked', notificationClicked );
 
-    var linkedObjects = {
-        modal : {
-            global : {
-                body : undefined,
-                header : undefined
-            }
-        }
-    };
+		/**
+		 * Handles click on notification.
+		 */
+		function notificationClicked() {
+			var oldModal = CPK.global.controller.getParams[ 'viewModal' ];
 
-    var linkerCache = {
-        modal : {}
-    };
+			vm.getParams = $location.search();
 
-    var jQueryModal = undefined;
+			if (typeof vm.getParams['viewModal'] !== 'undefined') {
 
-    /**
-     * Initialize injected favsBroadcaster & show requested modal
-     */
-    function GlobalController(favsBroadcaster, $rootScope, $location, $log, $http) {
+				viewModal(vm.getParams['viewModal'], $log, $http);
+			}
+		}
 
-        var vm = this;
+		/*
+		 * Private
+		 */
 
-        vm.getParams = $location.search();
+		/**
+		 * @param {string} portalPageId
+		 * @private Shows modal (with `portalPageId`).
+		 * @returns {Promise}
+		 * @todo Finish this!
+		 */
+		function viewModal( portalPageId ) {
+			/**
+			 * @returns {Promise}
+			 */
+			var handleShowModal = function() {
+				return new Promise(function( resolve, reject ) {
+					// TODO Before this starts with `onLinkedModal( 'global', showTheModal );`
 
-        if (typeof vm.getParams['viewModal'] !== 'undefined') {
+					// TODO var header = linkedObjects.modal.global.header;
+					// TODO var body = linkedObjects.modal.global.body;
 
-            viewModal(vm.getParams['viewModal']);
-        }
+					jQuery.get( "/AJAX/JSON?method=getPortalPage&prettyUrl=" + portalPageId )
+						.done(function( response ) {
+							var portalPage = response.data.data;
 
-        $rootScope.$on('notificationClicked', notificationClicked);
+							// TODO header.textContent = portalPage.title;
+							// TODO body.innerHTML = portalPage.content;
+						})
+						.fail(function( error ) {
+							if ( CPK.verbose === true ) {
+								console.error( error );
+							}
+						});
 
-        return vm;
+					resolve( true );
+				});
+			};
 
-        /**
-         * Handle click on notification
-         */
-        function notificationClicked() {
-            var oldModal = vm.getParams['viewModal'];
+			return Promise
+				.resolve( handleShowModal() )
+				.then(function( /*result*/ ) { modal( true ); });
+		}
 
-            vm.getParams = $location.search();
+		/**
+		 * @param {boolean} show
+		 * @returns {Object}
+		 */
+		function modal( show ) {
+			if ( typeof jQueryModal === "undefined" ) {
+				jQueryModal = jQuery( document.getElementById( "#modal" ) );
+			}
 
-            if (typeof vm.getParams['viewModal'] !== 'undefined') {
+			if ( show === true ) {
+				jQueryModal.modal( "show" );
+			} else {
+				jQueryModal.modal( "hide" );
+			}
 
-                viewModal(vm.getParams['viewModal'], $log, $http);
-            }
-        }
+			return jQueryModal;
+		}
 
-        /*
-         * Private
-         */
+		// TODO Controller.getParams = $location.search();
 
-        function viewModal(portalPageId) {
+		// Public API
+		var Controller       = Object.create( null );
+		Controller.getParams = [];
+		return Controller;
+	}
 
-            onLinkedModal('global', showTheModal);
+	/**
+	 * @type {GlobalController}
+	 */
+	CPK.global.controller = new GlobalController();
 
-            function showTheModal() {
-
-                new Promise(function() {
-                    modal(true);
-                });
-
-                var header = linkedObjects.modal.global.header;
-                var body = linkedObjects.modal.global.body;
-
-                $http.get('/AJAX/JSON?method=getPortalPage&prettyUrl=' + portalPageId).then(function(dataOnSuccess) {
-                    var portalPage = dataOnSuccess.data.data;
-
-                    header.textContent = portalPage.title;
-                    body.innerHTML = portalPage.content;
-
-                }, function(dataOnError) {
-                    $log.error(dataOnError);
-                });
-
-            }
-        }
-
-        function modal(show) {
-            if (typeof jQueryModal === 'undefined') {
-                jQueryModal = $('#modal');
-            }
-
-            if (typeof show === 'boolean' && show)
-                jQueryModal.modal('show');
-            else
-                jQueryModal.modal('hide');
-
-            return jQueryModal;
-        }
-    }
-
-    function ngModal() {
-        return {
-            restrict : 'A',
-            link : linker
-        };
-
-        function linker(scope, elements, attrs) {
-
-            // IE 11 :(
-            var modalAttr = attrs.ngModal.split('.');
-
-            var modalId = modalAttr[0];
-            var modalPart = modalAttr[1];
-
-            if (typeof linkedObjects.modal[modalId] === 'undefined')
-                linkedObjects.modal[modalId] = {};
-
-            linkedObjects.modal[modalId][modalPart] = elements.context;
-
-            onLinkedModal(modalId, modalPart);
-        }
-    }
-
-    /**
-     * Handles calling the callback function appropriate to a modalId after are
-     * linked all the necessary modal attributes.
-     *
-     * The callback must be set by onLinkedModal(modalId, callback)
-     */
-    function onLinkedModal(modalId, what) {
-        if (typeof linkerCache.modal[modalId] === 'undefined') {
-            linkerCache.modal[modalId] = {};
-        }
-
-        if (typeof what === 'function') {
-            // Process the function as input
-            var linkerDone = linkerCache.modal[modalId].linkerDone;
-
-            if (typeof linkerDone === 'boolean' && linkerDone) {
-                what.call();
-            } else {
-                linkerCache.modal[modalId].callback = what;
-            }
-
-        } else {
-            // Now the linker linked something
-
-            var callIt = true;
-
-            var modalAttributes = Object.keys(linkedObjects.modal[modalId]);
-            var modalAttributesLength = modalAttributes.length;
-
-            for (var i = 0; i < modalAttributesLength; ++i) {
-
-                var key = modalAttributes[i];
-
-                if (typeof linkedObjects.modal[modalId][key] === 'undefined') {
-                    callIt = false;
-                    break;
-                }
-            }
-
-            if (callIt) {
-
-                linkerCache.modal[modalId].linkerDone = true;
-
-                if (typeof linkerCache.modal[modalId].callback === 'function') {
-                    linkerCache.modal[modalId].callback.call();
-                }
-            }
-
-        }
-    }
+	// Show modal for terms of use
+	jQuery( document.getElementById( "#termsOfUseModal" ) )
+		.modal( "show" )
+		.unbind( "click" );
 
 })(jQuery);

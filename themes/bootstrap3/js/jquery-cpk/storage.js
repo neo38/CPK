@@ -18,24 +18,45 @@
 	}
 
 	/**
+	 * These types of storage are supported.
+	 * @type {string[]}
+	 */
+	var supportedTypes = [ "fakeStorage", "localStorage", "sessionStorage" ];
+
+	/**
+	 * This is a public API which should any storage fulfill.
+	 * @type {string[]}
+	 */
+	var storageApi = [ "setItem", "getItem", "removeItem", "clear" ];
+
+	/**
 	 * @type {Object}
 	 */
 	var fakeStore = Object.create( null );
 
 	/**
+	 * @param {string} type (Optional.) Type of used storage - `localStorage` or `sessionStorage`.
 	 * @private Returns TRUE if localStorage is supported.
 	 * @returns {boolean}
 	 */
-	function isSupported() {
+	function isSupported( type ) {
+		if ( type === undefined || supportedTypes.indexOf( type ) === -1 ) {
+			type = "localStorage";
+		}
+
 		try {
-			var storage = window.localStorage,
+			var storage = window[ type ],
 				x = "__storage_test__";
 
 			storage.setItem( x, x );
 			storage.removeItem( x );
 
 			return true;
-		} catch( e ) {
+		} catch( error ) {
+			if ( CPK.verbose === true ) {
+				console.error( error );
+			}
+
 			return false;
 		}
 	}
@@ -51,9 +72,8 @@
 		}
 
 		var ret = true;
-
-		[ "setItem", "getItem", "removeItem", "clear" ].forEach(function( method ) {
-			if ( typeof storage[method] !== "function" ) {
+		storageApi.forEach(function( method ) {
+			if ( typeof storage[ method ] !== "function" ) {
 				ret = false;
 			}
 		});
@@ -63,32 +83,32 @@
 
 	/**
 	 * Sets item.
-	 * @param {String} id
-	 * @param {String} val
-	 * @returns {String}
+	 * @param {string} id
+	 * @param {string} val
+	 * @returns {string}
 	 */
 	function setItem( id, val ) {
-		fakeStore[id] = String( val );
-		return fakeStore[id];
+		fakeStore[ id ] = String( val );
+		return fakeStore[ id ];
 	}
 
 	/**
 	 * Gets item's value.
-	 * @param {String} id
-	 * @returns {String}
+	 * @param {string} id
+	 * @returns {string}
 	 */
 	function getItem( id ) {
-		return fakeStore.hasOwnProperty( id ) ? String( fakeStore[id] ) : undefined;
+		return fakeStore.hasOwnProperty( id ) ? String( fakeStore[ id ] ) : undefined;
 	}
 
 	/**
 	 * Removes item with given id.
-	 * @param {String} id
+	 * @param {string} id
 	 * @returns {boolean}
 	 */
 	function removeItem( id ) {
 		try {
-			delete fakeStore[id];
+			delete fakeStore[ id ];
 			return true;
 		} catch ( e ) {
 			return false;
@@ -116,23 +136,20 @@
 
 	/**
 	 * Initializes storage (`window.localStorage` or `FakeStorage`).
+	 * @param {string} type
 	 * @returns {Promise}
 	 */
-	function initStorage() {
-		return new Promise(function( resolve ) {
-			var storage;
-
-			if ( isSupported() !== true ) {
-				if ( CPK.verbose === true ) {
-					console.info("Normal local storage is not available. We will use fake storage...");
-				}
-
-				storage = new FakeStorage();
-			} else {
-				storage = window.localStorage;
+	function initStorage( type ) {
+		return new Promise(function( resolve, reject ) {
+			if ( supportedTypes.indexOf( type ) === -1 ) {
+				reject( "Requested unknown storage type ('" + type + "')!" );
 			}
 
-			resolve( storage );
+			if ( isSupported( type ) !== true ) {
+				reject( "Requested unsupported storage type ('" + type + "')!" );
+			}
+
+			resolve( ( type === "fakeStorage" ) ? new FakeStorage() : window[ type ] );
 		});
 	}
 
@@ -157,7 +174,8 @@
 	 * var data = JSON.parse( CPK.localStorage.getItem( "my_key" ) );
 	 * </pre>
 	 *
-	 * For more details about usage see `favorites.js` or `federative-login.js`.
+	 * For more details about usage see `favorites.js`, `federative-login.js`
+	 * or `notifications.js`.
  	 */
 
 }());

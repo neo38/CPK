@@ -211,7 +211,7 @@
 					resolve( [] );
 				}
 
-				notifications.forEach(notification => {
+				notifications.forEach(function( notification ) {
 					if ( notification.clazz.match( /unread/ ) ) {
 						unreadNotifsCount += 1;
 					}

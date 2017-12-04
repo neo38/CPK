@@ -310,10 +310,6 @@
     <? if (! $user && isset($_GET['AcceptTermsOfUse'])):
       $agreeUrl = $this->url('myresearch-home').'?auth_method=Shibboleth&amp;terms_of_use_accepted=yes'?>
     <!-- Modal for terms of use -->
-    <!--
-       - XXX This not should be here:
-       -->
-    <script type="text/javascript">$(function(){$('#termsOfUseModal').modal('show').unbind('click');});</script>
     <div class="modal fade" id="termsOfUseModal" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">

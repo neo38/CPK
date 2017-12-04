@@ -1,6 +1,11 @@
 /**
  * Favorites service.
  *
+ * For some unknown reasons favorites used (in old Angular app) `sessionStorage`
+ * as a "safer" storage than `localStorage` - we switch to `CPK.localStorage`
+ * because between `sessionStorage` and `localStorage` are no security
+ * differencies.
+ *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
@@ -89,6 +94,7 @@
 	 * @constructor
 	 */
 	function FavoritesStorage() {
+
 		/**
 		 * @type {Array}
 		 */
@@ -104,7 +110,7 @@
 					reject( "Storage is not available" );
 				}
 
-				var favs = CPK.localStorage.getItem( "_favs" );
+				var favs = CPK.localStorage.getItem( "__favs" );
 
 				if ( typeof favs === "string" ) {
 					favorites = JSON.parse( favs );
@@ -120,18 +126,19 @@
 		 * Adds new favorite into the storage.
 		 * @param {Favorite} item
 		 * @returns {Promise}
-		 * @todo We need to call `favorites.notifications.favAdded()`!
+		 * @todo We need to call `CPK.favorites.notifications.favoriteAdded()`!
 		 */
 		function add( item ) {
-			console.log( item );
+			console.log( item ); // TODO Remove this line!
+
 			if ( ! ( item instanceof Favorite ) ) {
 				return Promise.reject( "Invalid favorite provided (not an instance of Favorite class)!" );
 			}
 
 			return Promise
 				.resolve( loadFavorites() )
-				.then(( favs ) => {
-					return Promise.resolve( saveFavorites( favs.push( item ) ) );
+				.then(function( favorites ) {
+					return Promise.resolve( saveFavorites( favorites.push( item ) ) );
 				});
 		}
 
@@ -147,9 +154,9 @@
 
 			return Promise
 				.resolve( loadFavorites() )
-				.then(( favs ) => {
+				.then(function( favorites ) {
 					var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
-					var found = favs.findIndex(( fav ) => {
+					var found = favorites.findIndex(function( fav ) {
 						return !!fav.title.link.match( regexp );
 					});
 
@@ -157,10 +164,10 @@
 
 					return Promise.resolve( favs.splice( found, 1 ) );
 				})
-				.then(( favs ) => {
+				.then(function( favorites ) {
 					return Promise
-						.resolve( saveFavorites( favs ) )
-						.then(() => {
+						.resolve( saveFavorites( favorites ) )
+						.then(function() {
 							CPK.favorites.notifications.favoriteRemoved();
 						});
 				});
@@ -173,7 +180,7 @@
 		function removeAll() {
 			return Promise
 				.resolve( saveFavorites( [] ) )
-				.then(( favs ) => {
+				.then(function( favs ) {
 					CPK.favorites.notifications.allFavoritesRemoved();
 
 					return Promise.resolve();
@@ -188,9 +195,9 @@
 		function has( id ) {
 			return Promise
 				.resolve( loadFavorites() )
-				.then(( favs ) => {
+				.then(function( favorites ) {
 					var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
-					var found = favs.find(( fav ) => {
+					var found = favorites.find(function( fav ) {
 						return !!fav.title.link.match( regexp );
 					});
 
@@ -212,9 +219,9 @@
 		function get( id ) {
 			return Promise
 				.resolve( loadFavorites() )
-				.then(( favs ) => {
-					if ( id in favs ) {
-						var fav = new CPK.favorites.Favorite().fromObject( favs.id );
+				.then(function( favorites ) {
+					if ( id in favorites ) {
+						var fav = new CPK.favorites.Favorite().fromObject( favorites.id );
 
 						return Promise.resolve( fav );
 					} else {
@@ -230,8 +237,8 @@
 		function getAll() {
 			return Promise
 				.resolve( loadFavorites() )
-				.then(( favs ) => {
-					return Promise.resolve( favs.map(( fav ) => {
+				.then(function( favorites ) {
+					return Promise.resolve( favorites.map(function( fav ) {
 						return new CPK.favorites.Favorite().fromObject( fav );
 					}) );
 				});
@@ -239,15 +246,15 @@
 
 		/**
 		 * @private Save favorites into the storage (aka `CPK.localStorage`).
-		 * @param {Array} favs
+		 * @param {Array} favorites
 		 * @returns {Promise}
 		 */
-		function saveFavorites( favs ) {
+		function saveFavorites( favorites ) {
 			return new Promise(function( resolve, reject ) {
 				if ( CPK.storage.isStorage( CPK.localStorage ) !== true ) {
 					reject( "Storage is not available!" );
 				} else {
-					CPK.storage.setItem( "_favs", JSON.stringify( favs ) );
+					CPK.storage.setItem( "__favs", JSON.stringify( favorites ) );
 					resolve( true );
 				}
 			});
@@ -309,7 +316,7 @@
 		};
 
 		// Create getter/setters according to $vars
-		Object.getOwnPropertyNames( $vars ).forEach(( prop ) => {
+		Object.getOwnPropertyNames( $vars ).forEach(function( prop ) {
 			if ( prop === "created" ) {
 				Object.defineProperty(this, prop, {
 					get: function() { return $vars.prop; }
@@ -592,61 +599,172 @@
 
 	/**
 	 * Broadcaster for the favorites.
+	 *
+	 * Originally it was using `sessionStore` as a storage behind but
+	 * I changed to the default `CPK.localStorage` but maybe in future
+	 * will be better init storage by own here (and of course use
+	 * `sessionStorage` as a default "engine").
+	 *
 	 * @returns {Object}
 	 * @constructor
 	 */
 	function FavoritesBroadcaster() {
 		/**
+		 * @const {string}
+		 */
+		const STORAGE_KEY = "__favsStorage";
+
+		/**
 		 * ID of current tab to identify requests & responses
 		 * @type {Number} tabId
 		 */
-		var tabId;
+		var tabId = undefined;
 
 		/**
 		 * ID of last tab which placed a request
 		 * @type {Number} tabId
 		 */
-		var lastKnownTabId;
+		var lastTabId = undefined;
+		
+		/**
+		 * Holds timeout for checking mastership.
+		 * @type {Number} mastershipRetrieval
+		 */
+		var mastershipRetrieval = undefined;
 
 		/**
 		 * Create localStorage event listener to have ability of fetching data
 		 * from another tab.
 		 *
-		 * Also prompt for newest sessionStorage data if this is new tab
-		 * created.
-		 *
-		 * Also share current sessionStorage with another tabs if is this master
-		 * tab. Note that only master tab can share current sessionStorage to
-		 * prevent spamming from many tabs opened willing to share their
-		 * sessionStorage
-		 *
 		 * @param {Event} event
 		 * @returns {Promise}
 		 */
 		function init( event ) {
-			return new Promise(function( resolve, reject ) {
-				if ( isNewTab() ) {
-					handleNewTab();
-				} else {
-					handleOldTab();
-				}
+			return Promise
+				.resolve( isNewTab() ? handleNewTab() : handleOldTab() )
+				.then( resolveHandleTab )
+				.then( resolveStorageHandler )
+				.then( ( result ) => Promise.resolve( result ) );
+		}
 
-				window.addEventListener( "storage", handleStorageEvent, true );
-				sendFavoritesIfNecessary();
+		/**
+		 * Returns boolean whether is this tab a new tab or not.
+		 */
+		function isNewTab() {
+			return CPK.localStorage.hasItem( "tabId" );
+		}
 
-				reject( "Not implemented yet!" );
+		/**
+		 * Handles the logic right after we found out this is a brand new tab
+		 * without any useful data in storage.
+		 *
+		 * It basically prompts another tabs for existing favorites & stores
+		 * them inside sessionStorage.
+		 *
+		 * @returns {Promise}
+		 */
+		function handleNewTab() {
+			if ( CPK.verbose === true ) {
+				console.log( "FavoritesBroadcaster->handleOldTab" );
+			}
+
+			return new Promise(function( resolve ) {
+				// Generate tabId ..
+				tabId = Date.now();
+				sessionStorage.tabId = tabId;
+
+				// Try to get favorites for this tab
+
+				// Attach event listener
+				window.addEventListener( "storage", onGotFavorites );
+
+				// Wait 1500 ms for response, then suppose this is the first tab.
+				mastershipRetrieval = window.setTimeout( function() {
+					window.removeEventListener( "storage", onGotFavorites );
+					CPK.localStorage.setItem( STORAGE_KEY, "[]" );
+					becomeMaster( true );
+				}, 1500 );
+
+				// Ask other tabs for favorites ..
+				broadcast( "giveMeFavorites", tabId );
+
+				resolve( true );
 			});
 		}
 
+		/**
+		 * Handles the logic right after we found out this is an old tab.
+		 *
+		 * It basically prompts reassigns important persistent variables.
+		 *
+		 * @returns {Promise}
+		 */
+		function handleOldTab() {
+			if ( CPK.verbose === true ) {
+				console.log( "FavoritesBroadcaster->handleOldTab" );
+			}
+
+			return new Promise(function( resolve, reject ) {
+				// Assign the tabId the first tabId generated by this tab
+				tabId = sessionStorage.tabId;
+
+				var masterTabId = CPK.localStorage.getItem( "favoritesMasterTab" );
+
+				if ( masterTabId === tabId || masterTabId === "rand" ) {
+					becomeMaster( true );
+				} else if ( CPK.verbose === true ) {
+					console.log( "Being a slaveTab is nice!" );
+				}
+
+				resolve( true );
+			});
+		}
+
+		/**
+		 *
+		 * @param {Boolean} result
+		 */
+		function resolveHandleTab( result ) {
+			if ( CPK.verbose === true ) {
+				console.log( "FavoritesBroadcaster->resolveHandleTab" );
+			}
+
+			return Promise.resolve( initStorageHandler() );
+		}
+
+		/**
+		 * Initializes handler for "storage" event.
+		 * @returns {Promise}
+		 */
+		function initStorageHandler() {
+			if ( CPK.verbose === true ) {
+				console.log( "FavoritesBroadcaster->initStorageHandler" );
+			}
+
+			return new Promise(function( resolve ) {
+				window.addEventListener( "storage", handleStorageEvent, true );
+				resolve( true );
+			});
+		}
+
+		/**
+		 * @param {Boolean} result
+		 */
+		function resolveStorageHandler( result ) {
+			if ( CPK.verbose === true ) {
+				console.log( "FavoritesBroadcaster->resolveStorageHandler" );
+			}
+
+			return Promise.resolve( sendFavoritesIfNecessary() );
+		}
 
 		/**
 		 * Broadcasts event called "favoriteAdded" across all tabs listening
 		 * on storage event so they can update themselves.
 		 * @param {Favorite} favorite
 		 */
-		function broadcastAdded(favorite) {
-			var favObj = favorite.toObject();
-			broadcast("favoriteAdded", JSON.stringify(favObj));
+		function broadcastAdded( favorite ) {
+			broadcast( "favoriteAdded", JSON.stringify( favorite.toObject() ) );
 		}
 
 		/**
@@ -654,237 +772,174 @@
 		 * storage event so they can update themselves.
 		 * @param {Number} favoriteId
 		 */
-		function broadcastRemoved(favoriteId) {
-			broadcast("favoriteRemoved", favoriteId);
+		function broadcastRemoved( favoriteId ) {
+			broadcast( "favoriteRemoved", favoriteId );
 		}
 
 		// Private
 
 		/**
-		 * Just broadcast a message using localStorage's event
-		 * @param {String} key
-		 * @param {Number} val
+		 * @private Handler for "storage" event.
+		 * @param {Event} event
 		 */
-		function broadcast(key, val) {
-			localStorage.setItem(key, val);
-			localStorage.removeItem(key);
+		function onGotFavorites( event ) {
+			if ( parseInt( event.key ) === tabId ) {
+				return;
+			}
 
-			if (CPK.verbose) {
-				console.debug("Emitted broadcast with key & value", key, val);
+			if ( event.newValue === "null" ) {
+				CPK.localStorage.setItem( STORAGE_KEY, "[]" );
+				return;
+			}
+
+			// We got response, so there is already a master tab
+			window.clearTimeout( mastershipRetrieval );
+
+			// Set the sessionStorage
+			CPK.localStorage.setItem( STORAGE_KEY, event.newValue );
+
+			// Let the controller know ..
+			if ( typeof window.__favChanged === "function" ) {
+				var _favorites = JSON.parse( event.newValue );
+
+				_favorites.forEach(function( favorite ) {
+					var fav = CPK.favorites.Favorite().fromObject( favorite );
+					window.__favChanged( true, favorite );
+				});
+
+				if ( _favorites.length > 0 ) {
+					CPK.favorites.notifications.favoriteAdded();
+				}
+			}
+
+			// Remove this listener
+			window.removeEventListener( "storage", onGotFavorites );
+		}
+
+		/**
+		 * @private Just broadcast a message using localStorage's event
+		 * @param {string} key
+		 * @param {Number} val
+		 * @todo Find another way how to do this.
+		 */
+		function broadcast( key, val ) {
+			CPK.localStorage.setItem( key, val );
+			CPK.localStorage.removeItem( key );
+
+			if ( CPK.verbose === true ) {
+				console.log( "Emitted broadcast with key & value", key, val );
 			}
 		}
 
 		/**
-		 * Handler for "storage" event.
+		 * @private Handler for "storage" event.
 		 * @param {Event} event
 		 */
-		function handleStorageEvent(event) {
-			if (CPK.verbose) {
-				console.debug("Received an broadcast: ", event);
+		function handleStorageEvent( event ) {
+			if ( CPK.verbose === true ) {
+				console.log( "Received an broadcast: ", event );
 			}
 
-			// New masterTab ?
-			if (event.key === "favoritesMasterTab") {
+			if ( event.key === "favoritesMasterTab" ) {
 				// Should this tab be masterTab ?
-				if (parseInt(event.newValue) === tabId || event.newValue === "rand") {
+				if ( parseInt(event.newValue) === tabId || event.newValue === "rand" ) {
 					becomeMaster();
 				}
-			} else if (event.key === "favAdded" && event.newValue) {
-				handleFavoriteAdded(event);
-			} else if (event.key === "favRemoved" && event.newValue) {
-				handleFavoriteRemoved(event);
-			} else if (event.key === "purgeAllTabs" && event.newValue) {
-				storage.removeAllFavorites();
+			} else if ( event.key === "favAdded" && event.newValue ) {
+				handleFavoriteAdded( event );
+			} else if ( event.key === "favRemoved" && event.newValue ) {
+				handleFavoriteRemoved( event );
+			} else if ( event.key === "purgeAllTabs" && event.newValue ) {
+				CPK.favorites.storage.removeAllFavorites();
 			}
 		}
 
 		/**
-		 * Handler for "favoriteAdded" event.
+		 * @private Handler for "favoriteAdded" event.
 		 * @param {Event} event
 		 */
-		function handleFavoriteAdded(event) {
-			var favObj = JSON.parse(event.newValue);
-			var newFav = new Favorite().fromObject(favObj);
+		function handleFavoriteAdded( event ) {
+			var favObj = JSON.parse( event.newValue );
+			var newFav = new Favorite().fromObject( favObj );
 
-			CPK.favorites.storage.add(newFav).then(function() {
+			CPK.favorites.storage.add( newFav ).then(function() {
 				// Tell the controllers ..
-				if (typeof window.__favChanged === "function") {
-					if (CPK.verbose) {
-						console.debug("Calling 'window.__favChanged' with ", newFav);
+				if ( typeof window.__favChanged === "function" ) {
+					if ( CPK.verbose === true ) {
+						console.log( "Calling `window.__favChanged` with ", newFav );
 					}
 
-					window.__favChanged(true, newFav);
+					window.__favChanged( true, newFav );
 				}
 			});
 		}
 
 		/**
-		 * Handler for "favoriteRemoved" event.
+		 * @private Handler for "favoriteRemoved" event.
 		 * @param {Event} event
 		 */
-		function handleFavoriteRemoved(event) {
-			var favObj = JSON.parse(event.newValue);
-			var oldFav = new Favorite().fromObject(favObj);
+		function handleFavoriteRemoved( event ) {
+			var favObj = JSON.parse( event.newValue );
+			var oldFav = new Favorite().fromObject( favObj );
 
-			CPK.favorites.storage.remove(oldFav.created).then(function() {
+			CPK.favorites.storage.remove( oldFav.created ).then(function() {
 				// Tell the controllers ..
-				if (typeof window.__favChanged === "function") {
-					if (CPK.verbose) {
-						console.debug("Calling 'window.__favChanged' with ", oldFav);
+				if ( typeof window.__favChanged === "function" ) {
+					if ( CPK.verbose === true ) {
+						console.log( "Calling `window.__favChanged` with ", oldFav );
 					}
 
-					window.__favChanged(false, oldFav);
+					window.__favChanged( false, oldFav );
 				}
 			});
 		}
 
 		/**
-		 * Returns boolean whether is this tab a new tab or not.
-		 */
-		function isNewTab() {
-			return typeof sessionStorage.tabId === 'undefined';
-		}
-
-		/**
-		 * Handles the logic right after we found out this is brand new tab
-		 * without any useful sessionStorage data.
-		 *
-		 * It basically prompts another tabs for existing favorites & stores
-		 * them inside sessionStorage.
-		 */
-		function handleNewTab() {
-			// Generate tabId ..
-			tabId = Date.now();
-			sessionStorage.tabId = tabId;
-
-			/**
-			 * Handler for "storage" event.
-			 * @param {Event} event
-			 */
-			function onGotFavorites(event) {
-				if (parseInt(event.key) === tabId) {
-					if (event.newValue === "null") {
-						sessionStorage.setItem(storage.name, "[]");
-						return;
-					}
-
-					// We got response, so there is already a master tab
-					window.clearTimeout(mastershipRetrieval);
-
-					// Set the sessionStorage
-					sessionStorage.setItem(storage.name, event.newValue);
-
-					// Let the controller know ..
-					if (typeof window.__favChanged === "function") {
-						var _favorites = JSON.parse(event.newValue);
-						var favorites = _favorites.map(function(fav) {
-							return new CPK.favorites.Favorite().fromObject(fav);
-						});
-
-						favorites.forEach(function(favorite) {
-							window.__favChanged(true, favorite);
-						});
-
-						if (_favorites.length) {
-							favsNotifications.favAdded();
-						}
-					}
-
-					// Remove this listener
-					window.removeEventListener("storage", onGotFavorites);
-				}
-			}
-
-			// Attach event listener
-			window.addEventListener("storage", onGotFavorites);
-
-			/**
-			 * Wait 1500 ms for response, then suppose this is the first tab.
-			 * @type {Number} mastershipRetrieval
-			 * @todo This should be made without the stupid timeout!
-			 */
-			var mastershipRetrieval = window.setTimeout(function() {
-				window.removeEventListener("storage", onGotFavorites);
-				sessionStorage.setItem(storage.name, "[]");
-				becomeMaster(true);
-			}, 1500);
-
-			// Ask other tabs for favorites ..
-			broadcast("giveMeFavorites", tabId);
-		}
-
-		/**
-		 * Handles the logic right after we found out this is an old tab.
-		 *
-		 * It basically prompts reassigns important persistent variables.
-		 */
-		function handleOldTab() {
-			// Assign the tabId the first tabId generated by this tab
-			tabId = sessionStorage.tabId;
-
-			var masterTabId = localStorage.favoritesMasterTab;
-
-			if (masterTabId === tabId || masterTabId === "rand") {
-				becomeMaster(true);
-			} else if (CPK.verbose === true) {
-				console.debug("Being a slaveTab is nice!");
-			}
-		}
-
-		/**
-		 * Becoming master tab
-		 *
+		 * @private Becomes master tab.
 		 * @param {Boolean} active
 		 *
-		 * Determines if this tab is becoming master tab actively or passively
-		 * (if it was told it to do so or it decided itself by reaching the
-		 * timeout when no master returns response on init request)
+		 * Determines if this tab is becoming to be master tab by its own
+		 * or it was decided because of reaching the timeout when no master
+		 * return response on initial request.
 		 */
-		function becomeMaster(active) {
-			if (CPK.verbose) {
-				(typeof active === "undefined")
-					? console.debug("Passively becoming masterTab!")
-					: console.debug("Actively becoming masterTab!");
+		function becomeMaster( active ) {
+			if ( CPK.verbose === true ) {
+				( typeof active === "undefined" )
+					? console.log( "Passively becoming masterTab!" )
+					: console.log( "Actively becoming masterTab!" );
 			}
 
 			// Overwrite it to inform other tabs about becoming masterTab..
-			localStorage.setItem("favoritesMasterTab", tabId);
+			CPK.localStorage.setItem( "favoritesMasterTab", tabId );
 
-			/**
-			 * Give up mastership when tab is closed.
-			 */
-			window.onbeforeunload = function() {
-				giveUpMastership();
-			};
+			// Give up mastership when tab is closed.
+			window.addEventListener( "beforeunload", giveUpMastership, true );
 
 			// Create event listener to play master role
-			window.addEventListener("storage", masterJob);
+			window.addEventListener( "storage", masterJob );
 
 			/**
-			 * Giving up the mastership
+			 * @private Gives up master role - removes event listener and sets new master.
 			 */
 			function giveUpMastership() {
-				window.removeEventListener("storage", masterJob);
-
-				var newMaster = lastKnownTabId ? lastKnownTabId : "rand";
-
-				// Create persistent info
-				localStorage.setItem("favoritesMasterTab", newMaster);
+				window.removeEventListener( "storage", masterJob );
+				localStorage.setItem( "favoritesMasterTab", lastTabId ? lastTabId : "rand" );
 			}
 
 			/**
-			 * Playing master role.
+			 * @private Playing master role.
 			 * @param {Event} event
 			 */
-			function masterJob(event) {
-				if (CPK.verbose === true) {
-					console.log("FavoritesBroadcaster -> becomeMaster -> masterJob",
-						event.key, event.key === "giveMeFavorites", event);
+			function masterJob( event ) {
+				if ( CPK.verbose === true ) {
+					console.log( "FavoritesBroadcaster->becomeMaster->masterJob", event );
 				}
-				if (event.key === "giveMeFavorites" && event.newValue) {
-					// Some tab asked for the sessionStorage -> send it
-					lastKnownTabId = event.newValue;
-					broadcast(event.newValue, sessionStorage.getItem(storage.name));
+
+				if ( event.key === "giveMeFavorites" && event.newValue ) {
+					lastTabId = event.newValue;
+
+					// Some tab asked for the storage so send it
+					broadcast( event.newValue, CPK.localStorage.getItem( storage.name ) );
 				}
 			}
 		}
@@ -901,42 +956,48 @@
 		 * after logout.
 		 */
 		function sendFavoritesIfNecessary() {
-			if (typeof sendMeFavorites !== "function" || sendMeFavorites() !== true) {
+			if ( typeof sendMeFavorites !== "function" || sendMeFavorites() !== true ) {
 				return;
 			}
 
-			CPK.favorites.storage.getAll().then(function(favorites) {
-				if (favorites.length === 0) {
-					return;
-				}
+			CPK.favorites.storage.getAll()
+				.then(function( favorites ) {
+					if ( favorites.length === 0 ) {
+						return Promise.reject( "There are no favorites." );
+					}
 
-				var data = {
-					favs : favorites.map(function(fav) { return fav.toObject(); })
-				};
+					var data = {
+						favs: favorites.map( function ( fav ) {
+							return fav.toObject();
+						} )
+					};
 
-				if (CPK.verbose) {
-					console.debug("Pushing favorites on prompt ...", data);
-				}
+					if ( CPK.verbose === true ) {
+						console.log( "Pushing favorites on prompt ...", data );
+					}
 
-				/**
-				 * @todo Don't reload whole page but just the menu...
-				 */
-				$.post("/AJAX/JSON?method=pushFavorites", data).always(function() {
-					// Broadcast all tabs removal
-					purgeAllTabs();
+					return Promise.resolve( data );
+				})
+				.then(function( favorites ) {
+					/**
+					 * @todo Don't reload whole page but just the menu...
+					 */
+					$.post( "/AJAX/JSON?method=pushFavorites", data ).always(function() {
+						// Broadcast all tabs removal
+						broadcast( "purgeAllTabs", 0 );
 
-					// Reload the page to see newly created favorites list
-					location.reload();
+						// Clear the storage
+						CPK.favorites.storage.removeAll();
+
+						// Reload the page to see newly created favorites list
+						window.location.reload();
+					});
+				})
+				.catch(function( reason ) {
+					if ( CPK.verbose === true ) {
+						console.log( reason );
+					}
 				});
-			});
-		}
-
-		/**
-		 * Sends an broadcast to purge all favorites
-		 */
-		function purgeAllTabs() {
-			broadcast("purgeAllTabs", 0);
-			CPK.favorites.storage.removeAll();
 		}
 
 		// Public API
