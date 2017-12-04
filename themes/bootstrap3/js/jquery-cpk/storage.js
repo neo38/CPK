@@ -1,11 +1,8 @@
 /**
- * Basic storage implementation. It uses window.localStorage if available
- * otherwise uses "fake" localStorage based on cookies.
+ * Universal storage implementation.
  *
- * It also allow to use window.sessionStorage if developer wants to - in
- * that case is fallback also our "fake" storage.
- *
- * @link https://developer.mozilla.org/en-US/docs/Web/API/Storage/LocalStorage
+ * If is rejected initialization of storage of type "localStorage" or
+ * "sessionStorage" you can still use "fakeStorage" as an alternative.
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
@@ -15,6 +12,24 @@
 
 	if ( CPK.verbose === true ) {
 		console.info( "jquery-cpk/storage.js" );
+	}
+
+	/**
+	 * @private
+	 * @param {FakeStorageItem} elm
+	 * @returns {boolean}
+	 */
+	function findIndex( elm ) {
+		return (elm.id === id);
+	}
+
+	/**
+	 * @private
+	 * @param {FakeStorageItem} elm
+	 * @returns {boolean}
+	 */
+	function filterItem( elm ) {
+		return (elm.id === id);
 	}
 
 	/**
@@ -29,8 +44,7 @@
 	}
 
 	/**
-	 * Our fake storage.
-	 * @private
+	 * Fake storage.
 	 * @property {number} length
 	 * @constructor
 	 */
@@ -46,15 +60,6 @@
 		 * @param {string} val
 		 */
 		function setItem( id, val ) {
-
-			/**
-			 * @param {FakeStorageItem} elm
-			 * @returns {boolean}
-			 */
-			var findIndex = function( elm ) {
-				return ( elm.id === id );
-			};
-
 			/**
 			 * @type {number}
 			 */
@@ -75,15 +80,6 @@
 		 * @returns {string|null}
 		 */
 		function getItem( id ) {
-
-			/**
-			 * @param {FakeStorageItem} elm
-			 * @returns {boolean}
-			 */
-			var filterItem = function( elm ) {
-				return ( elm.id === id );
-			};
-
 			/**
 			 * @type {FakeStorageItem[]}
 			 */
@@ -102,15 +98,6 @@
 		 * @returns {boolean}
 		 */
 		function removeItem( id ) {
-
-			/**
-			 * @param {FakeStorageItem} elm
-			 * @returns {boolean}
-			 */
-			var findIndex = function( elm ) {
-				return ( elm.id === id );
-			};
-
 			/**
 			 * @type {number}
 			 */
@@ -144,13 +131,19 @@
 				return null;
 			}
 
-			return fakeStore[ key ].id;
+			return fakeStore[key].id;
+		}
+
+		/**
+		 * @private Returns length of the storage.
+		 * @returns {number}
+		 */
+		function getLength() {
+			return fakeStore.length;
 		}
 
 		// Properties
-		Object.defineProperty( this, "length", {
-			get: function() { return fakeStore.length; }
-		} );
+		Object.defineProperty( this, "length", { get: getLength } );
 
 		// Methods
 		this.getItem    = getItem;
@@ -231,10 +224,11 @@
 			}
 		}
 
-		this.initStorage = initStorage;
-		this.isSupported = isSupported;
-		this.isStorage   = isStorage;
-		this.FakeStorage = FakeStorage;
+		// Public API
+		this.initStorage    = initStorage;
+		this.isSupported    = isSupported;
+		this.isStorage      = isStorage;
+		this.FakeStorage    = FakeStorage;
 	}
 
 	/**

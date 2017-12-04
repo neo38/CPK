@@ -8,27 +8,54 @@ There are several more or less standalone parts which all are initialized in [co
 
 ### `CPK.storage`
 
-The most important module which is behind several others - it offers unified and simple access to [`window.localStorage`][6] as well as [`window.sessionStorage`][7]. If used browser doesn't support requested storage the `FakeStorage` will be returned. This fake storage has same API as normal storage and is used to provide (at least some) functionality for all users. 
+The most important module which is behind several others - it offers unified and simple access to [`window.localStorage`][6] as well as [`window.sessionStorage`][7]. It also offers fall-back storage `FakeStorage` - which is just in-time-memory storage.
+
+The idea behind this _fake_ storage is simple - is better offer same (but limited) functionality to all users than use some heavy conditional logic in the source codes.
 
 Usage of `CPK.storage` is easy:
 
-1. Firstly there is one storage defined when application starts and it can be used anywhere programmer need:
+1. Firstly there is one storage defined when application starts and it can be used anywhere programmer needs (it should be by default type of `localStorage`):
    ```javascript
+   // Load value
+   CPK.localStorage.getItem( "key" );
+   // Save value
    CPK.localStorage.setItem( "key", "value" );
    ```
-2. Secondly you can define own storage if you needed:
+2. Secondly you can define own storage if you needed (with fall-back into `FakeStorage`):
    ```javascript
-   var newStorage;
-   CPK.storage.initStorage( "localStorage" )
-       .then(function( result ) {
-           // We need to check if storage was really initialized
-           if ( CPK.storage.isStorage( result ) === true ) {
-               newStorage = result;
-           }
-       })
-       .catch(function( error ) {
-           console.error( "Storage was not initialized!", error );
-       });
+   /**
+    * @type {Storage}
+    */
+   var myStorage = null;
+
+   /**
+    * @param {Storage|boolean} result
+    * @returns {Promise}
+    */
+   function resolveMyStorageInitialization( result ) {
+       if ( result === true ) {
+           return Promise.resolve( true );
+       } else if ( CPK.storage.isStorage( result ) === true ) {
+           myStorage = result;
+           return Promise.resolve( true );
+       } else {
+           return Promise.resolve( CPK.storage.initStorage( "fakeStorage" ) );
+       }
+   }
+
+   /**
+    * @param {boolean} result
+    */
+   function doSomething( result ) {
+       // Now you can whatever you want with your storage...
+       myStorage.setItem( "key", "value" );
+   }
+
+   // Initialize storage
+   CPK.storage.initStorage( "sessionStorage" )
+       .then( resolveMyStorageInitialization )
+       .then( resolveMyStorageInitialization )
+       .then( doSomething );
    ```
 
 ### `CPK.global`
@@ -66,3 +93,4 @@ __TBD__
 [5]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/common.js
 [6]:https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
 [7]:https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
+[8]:https://developer.mozilla.org/en-US/docs/Web/API/Storage
