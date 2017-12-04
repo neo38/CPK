@@ -38,7 +38,7 @@ for (var i = 0; i < lastIdpsLength; ++i) {
 };
 ```
 
-Pomineme-li podivný inkrement `i`, je jasné, že není třeba přepisovat nativní funkce:
+Pomineme-li podivný inkrement `i`, je jasné, že není třeba přepisovat __nativní__ funkce:
 
 ```javascript
 lastIdpsLength.filter(function( ip ) {
@@ -68,7 +68,7 @@ while ( lastIdps.length > 3 ) {
 }
 ```
 
-Ale tak jako tak, i na toto je nativní funkce objektu [Array][6]
+Ale tak jako tak, i na toto je __nativní__ funkce objektu [Array][6]
 
 ```javascript
 lastIdps = lastIdps.slice( 0, 3 );
@@ -107,6 +107,26 @@ Vybere všechny prvky s CSS třídou `.trida`, které jsou pod elementem s _ID_ 
 #### Shrnutí
 
 [jQuery][1] se musí užívat v rozmné míře, není nutné základní operace nedělat v čistém JavaScriptu, který prohlížeče zpracovávají nejrychleji.
+
+### Použití `setTimeout`/`setInterval`
+
+Tyto funkce __nikdy__ nesmí být použity jako v příkladu ze stávajícího kódu níže:
+
+```javascript
+/**
+ * Wait 1500 ms for response, then suppose this is the first tab.
+ * @type {Number} mastershipRetrieval
+ */
+var mastershipRetrieval = window.setTimeout(function() {
+    window.removeEventListener("storage", onGotFavorites);
+    sessionStorage.setItem(storage.name, "[]");
+    becomeMaster(true);
+}, 1500);
+```
+
+Toto je naprosto šílené - nejen, že je limit `1500` vymyšlený a autor spíše doufá, že to vždy bude stačit, ale hlavně přesně na toto jsou [Promises][8] - __nikdy__ není zapotřebí spustit nějaký proces _za chvíli_, až _možná_ stávající proces proběhne - pokud ho zabalíme do _Promise_, pak prostě zavěsíme _callback_ a ono se to samo spustí, žádné odhadování času...
+
+__Pozn.__: Nicméně [setTimeout][13] má i užitečnou vlastnost, že pokud vynecháme parametr času, tak se spustí při příští vhodné příležitosti (kdy ve frontě událostí JS enginu není již nic jiného - jak říká specifikace _as soon as possible_ tzn. _ASAP_ :)). Toto můžeme s úspěchem použít ve chvíli, kdy [Promises][8] nechceme řetězit, ale přesto chceme, aby se některé spustili až po jiných (viz. [common.js][14]).
 
 ## Doporučené postupy
 
@@ -400,6 +420,30 @@ Zde je jednoduchý modul, který zpracovává tzv. _federative login_:
 }());
 ```
 
+Ten se inicializuje tímto způsobem v [common.js][15]:
+
+```javascript
+// Initialize notifications
+setTimeout(() => {
+    CPK.notifications.initialize( e )
+        .then(function( result ) {
+            CPK.global.areNotificationsAvailable = ( result === true );
+
+            if ( CPK.verbose === true ) {
+                console.info( "Notifications were initialized.", result );
+            }
+        })
+        .catch(function( error ) {
+            if ( CPK.verbose === true ) {
+                console.error( "Initialization of notifications was rejected.", error );
+            }
+        });
+});
+``` 
+
+Nyní k tomu vysvětlení:
+
+
 __TBD__
 
 [1]:https://jquery.com/
@@ -414,3 +458,6 @@ __TBD__
 [10]:https://javascript.info/
 [11]:http://requirejs.org/
 [12]:https://developer.mozilla.org/cs/docs/Web/JavaScript/Reference/Global_Objects
+[13]:https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
+[14]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L160
+[15]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L174
