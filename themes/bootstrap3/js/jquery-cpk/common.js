@@ -197,12 +197,9 @@ jQuery(function onDocumentReady() {
 	 * @returns {Promise}
 	 */
 	function resolveInitializeLocalStorage( result ) {
-		console.log( "resolveInitializeLocalStorage", result );
-		if ( CPK.storage.isStorage( CPK.localStorage ) ) {
+		if ( result === true ) {
 			return Promise.resolve( true );
-		}
-
-		if ( CPK.storage.isStorage( result ) === true ) {
+		} else if ( CPK.storage.isStorage( result ) === true ) {
 			if ( CPK.verbose === true ) {
 				console.info( "`CPK.localStorage` was successfully initialized!" );
 			}
