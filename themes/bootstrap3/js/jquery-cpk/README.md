@@ -1,26 +1,18 @@
 # jquery-cpk
 
-This code is replacement of previous solution based [Angular][1] library. 
-It's based just on [jQuery][2] and native components of JavaScript self - 
-above all [Worker][3], [Promise][4] etc.
+This code is replacement of previous solution based [Angular][1] library. It's based just on [jQuery][2] and native components of JavaScript self - above all [Worker][3], [Promise][4] etc.
 
 ## Structure
 
-There are several more or less standalone parts which all are initialized in 
-[common.js][5]. In this file is also defined basic structure of `CPK` module.
+There are several more or less standalone parts which all are initialized in [common.js][5]. In this file is also defined basic structure of `CPK` module.
 
 ### `CPK.storage`
 
-The most important module which is behind several others - it offers unified 
-and simple access to [`window.localStorage`][6] as well as [`window
-.sessionStorage`][7]. If used browser doesn't support requested storage the `FakeStorage` will be
- returned. This fake storage has same API as normal storage and is used to 
- provide (at least some) functionality for all users. 
+The most important module which is behind several others - it offers unified and simple access to [`window.localStorage`][6] as well as [`window.sessionStorage`][7]. If used browser doesn't support requested storage the `FakeStorage` will be returned. This fake storage has same API as normal storage and is used to provide (at least some) functionality for all users. 
 
 Usage of `CPK.storage` is easy:
 
-1. Firstly there is one storage defined when application starts and it can be
- used anywhere programmer need:
+1. Firstly there is one storage defined when application starts and it can be used anywhere programmer need:
    ```javascript
    CPK.localStorage.setItem( "key", "value" );
    ```
@@ -41,11 +33,15 @@ Usage of `CPK.storage` is easy:
 
 ### `CPK.global`
 
-__TBD__
+This object contains some widely used methods:
+
+- `CPK.global.showDOM( Element elm )` - removes _hidden_ attribute
+- `CPK.global.hideDOM( Element elm )` - adds _hidden_ attribute
+- `CPK.global.toggleDOM( Element elm )` - toggles _hidden_ attribute
 
 ### `CPK.login`
 
-__TBD__
+This contains all what's needed for _Federative Login_. Basically it has just one functionality - it offers to users the last identity providers which they are used and creates list with these providers on top of _federative login_ modal dialog.
 
 ### `CPK.notifications`
 
