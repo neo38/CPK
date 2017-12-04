@@ -128,13 +128,10 @@ Toto je naprosto šílené - nejen, že je limit `1500` vymyšlený a autor spí
 
 __Pozn.__: Nicméně [setTimeout][13] má i užitečnou vlastnost, že pokud vynecháme parametr času, tak se spustí při příští vhodné příležitosti (kdy ve frontě událostí JS enginu není již nic jiného - jak říká specifikace _as soon as possible_ tzn. _ASAP_ :)). Toto můžeme s úspěchem použít ve chvíli, kdy [Promises][8] nechceme řetězit, ale přesto chceme, aby se některé spustili až po jiných (viz. [common.js][14]).
 
-<<<<<<< HEAD
-=======
 ### Události ([Events][19])
 
 Ve stávajícím kódu se i nacházelo řešení, kdy pro emitování událostí bylo využíváno ukládání do [localStorage][16] (což emituje událost [`storage`][18]) - toto řešení (i obdobné obezličky) je naprosto zbytečné - pokud chcete informovat zbytek kódu o nějaké události využijte [Custom Events][17].
 
->>>>>>> d134a9bec2de2f626d6acccad8b54e2a65254b11
 ## Doporučené postupy
 
 Níže najdete doporučené postupy pro některé běžné operace.
@@ -450,7 +447,6 @@ setTimeout(() => {
 
 Nyní k tomu vysvětlení:
 
-
 __TBD__
 
 [1]:https://jquery.com/
@@ -464,12 +460,6 @@ __TBD__
 [9]:https://javascript.info/promise-chaining
 [10]:https://javascript.info/
 [11]:http://requirejs.org/
-<<<<<<< HEAD
-[12]:https://developer.mozilla.org/cs/docs/Web/JavaScript/Reference/Global_Objects
-[13]:https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
-[14]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L160
-[15]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L174
-=======
 [12]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 [13]:https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
 [14]:https://github.com/moravianlibrary/CPK/blob/d1380d1036d9b1b625cdcbe61908b1c8cfd70be6/themes/bootstrap3/js/jquery-cpk/common.js#L160
@@ -478,4 +468,3 @@ __TBD__
 [17]:https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 [18]:https://developer.mozilla.org/en-US/docs/Web/Events/storage
 [19]:https://developer.mozilla.org/en-US/docs/Web/Events
->>>>>>> d134a9bec2de2f626d6acccad8b54e2a65254b11
