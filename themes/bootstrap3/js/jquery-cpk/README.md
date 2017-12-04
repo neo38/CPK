@@ -47,11 +47,11 @@ This contains all what's needed for _Federative Login_. Basically it has just on
 
 __TBD__
 
-### `CPK.favorites`
-
-__TBD__
-
 ### `CPK.history`
+
+This module handles checked-out items (e.g. page _MyResearch_ -> _Checked Out History_).
+
+### `CPK.favorites`
 
 __TBD__
 

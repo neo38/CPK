@@ -13,6 +13,7 @@ $toRet = array(
 		'ol.css'
     ),
     'js' => array(
+        // TODO This can be removed. Just use methods `LZString.compressToBase64` & `LZString.decompressFromBase64` instead.
         'vendor/base64.js:lt IE 10', // btoa polyfill
         'vendor/jquery.min.js',
         'vendor/bootstrap.min.js',

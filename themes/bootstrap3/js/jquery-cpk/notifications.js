@@ -227,7 +227,7 @@
 		}
 
 		/**
-		 * @param {Number} unreadCount
+		 * @param {number} unreadCount
 		 * @returns {Promise}
 		 * @private
 		 */
@@ -241,7 +241,7 @@
 
 		/**
 		 * @private Updates count of unread notifications
-		 * @param {Number} unreadCount
+		 * @param {number} unreadCount
 		 * @returns {Promise}
 		 */
 		function updateUnreadCount( unreadCount ) {

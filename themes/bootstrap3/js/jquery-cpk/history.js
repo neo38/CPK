@@ -41,7 +41,7 @@
 
         /**
          * Handler for selected page event.
-         * @param {Number} page
+         * @param {number} page
          */
         function pageSelected(page) {
             // Show loader

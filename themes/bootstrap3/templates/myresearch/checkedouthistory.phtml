@@ -1,11 +1,12 @@
-<?
+<?php
 // Set up page title:
 $this->headTitle($this->translate('Checked Out History'));
 
 // Set up breadcrumbs:
 $this->layout()->breadcrumbs = '<li><a title="' . $this->transEsc('Main page') . '" href="/Search">' . $this->transEsc('Main page') . '</a></li> ' . '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Checked Out History') . '</li>';
 
-// Add translations for the data-ng-app
+// Add translations for the jquery-cpk
+// TODO Remove this (probably move to `layout.phtml`).
 $this->jsTranslations()->addStrings(array(
 
     // For history items
@@ -56,36 +57,37 @@ $this->jsTranslations()->addStrings(array(
     'Next' => $this->translate('Next')
 ));
 ?>
-<!-- <ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs ?></ul>-->
+<!-- <ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs?></ul>-->
 <div class="row">
   <div class="<?=$this->layoutClass('mainbody')?>">
     <h2><?=$this->transEsc('Checked Out History')?></h2>
     <?=$this->flashmessages()?>
 
-    <? foreach($this->libraryIdentities as $eppn => $libraryIdentity):
-      $source = explode('.', $libraryIdentity['cat_username'])[0]; ?>
-    <div data-ng-controller="CheckedOutHistoryController as historyCtrl">
+    <?php foreach($this->libraryIdentities as $eppn => $libraryIdentity):
+      $source = explode('.', $libraryIdentity['cat_username'])[0];
+    ?>
+    <div>
       <h3 class="well row blickable" style="margin-bottom: 3px;" id="<?=$source?>">
-      <?=$this->transEsc("source_$source", null, $source) ?>
-      <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source) ?>"/>
-      <!-- The next label contains select box with items per page. It is lame, so it is hidden now. -->
+      <?=$this->transEsc("source_$source", null, $source)?>
+      <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source)?>"/>
+      <?php/* The next label contains select box with items per page. It is lame, so it is hidden now. */?>
       <label style="padding-right: 40px;" class="dropdown-select-label pull-right hidden">
-      <select data-ng-pages-count="<?=$libraryIdentity['cat_username']?>" data-ng-model="historyCtrl.perPage" data-ng-change="historyCtrl.perPageUpdated()" class="jumpMenu form-control dropdown-select hidden" style="margin-right: -12px;">
-        <option value="10" selected="selected">10 <?=$this->translate('records-in-genitive') ?></option>
-        <option value="50">50 <?=$this->translate('records-in-genitive') ?></option>
-        <option value="100">100 <?=$this->translate('records-in-genitive') ?></option>
+      <select data-pages-count="<?=$libraryIdentity['cat_username']?>" data-model="historyCtrl.perPage" data-change="historyCtrl.perPageUpdated()" class="jumpMenu form-control dropdown-select hidden" style="margin-right: -12px;">
+        <option value="10" selected="selected">10 <?=$this->translate('records-in-genitive')?></option>
+        <option value="50">50 <?=$this->translate('records-in-genitive')?></option>
+        <option value="100">100 <?=$this->translate('records-in-genitive')?></option>
       </select>
       </label>
       </h3>
       <div data-ng-history-item data-ng-repeat="resource in historyCtrl.historyPage">
       </div>
-      <div data-ng-history-username="<?=$libraryIdentity['cat_username']?>" id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
+      <div data-history-username="<?=$libraryIdentity['cat_username']?>" id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
         <i class="fa fa-spinner fa-spin"></i>
         <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
       </div>
       <div data-ng-pagination="<?=$source ?>" class='row well' data-ng-if="paginator && paginator.lastPage != 1" ></div>
     </div>
-    <? endforeach; ?>
+    <?php endforeach; ?>
   </div>
 
   <div class="<?=$this->layoutClass('sidebar')?>">

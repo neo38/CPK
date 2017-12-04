@@ -55,8 +55,7 @@
 						console.error( "Local storage is not initialized yet!", error );
 					}
 
-					// XXX We are trying it again?!
-					return Promise.resolve( initLips() );
+					return Promise.reject( error );
 				}
 			} );
 		}

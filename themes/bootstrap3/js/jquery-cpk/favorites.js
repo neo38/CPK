@@ -144,7 +144,7 @@
 
 		/**
 		 * Removes favorite with given identifier.
-		 * @param {Number} id
+		 * @param {number} id
 		 * @returns {Promise}
 		 */
 		function remove( id ) {
@@ -189,7 +189,7 @@
 
 		/**
 		 * Checks if favorite with given identifier exist.
-		 * @param {Number} id
+		 * @param {number} id
 		 * @returns {Promise}
 		 */
 		function has( id ) {
@@ -213,7 +213,7 @@
 
 		/**
 		 * Get favorite by its identifier.
-		 * @param {Number} id
+		 * @param {number} id
 		 * @returns {Promise}
 		 */
 		function get( id ) {
@@ -365,7 +365,7 @@
 
 		/**
 		 * Creates record from search record.
-		 * @param {Number} rank
+		 * @param {number} rank
 		 */
 		this.fromRecordSearch = function( rank ) {
 			parseRecordSearch( rank ).then(
@@ -493,7 +493,7 @@
 
 		/**
 		 * @private Parses Favorite from search record.
-		 * @param {Number} rank
+		 * @param {number} rank
 		 * @returns {Promise}
 		 */
 		function parseRecordSearch( rank ) {
@@ -616,19 +616,19 @@
 
 		/**
 		 * ID of current tab to identify requests & responses
-		 * @type {Number} tabId
+		 * @type {number} tabId
 		 */
 		var tabId = undefined;
 
 		/**
 		 * ID of last tab which placed a request
-		 * @type {Number} tabId
+		 * @type {number} tabId
 		 */
 		var lastTabId = undefined;
 		
 		/**
 		 * Holds timeout for checking mastership.
-		 * @type {Number} mastershipRetrieval
+		 * @type {number} mastershipRetrieval
 		 */
 		var mastershipRetrieval = undefined;
 
@@ -770,7 +770,7 @@
 		/**
 		 * Broadcasts event called 'favRemoved' across all tabs listening on
 		 * storage event so they can update themselves.
-		 * @param {Number} favoriteId
+		 * @param {number} favoriteId
 		 */
 		function broadcastRemoved( favoriteId ) {
 			broadcast( "favoriteRemoved", favoriteId );
@@ -819,7 +819,7 @@
 		/**
 		 * @private Just broadcast a message using localStorage's event
 		 * @param {string} key
-		 * @param {Number} val
+		 * @param {number} val
 		 * @todo Find another way how to do this.
 		 */
 		function broadcast( key, val ) {

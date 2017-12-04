@@ -53,7 +53,7 @@
  * @todo Reformat changed PHTML templates! --> all JS/PHTML files produced for this task should follow coding styles!
  * @todo Move comments above (about jquery-cpk) to the standalone README.md file
  *
- * @todo Notifications and "Federative login" should be implemented as jQuery UI/Bootstrap widgets (but in unobstructive way)...
+ * @todo Notifications, "Add/Remove Favorite" and "Federative login" should be implemented as jQuery/jQuery UI/Bootstrap widgets (but in un-obstructive way)...
  */
 
 if ( typeof CPK === "undefined" ) {
@@ -92,6 +92,8 @@ CPK.global = {
 	/**
 	 * TRUE if notifications are available.
 	 * @type {boolean}
+	 * @deprecated
+	 * @todo Remove this!
 	 */
 	areNotificationsAvailable: false,
 
@@ -99,7 +101,7 @@ CPK.global = {
 	 * Removes "hidden" attribute from the given element.
 	 * @param {HTMLElement} elm
 	 */
-	showDOM: function( elm ) {
+	showDOM: function globalShowDOM( elm ) {
 		"use strict";
 		elm.removeAttribute( "hidden" );
 	},
@@ -108,7 +110,7 @@ CPK.global = {
 	 * Sets "hidden" attribute for the given element.
 	 * @param {HTMLElement} elm
 	 */
-	hideDOM: function( elm ) {
+	hideDOM: function globalHideDOM( elm ) {
 		"use strict";
 		elm.setAttribute( "hidden", "hidden" );
 	},
@@ -117,7 +119,7 @@ CPK.global = {
 	 * Toggles "hidden" attribute on the given element.
 	 * @param {HTMLElement} elm
 	 */
-	toggleDOM: function( elm ) {
+	toggleDOM: function globalToggleDOM( elm ) {
 		"use strict";
 		if ( elm.hasAttribute( "hidden" ) ) {
 			CPK.global.hideDOM( elm );
@@ -127,35 +129,20 @@ CPK.global = {
 	},
 
 	/**
-	 * Handler for unhandled rejected promises (if there are any).
-	 * @param {Event} event Event object has special properties: "promise" & "reason"
-	 * @todo Finish this!
-	 */
-	handleMissedPromises: function( event ) {
-		if ( CPK.verbose === true ) {
-			console.error( event );
-		}
-
-		//...
-	},
-
-	/**
 	 * @type {GlobalController} controller
 	 */
 	controller: undefined
 };
 
-// This is here because of unhandled rejected promises (if there are any).
-window.addEventListener( "unhandledrejection", CPK.global.handleMissedPromises );
 
 /**
  * @todo This should be the only document.onReady handler.
  */
-jQuery(document).ready(function() {
+jQuery( document ).ready(function() {
 	"use strict";
 
 	// Initialize storage
-	CPK.storage.initStorage()
+	CPK.storage.initStorage( "localStorage" )
 		.then(function( result ) {
 			if ( CPK.storage.isStorage( result ) !== true ) {
 				return Promise.reject( "Not an instance of storage was returned!" );
@@ -168,7 +155,7 @@ jQuery(document).ready(function() {
 			}
 		}).
 		catch(function( error ) {
-			if ( CPK.verbose === true) {
+			if ( CPK.verbose === true ) {
 				console.error( "Initialization of CPK.localStorage failed!", error );
 			}
 		});
@@ -205,6 +192,9 @@ jQuery(document).ready(function() {
 			});
 	});
 
+	// Initialize history
+
+
 	// Initialize favorites broadcaster
 	setTimeout(function() {
 		CPK.favorites.broadcaster.initialize()
@@ -233,6 +223,17 @@ jQuery(document).ready(function() {
 	 */
 	function GlobalController() {
 		// We need to initialize requested modal
+		var currentUrl = new URL( document.location );
+
+		if ( currentUrl.hasOwnProperty( "searchParams" ) ) {
+			// This is for modern browsers
+			var viewModal = currentUrl.searchParams.get( "viewModal" );
+		} else {
+			// This is for older browsers
+			var params = currentUrl.search;
+		}
+
+
 		//if ( typeof vm.getParams['viewModal'] !== 'undefined' ) {
 		//	viewModal( vm.getParams['viewModal'] );
 		//}
@@ -331,4 +332,4 @@ jQuery(document).ready(function() {
 		.modal( "show" )
 		.unbind( "click" );
 
-})(jQuery);
+})();

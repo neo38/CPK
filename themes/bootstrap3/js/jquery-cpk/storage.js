@@ -27,12 +27,12 @@
 	 * This is a public API which should any storage fulfill.
 	 * @type {string[]}
 	 */
-	var storageApi = [ "setItem", "getItem", "removeItem", "clear" ];
+	var storageApi = [ "clear", "key", "length", "setItem", "getItem", "removeItem" ];
 
 	/**
-	 * @type {Object}
+	 * @type {FakeStorageItem[]}
 	 */
-	var fakeStore = Object.create( null );
+	var fakeStore = [];
 
 	/**
 	 * @param {string} type (Optional.) Type of used storage - `localStorage` or `sessionStorage`.
@@ -73,7 +73,11 @@
 
 		var ret = true;
 		storageApi.forEach(function( method ) {
-			if ( typeof storage[ method ] !== "function" ) {
+			if ( method === "length" ) {
+				if ( storage.hasOwnProperty( method ) !== true ) {
+					ret = false;
+				}
+			} else if ( typeof storage[ method ] !== "function" ) {
 				ret = false;
 			}
 		});
@@ -82,23 +86,65 @@
 	}
 
 	/**
+	 * Single fake storage item.
+	 * @param {string} id
+	 * @param {string} val
+	 * @constructor
+	 */
+	function FakeStorageItem( id, val ) {
+		this.id  = id;
+		this.val = val;
+	}
+
+	/**
 	 * Sets item.
 	 * @param {string} id
 	 * @param {string} val
-	 * @returns {string}
 	 */
 	function setItem( id, val ) {
-		fakeStore[ id ] = String( val );
-		return fakeStore[ id ];
+
+		/**
+		 * @param {FakeStorageItem} elm
+		 * @returns {boolean}
+		 */
+		var findIndex = function( elm ) {
+			return ( elm.id === id );
+		};
+
+		if ( fakeStore.findIndex( findIndex ) === -1 ) {
+			// We are adding new item.
+			fakeStore.push( new FakeStorageItem( id, val ) );
+		} else {
+			// We are updating already existing item.
+			fakeStore[ idx ].val = val;
+		}
 	}
 
 	/**
 	 * Gets item's value.
 	 * @param {string} id
-	 * @returns {string}
+	 * @returns {string|null}
 	 */
 	function getItem( id ) {
-		return fakeStore.hasOwnProperty( id ) ? String( fakeStore[ id ] ) : undefined;
+
+		/**
+		 * @param {FakeStorageItem} elm
+		 * @returns {boolean}
+		 */
+		var filterItem = function( elm ) {
+			return ( elm.id === id );
+		};
+
+		/**
+		 * @type {FakeStorageItem[]}
+		 */
+		var result = fakeStore.filter( filterItem );
+
+		if ( result.length === 1 ) {
+			return result[ 0 ].val;
+		}
+
+		return null;
 	}
 
 	/**
@@ -107,31 +153,68 @@
 	 * @returns {boolean}
 	 */
 	function removeItem( id ) {
-		try {
-			delete fakeStore[ id ];
-			return true;
-		} catch ( e ) {
+
+		/**
+		 * @param {FakeStorageItem} elm
+		 * @returns {boolean}
+		 */
+		var findIndex = function( elm ) {
+			return ( elm.id === id );
+		};
+
+		/**
+		 * @type {number}
+		 */
+		var idx = fakeStore.findIndex( findIndex );
+
+		if ( idx === -1 ) {
+			// Requested item was not found.
 			return false;
 		}
+
+		// Remove item
+		fakeStore.splice( idx, 1 );
+
+		return true;
 	}
 
 	/**
 	 * Clears the storage.
 	 */
 	function clear() {
-		fakeStore = Object.create( null );
+		fakeStore = [];
+	}
+
+	/**
+	 * Returns the name of the nth key in the storage.
+	 * @param {number} key The number of the key you want to get the name of.
+	 * @returns {string|null}
+	 */
+	function key( key ) {
+		if ( fakeStore.length <= key ) {
+			return null;
+		}
+
+		return fakeStore[ key ].id;
 	}
 
 	/**
 	 * Our fake storage.
 	 * @private
+	 * @property {number} length
 	 * @constructor
 	 */
 	function FakeStorage() {
-		this.getItem = getItem;
-		this.setItem = setItem;
+		// Properties
+		Object.defineProperty( this, "length", {
+			get: function() { return fakeStore.length; }
+		} );
+		// Methods
+		this.getItem    = getItem;
+		this.setItem    = setItem;
 		this.removeItem = removeItem;
-		this.clear = clear;
+		this.clear      = clear;
+		this.key        = key;
 	}
 
 	/**
