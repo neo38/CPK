@@ -43,6 +43,7 @@ $toRet = array(
         'jquery-cpk/notifications.js',
         'jquery-cpk/history.js',
         'jquery-cpk/favorites.js',
+        'jquery-cpk/global.js',
         'jquery-cpk/admin.js',
     ),
     'less' => array(

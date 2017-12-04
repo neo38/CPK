@@ -56,280 +56,198 @@
  * @todo Notifications, "Add/Remove Favorite" and "Federative login" should be implemented as jQuery/jQuery UI/Bootstrap widgets (but in un-obstructive way)...
  */
 
-if ( typeof CPK === "undefined" ) {
-    /**
-     * @type {Object}
-     */
-    var CPK = Object.create( null );
+/**
+ * @property {Object} admin
+ * @property {Object} favorites
+ * @property {Object} global
+ * @property {CheckedOutHistoryController} history
+ * @property {Storage} localStorage
+ * @property {FederativeLoginController} login
+ * @property {NotificationsController} notifications
+ * @property {CpkStorage} storage
+ * @property {boolean} verbose
+ * @constructor
+ */
+function Cpk() {
+	"use strict";
+
+	var self = this;
+
+	/**
+	 * @property {ApprovalController} ApprovalController
+	 * @type {Object}
+	 */
+	this.admin = Object.create( null );
+
+	/**
+	 * @property {FavoritesNotifications} notifications
+	 * @property {FavoritesStorage} storage
+	 * @property {Favorite} Favorite
+	 * @property {FavoritesBroadcaster} broadcaster
+	 * @type {Object}
+	 */
+	this.favorites = Object.create( null );
+
+	/**
+	 * @type {Object}
+	 * @todo Move this to `global.js` file!
+	 */
+	this.global = {
+		/**
+		 * TRUE if notifications are available.
+		 * @type {boolean}
+		 * @deprecated
+		 * @todo Remove this!
+		 */
+		areNotificationsAvailable: false,
+
+		/**
+		 * Removes "hidden" attribute from the given element.
+		 * @param {HTMLElement} elm
+		 */
+		showDOM: function globalShowDOM( elm ) {
+			elm.removeAttribute( "hidden" );
+		},
+
+		/**
+		 * Sets "hidden" attribute for the given element.
+		 * @param {HTMLElement} elm
+		 */
+		hideDOM: function globalHideDOM( elm ) {
+			elm.setAttribute( "hidden", "hidden" );
+		},
+
+		/**
+		 * Toggles "hidden" attribute on the given element.
+		 * @param {HTMLElement} elm
+		 */
+		toggleDOM: function globalToggleDOM( elm ) {
+			if ( elm.hasAttribute( "hidden" ) ) {
+				self.global.hideDOM( elm );
+			} else {
+				self.global.showDOM( elm );
+			}
+		},
+
+		/**
+		 * @type {GlobalController} controller
+		 */
+		controller: undefined
+	};
+
+	/**
+	 * @type {Storage}
+	 */
+	this.localStorage = Object.create( null );
+
+	/**
+	 * Should be jquery-cpk package executed in verbose mode?
+	 * @type {Boolean}
+	 */
+	this.verbose = true;
 }
 
-/**
- * Should be jquery-cpk package executed in verbose mode?
- * @type {Boolean}
- */
-CPK.verbose = true;
 
-/**
- * Holds instance of local storage (either window.localStorage or FakeStorage).
- * @type {Object}
- */
-CPK.localStorage = Object.create( null );
 
-/**
- * @type {Object}
- */
-CPK.favorites = Object.create( null );
+// Define CPK
+if ( typeof CPK === "undefined" )
+    /**
+     * @type {Cpk}
+     */
+    var CPK = new Cpk();
 
-/**
- * @type {Object}
- */
-CPK.admin = Object.create( null );
-
-/**
- * @type {Object}
- */
-CPK.global = {
-	/**
-	 * TRUE if notifications are available.
-	 * @type {boolean}
-	 * @deprecated
-	 * @todo Remove this!
-	 */
-	areNotificationsAvailable: false,
-
-	/**
-	 * Removes "hidden" attribute from the given element.
-	 * @param {HTMLElement} elm
-	 */
-	showDOM: function globalShowDOM( elm ) {
-		"use strict";
-		elm.removeAttribute( "hidden" );
-	},
-
-	/**
-	 * Sets "hidden" attribute for the given element.
-	 * @param {HTMLElement} elm
-	 */
-	hideDOM: function globalHideDOM( elm ) {
-		"use strict";
-		elm.setAttribute( "hidden", "hidden" );
-	},
-
-	/**
-	 * Toggles "hidden" attribute on the given element.
-	 * @param {HTMLElement} elm
-	 */
-	toggleDOM: function globalToggleDOM( elm ) {
-		"use strict";
-		if ( elm.hasAttribute( "hidden" ) ) {
-			CPK.global.hideDOM( elm );
-		} else {
-			CPK.global.showDOM( elm );
-		}
-	},
-
-	/**
-	 * @type {GlobalController} controller
-	 */
-	controller: undefined
-};
 
 
 /**
  * @todo This should be the only document.onReady handler.
  */
-jQuery( document ).ready(function() {
+jQuery(function onDocumentReady() {
 	"use strict";
 
-	// Initialize storage
-	CPK.storage.initStorage( "localStorage" )
-		.then(function( result ) {
-			if ( CPK.storage.isStorage( result ) !== true ) {
-				return Promise.reject( "Not an instance of storage was returned!" );
+	/**
+	 * @private Shows modal for terms of use if needed.
+	 * @returns {Promise<boolean>}
+	 */
+	function initializeTermsOfUseModal() {
+
+		/**
+		 * @param {function} resolve
+		 */
+		function termsOfUseModalPromise( resolve ) {
+			var elm = document.getElementById( "#termsOfUseModal" );
+
+			jQuery( elm ).modal( "show" ).unbind( "click" );
+			resolve( true );
+		}
+
+		return new Promise( termsOfUseModalPromise );
+	}
+
+	/**
+	 * @private Initializes `CPK.localStorage`.
+	 * @returns {Promise<FakeStorage|Storage|boolean>}
+	 */
+	function initializeLocalStorage() {
+		return Promise.resolve( CPK.storage.initStorage( "localStorage" ) );
+	}
+
+	/**
+	 * @private Resolves initialization of the `CPK.localStorage`.
+	 * @param {FakeStorage|Storage|boolean} result
+	 * @returns {Promise}
+	 */
+	function resolveInitializeLocalStorage( result ) {
+		console.log( "resolveInitializeLocalStorage", result );
+		if ( CPK.storage.isStorage( CPK.localStorage ) ) {
+			return Promise.resolve( true );
+		}
+
+		if ( CPK.storage.isStorage( result ) === true ) {
+			if ( CPK.verbose === true ) {
+				console.info( "`CPK.localStorage` was successfully initialized!" );
 			}
 
 			CPK.localStorage = result;
 
-			if ( CPK.verbose === true ) {
-				console.info( "Storage was initialized.", result );
-			}
-		}).
-		catch(function( error ) {
-			if ( CPK.verbose === true ) {
-				console.error( "Initialization of CPK.localStorage failed!", error );
-			}
-		});
-
-	// Initialize login
-	setTimeout(function() {
-		CPK.login.initialize()
-			.then(function( result ) {
-				if ( CPK.verbose === true ) {
-					console.info( "Login service was initialized.", result );
-				}
-			})
-			.catch(function( error ) {
-				if ( CPK.verbose === true ) {
-					console.error( "Initialization of the login service was rejected.", error );
-				}
-			});
-	});
-
-	// Initialize notifications
-	setTimeout(function() {
-		CPK.notifications.initialize()
-			.then(function( result ) {
-				CPK.global.areNotificationsAvailable = ( result === true );
-
-				if ( CPK.verbose === true ) {
-					console.info( "Notifications were initialized.", result );
-				}
-			})
-			.catch(function( error ) {
-				if ( CPK.verbose === true ) {
-					console.error( "Initialization of notifications was rejected.", error );
-				}
-			});
-	});
-
-	// Initialize history
-
-
-	// Initialize favorites broadcaster
-	setTimeout(function() {
-		CPK.favorites.broadcaster.initialize()
-			.then(function( result ) {
-				if ( CPK.verbose === true ) {
-					console.info( "Favorites broadcaster was initialized.", result );
-				}
-			})
-			.catch(function( error ) {
-				if ( CPK.verbose === true ) {
-					console.error( "Initialization of favorites broadcaster was rejected.", error );
-				}
-			});
-	});
-
-	// Initialize global controller
-	/**
-	 * @type {Object} jQueryModal
-	 */
-	var jQueryModal = undefined;
-
-	/**
-	 * Global controller
-	 * @todo Find what is injected `$location` object!
-	 * @todo Initialize requested modal!
-	 */
-	function GlobalController() {
-		// We need to initialize requested modal
-		var currentUrl = new URL( document.location );
-
-		if ( currentUrl.hasOwnProperty( "searchParams" ) ) {
-			// This is for modern browsers
-			var viewModal = currentUrl.searchParams.get( "viewModal" );
+			return Promise.resolve( true );
 		} else {
-			// This is for older browsers
-			var params = currentUrl.search;
+			return Promise.resolve( CPK.storage.initStorage( "fakeStorage" ) );
 		}
-
-
-		//if ( typeof vm.getParams['viewModal'] !== 'undefined' ) {
-		//	viewModal( vm.getParams['viewModal'] );
-		//}
-		//$rootScope.$on( 'notificationClicked', notificationClicked );
-
-		/**
-		 * Handles click on notification.
-		 */
-		function notificationClicked() {
-			var oldModal = CPK.global.controller.getParams[ 'viewModal' ];
-
-			vm.getParams = $location.search();
-
-			if (typeof vm.getParams['viewModal'] !== 'undefined') {
-
-				viewModal(vm.getParams['viewModal'], $log, $http);
-			}
-		}
-
-		/*
-		 * Private
-		 */
-
-		/**
-		 * @param {string} portalPageId
-		 * @private Shows modal (with `portalPageId`).
-		 * @returns {Promise}
-		 * @todo Finish this!
-		 */
-		function viewModal( portalPageId ) {
-			/**
-			 * @returns {Promise}
-			 */
-			var handleShowModal = function() {
-				return new Promise(function( resolve, reject ) {
-					// TODO Before this starts with `onLinkedModal( 'global', showTheModal );`
-
-					// TODO var header = linkedObjects.modal.global.header;
-					// TODO var body = linkedObjects.modal.global.body;
-
-					jQuery.get( "/AJAX/JSON?method=getPortalPage&prettyUrl=" + portalPageId )
-						.done(function( response ) {
-							var portalPage = response.data.data;
-
-							// TODO header.textContent = portalPage.title;
-							// TODO body.innerHTML = portalPage.content;
-						})
-						.fail(function( error ) {
-							if ( CPK.verbose === true ) {
-								console.error( error );
-							}
-						});
-
-					resolve( true );
-				});
-			};
-
-			return Promise
-				.resolve( handleShowModal() )
-				.then(function( /*result*/ ) { modal( true ); });
-		}
-
-		/**
-		 * @param {boolean} show
-		 * @returns {Object}
-		 */
-		function modal( show ) {
-			if ( typeof jQueryModal === "undefined" ) {
-				jQueryModal = jQuery( document.getElementById( "#modal" ) );
-			}
-
-			if ( show === true ) {
-				jQueryModal.modal( "show" );
-			} else {
-				jQueryModal.modal( "hide" );
-			}
-
-			return jQueryModal;
-		}
-
-		// TODO Controller.getParams = $location.search();
-
-		// Public API
-		var Controller       = Object.create( null );
-		Controller.getParams = [];
-		return Controller;
 	}
 
 	/**
-	 * @type {GlobalController}
+	 * @private Catches errors during the initialization.
+	 * @param {string} error
+	 * @returns {Promise<boolean>}
 	 */
-	CPK.global.controller = new GlobalController();
+	function catchInitializeError( error ) {
+		if ( CPK.verbose === true ) {
+			console.error( error );
+		}
 
-	// Show modal for terms of use
-	jQuery( document.getElementById( "#termsOfUseModal" ) )
-		.modal( "show" )
-		.unbind( "click" );
+		return Promise.resolve( false );
+	}
 
-})();
+	/**
+	 * @private Initializes other jquery-cpk modules.
+	 * @returns {Promise<boolean>}
+	 */
+	function initializeOtherModules() {
+		[
+			CPK.login.initialize,
+			CPK.notifications.initialize,
+			CPK.history.initialize,
+			CPK.favorites.broadcaster.initialize,
+			CPK.global.controller.initialize,
+			initializeTermsOfUseModal
+		].forEach(function( promise ) {
+			promise.call().then( catchInitializeError );
+		});
+	}
+
+	// Initialize application
+	initializeLocalStorage() // If initialization of `CPK.localStorage` with
+		.then( resolveInitializeLocalStorage ) // "localStorage" type failed
+		.then( resolveInitializeLocalStorage ) // we need initialize it again.
+		.then( initializeOtherModules );
+});

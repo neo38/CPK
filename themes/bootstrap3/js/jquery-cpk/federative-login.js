@@ -26,10 +26,9 @@
 
 		/**
 		 * Initializes notifications (just like linkers before for Angular app).
-		 * @param {Event} event
 		 * @return {Promise}
 		 */
-		function initialize( event ) {
+		function initialize() {
 			return Promise
 				.resolve( initLips() )
 				.then( resolveInitLips )

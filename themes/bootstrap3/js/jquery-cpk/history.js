@@ -34,10 +34,19 @@
         vm.pageSelected = pageSelected;
         vm.perPage = 10;
         vm.perPageUpdated = perPageUpdated;
+        vm.initialize = init;
 
         return vm;
 
         // Public
+
+		/**
+		 * @returns {Promise<boolean>}
+		 * @todo Finish this!
+		 */
+		function init() {
+			return Promise.resolve( false );
+		}
 
         /**
          * Handler for selected page event.

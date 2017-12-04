@@ -102,7 +102,7 @@
 
 		/**
 		 * @private Loads favorites from the storage.
-		 * @returns {Promise}
+		 * @returns {Promise<Array,string>}
 		 */
 		function loadFavorites() {
 			return new Promise(function( resolve, reject ) {
@@ -635,23 +635,21 @@
 		/**
 		 * Create localStorage event listener to have ability of fetching data
 		 * from another tab.
-		 *
-		 * @param {Event} event
 		 * @returns {Promise}
 		 */
-		function init( event ) {
+		function init() {
 			return Promise
 				.resolve( isNewTab() ? handleNewTab() : handleOldTab() )
 				.then( resolveHandleTab )
-				.then( resolveStorageHandler )
-				.then( ( result ) => Promise.resolve( result ) );
+				.then( resolveStorageHandler );
 		}
 
 		/**
 		 * Returns boolean whether is this tab a new tab or not.
 		 */
 		function isNewTab() {
-			return CPK.localStorage.hasItem( "tabId" );
+			return CPK.favorites.storage.has( "tabId");
+			//return CPK.localStorage.hasItem( "tabId" );
 		}
 
 		/**
@@ -671,7 +669,7 @@
 			return new Promise(function( resolve ) {
 				// Generate tabId ..
 				tabId = Date.now();
-				sessionStorage.tabId = tabId;
+				CPK.favorites.storage.tabId = tabId;
 
 				// Try to get favorites for this tab
 
@@ -1024,8 +1022,7 @@
 	CPK.favorites.Favorite = Favorite;
 
 	/**
-	 * @type {Object}
+	 * @type {FavoritesBroadcaster}
 	 */
 	CPK.favorites.broadcaster = new FavoritesBroadcaster();
-
 }());
