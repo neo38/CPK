@@ -2,7 +2,7 @@
 
 This code is replacement of previous solution based [Angular][1] library. It's based just on [jQuery][2] and native components of JavaScript self - above all [Worker][3], [Promise][4] etc.
 
-## Structure
+## Code structure
 
 There are several more or less standalone parts which all are initialized in [common.js][5]. In this file is also defined basic structure of `CPK` module.
 
@@ -88,6 +88,70 @@ __TBD__
 
 Currently contains just `ApprovalController` which controls page _Configurations Approval_ ([approval.phtml][9]).
 
+## Initialization and module construction
+
+All modules are initialized in [common.js][5] - firstly storage and then rest of all other modules as parallel jobs. This functionality is available by using chains of promises.
+
+### Example module
+
+In [common.js][5] is small _module_ `TermsOfUseModal` - is so simple that is inserted directly into [common.js][5] as one function but it should be placed in standalone file. Now look at code of this _module_:
+
+```javascript
+/**
+ * @private Shows modal for terms of use if needed.
+ * @returns {Promise<boolean>}
+ */
+function initializeTermsOfUseModal() {
+
+   /**
+    * @returns {Promise<boolean>}
+    */
+   function termsOfUseModalPromise() {
+      try {
+         var elm = document.getElementById( "termsOfUseModal" );
+
+         if ( elm.nodeType === 1 ) {
+            jQuery( elm ).modal( "show" ).unbind( "click" );
+         }
+
+         return Promise.resolve( true );
+      } catch ( error ) {
+         return Promise.resolve( false );
+      }
+   }
+
+   /**
+    * @param {boolean} result
+    * @returns {Promise<boolean>}
+    */
+   function resolveTermsOfUseModalPromise( result ) {
+      if ( CPK.verbose === true ) {
+         console.info( result === true
+            ? "Modal 'Terms of Use' was initialized."
+            : "Modal 'Terms of Use' was not initialized." );
+      }
+
+      return Promise.resolve( true );
+   }
+
+   return Promise
+      .resolve( termsOfUseModalPromise() )
+      .then( resolveTermsOfUseModalPromise );
+}
+```
+
+Is initialized between other _non_-important modules as a parallel [Promise][4] and as we can see is pretty obvious how it's work. If we have more complex module we just chain more promises to fulfill functionality by safe way.
+
+For more examples see other modules - there are simple ones like [federative-login.js][13] or [global.js][14] but also more complex like [notifications.js][12] or [favorites.js][15].
+
+### Benefits
+
+This way of initializing code has these benefits (some of them will be visible after the rest of our JS code will be refactored):
+
+- all code can be initialized at one point
+- less important modules are initialized as parallel jobs
+- solution counts with future using of [RequireJS][16]
+
 [1]:https://angularjs.org/
 [2]:https://jquery.com/
 [3]:https://developer.mozilla.org/en-US/docs/Web/API/Worker
@@ -99,3 +163,8 @@ Currently contains just `ApprovalController` which controls page _Configurations
 [9]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/admin/configurations/approval.phtml
 [10]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/notifications.phtml
 [11]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/myresearch/checkedouthistory.phtml
+[12]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/notifications.js
+[13]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/federative-login.js
+[14]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/global.js
+[15]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/favorites.js
+[16]:http://requirejs.org/
