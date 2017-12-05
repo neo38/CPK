@@ -74,11 +74,11 @@ This contains all what's needed for _Federative Login_. Basically it has just on
 
 ### `CPK.notifications`
 
-__TBD__
+This contains functionality for notifications. They are two sources of notifications: _user_ and _user cards_ - `NotificationsController` (initialized as `CPK.notifications`) handles them both and combine them into single widget (see [notifications.phtml][10] for more details about rendered HTML).
 
 ### `CPK.history`
 
-This module handles checked-out items (e.g. page _MyResearch_ -> _Checked Out History_).
+This module handles checked-out items (e.g. page _MyResearch_ -> _Checked Out History_; source file [checkedouthistory.phtml][11]).
 
 ### `CPK.favorites`
 
@@ -97,3 +97,5 @@ Currently contains just `ApprovalController` which controls page _Configurations
 [7]:https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
 [8]:https://developer.mozilla.org/en-US/docs/Web/API/Storage
 [9]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/admin/configurations/approval.phtml
+[10]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/notifications.phtml
+[11]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/myresearch/checkedouthistory.phtml

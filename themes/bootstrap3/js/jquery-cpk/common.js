@@ -213,6 +213,8 @@ jQuery(function onDocumentReady() {
 					? "Modal 'Terms of Use' was initialized."
 					: "Modal 'Terms of Use' was not initialized." );
 			}
+
+			return Promise.resolve( true );
 		}
 
 		return Promise

@@ -1,4 +1,4 @@
-<li class="dropdown">
+<li id="notificationsDropdown" class="dropdown">
   <a style="display: none;" href="#" class="dropdown-toggle" data-toggle="dropdown" id="notif_icon">
     <i style="font-size: 20px;" class="pr-web-warningwarnalert"></i>
     <span id="notif_unread_count" class="notificationWarning"></span>
@@ -15,7 +15,7 @@
         <i class="fa fa-spinner fa-spin"></i>
         <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
       </div>
-      <div id="notifications_list_cont"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
+      <div id="notificationsListDiv" class="notif-list-div"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
     </li>
     <?php
     if ($user):
@@ -32,7 +32,7 @@
           <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
         </div>
       </div>
-      <div id="notifications_list_cont-<?=libraryCard['cat_username']?>"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
+      <div id="notificationsListDiv_<?=libraryCard['cat_username']?>" class="notif-list-div institution-notif-list-div"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
     </li>
     <?php endif; endforeach; endif;?>
   </ul>
