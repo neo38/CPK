@@ -66,6 +66,8 @@ This object contains some widely used methods:
 - `CPK.global.hideDOM( Element elm )` - adds _hidden_ attribute
 - `CPK.global.toggleDOM( Element elm )` - toggles _hidden_ attribute
 
+Also holds `GlobalController` which serves global modal dialog (via `viewModal` GET parameter).
+
 ### `CPK.login`
 
 This contains all what's needed for _Federative Login_. Basically it has just one functionality - it offers to users the last identity providers which they are used and creates list with these providers on top of _federative login_ modal dialog.
@@ -84,7 +86,7 @@ __TBD__
 
 ### `CPK.admin`
 
-__TBD__
+Currently contains just `ApprovalController` which controls page _Configurations Approval_ ([approval.phtml][9]).
 
 [1]:https://angularjs.org/
 [2]:https://jquery.com/
@@ -94,3 +96,4 @@ __TBD__
 [6]:https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
 [7]:https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
 [8]:https://developer.mozilla.org/en-US/docs/Web/API/Storage
+[9]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/admin/configurations/approval.phtml

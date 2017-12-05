@@ -130,6 +130,22 @@ function Cpk() {
 		},
 
 		/**
+		 * Checks if given parameter is an element
+		 * @param {HTMLElement} elm
+		 */
+		checkElm: function globalCheckElm( elm ) {
+			try {
+				if ( elm.nodeType !== 1 ) {
+					return false;
+				}
+			} catch ( e ) {
+				return false;
+			}
+
+			return true;
+		},
+
+		/**
 		 * @type {GlobalController} controller
 		 */
 		controller: undefined
@@ -171,16 +187,37 @@ jQuery(function onDocumentReady() {
 	function initializeTermsOfUseModal() {
 
 		/**
-		 * @param {function} resolve
+		 * @returns {Promise<boolean>}
 		 */
-		function termsOfUseModalPromise( resolve ) {
-			var elm = document.getElementById( "#termsOfUseModal" );
+		function termsOfUseModalPromise() {
+			try {
+				var elm = document.getElementById( "termsOfUseModal" );
 
-			jQuery( elm ).modal( "show" ).unbind( "click" );
-			resolve( true );
+				if ( elm.nodeType === 1 ) {
+					jQuery( elm ).modal( "show" ).unbind( "click" );
+				}
+
+				return Promise.resolve( true );
+			} catch ( error ) {
+				return Promise.resolve( false );
+			}
 		}
 
-		return new Promise( termsOfUseModalPromise );
+		/**
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function resolveTermsOfUseModalPromise( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "Modal 'Terms of Use' was initialized."
+					: "Modal 'Terms of Use' was not initialized." );
+			}
+		}
+
+		return Promise
+			.resolve( termsOfUseModalPromise() )
+			.then( resolveTermsOfUseModalPromise );
 	}
 
 	/**
@@ -213,33 +250,40 @@ jQuery(function onDocumentReady() {
 	}
 
 	/**
-	 * @private Catches errors during the initialization.
-	 * @param {string} error
-	 * @returns {Promise<boolean>}
-	 */
-	function catchInitializeError( error ) {
-		if ( CPK.verbose === true ) {
-			console.error( error );
-		}
-
-		return Promise.resolve( false );
-	}
-
-	/**
 	 * @private Initializes other jquery-cpk modules.
 	 * @returns {Promise<boolean>}
 	 */
 	function initializeOtherModules() {
+
+		/**
+		 * @param {function} job Function that returns Promise and takes no parameters.
+		 * @return {Promise<boolean>}
+		 */
+		function initJob( job ) {
+			return Promise.resolve( job.call() ).then( catchInitJob );
+		}
+
+		/**
+		 * @returns {Promise<boolean>}
+		 */
+		function catchInitJob( error ) {
+			if ( CPK.verbose === true ) {
+				console.error( error );
+			}
+
+			return Promise.resolve( false );
+		}
+
+		// Here are listed all others that need init too.
 		[
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
 			CPK.favorites.broadcaster.initialize,
 			CPK.global.controller.initialize,
+			CPK.admin.ApprovalController.initialize,
 			initializeTermsOfUseModal
-		].forEach(function( promise ) {
-			promise.call().then( catchInitializeError );
-		});
+		].forEach( initJob );
 	}
 
 	// Initialize application

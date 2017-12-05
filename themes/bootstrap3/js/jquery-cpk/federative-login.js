@@ -1,9 +1,6 @@
 /**
  * New implementation of "federative login".
  *
- * Uses `CPK.localStorage` to store information about last used identity
- * providers.
- *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
@@ -16,7 +13,7 @@
 	}
 
 	/**
-	 * Federative login controller
+	 * Federative login controller.
 	 * @returns {Object}
 	 * @constructor
 	 */
@@ -44,23 +41,16 @@
 		 * @returns {Promise<string|null>}
 		 */
 		function initLips() {
-			/**
-			 * @returns {Promise<string|boolean>}
-			 */
-			function initLipsPromise() {
-				try {
-					var lips;
-					lips = CPK.localStorage.getItem( _storageKey );
-					resolve( lips );
-				} catch ( error ) {
-					// This mean that the page is opened for the first time
-					CPK.localStorage.setItem( _storageKey, JSON.stringify( [] ) );
+			try {
+				var lips;
+				lips = CPK.localStorage.getItem( _storageKey );
+				return Promise.resolve( lips );
+			} catch ( error ) {
+				// This mean that the page is opened for the first time
+				CPK.localStorage.setItem( _storageKey, JSON.stringify( [] ) );
 
-					return Promise.resolve( null );
-				}
+				return Promise.resolve( null );
 			}
-
-			return Promise.resolve( initLipsPromise() );
 		}
 
 		/**
@@ -86,13 +76,13 @@
 				try {
 					var lip;
 					lip = JSON.parse( _lips );
-					resolve( jQuery.isArray( lip ) ? lip : [] );
+					return Promise.resolve( jQuery.isArray( lip ) ? lip : [] );
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
-						console.error( "Could not parse the last identity provider from localStorage", error, lips );
+						console.error( "Could not parse the last identity provider from localStorage", error, _lips );
 					}
 
-					resolve( [] );
+					return Promise.resolve( [] );
 				}
 			}
 
@@ -101,7 +91,7 @@
 			} else if ( lips.length <= 0 ) {
 				return Promise.resolve( [] );
 			} else {
-				return new Promise.resolve( parseLipsPromise( lips ) );
+				return Promise.resolve( parseLipsPromise( lips ) );
 			}
 		}
 
@@ -120,34 +110,26 @@
 		 * @returns {Promise<array>}
 		 */
 		function updateLips( lips ) {
-			/**
-			 * @param {string} _lips
-			 * @returns {Promise<array>}
-			 */
-			function updateLipsPromise( _lips ) {
-				try {
-					// Setup default language
-					var lang = document.body.parentNode.getAttribute( "lang" ),
-						newTarget = location.pathname + location.search;
+			try {
+				// Setup default language
+				var lang = document.body.parentNode.getAttribute( "lang" ),
+					newTarget = location.pathname + location.search;
 
-					newTarget += ( newTarget.indexOf( "?" ) >= 0 ? "&" : "?" ) + "auth_method=Shibboleth";
+				newTarget += ( newTarget.indexOf( "?" ) >= 0 ? "&" : "?" ) + "auth_method=Shibboleth";
 
-					_lips.forEach( function ( lip ) {
-						lip.name = lip[ "name_" + lang ];
-						lip.href = lip.href.replace( /target=[^&]*/, "target=" + encodeURIComponent( newTarget ) );
-					} );
+				lips.forEach( function ( lip ) {
+					lip.name = lip[ "name_" + lang ];
+					lip.href = lip.href.replace( /target=[^&]*/, "target=" + encodeURIComponent( newTarget ) );
+				} );
 
-					return Promise.resolve( _lips );
-				} catch ( error ) {
-					if ( CPK.verbose === true ) {
-						console.error( "Updating of last identity providers by document's language failed!", error );
-					}
-
-					return Promise.resolve( lips );
+				return Promise.resolve( lips );
+			} catch ( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( "Updating of last identity providers by document's language failed!", error );
 				}
-			}
 
-			return Promise.resolve( updateLipsPromise( lips ) );
+				return Promise.resolve( lips );
+			}
 		}
 
 		/**
@@ -167,51 +149,41 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function renderLips( lips ) {
-			/**
-			 * @param {array} _lips
-			 * @returns {Promise<boolean>}
-			 */
-			function renderLipsPromise( _lips ) {
-				try {
-					var parent = document.getElementById( "last-identity-providers" ),
-						table = document.createElement( "table" ),
-						tbody = document.createElement( "tbody" );
+			try {
+				var parent = document.getElementById( "last-identity-providers" ),
+					table = document.createElement( "table" ),
+					tbody = document.createElement( "tbody" );
 
-					_lips.forEach( function ( lip ) {
-						var tr = document.createElement( "tr" ),
-							td1 = document.createElement( "td" ),
-							td2 = document.createElement( "td" ),
-							img = document.createElement( "img" ),
-							a = document.createElement( "a" );
+				lips.forEach( function ( lip ) {
+					var tr = document.createElement( "tr" ),
+						td1 = document.createElement( "td" ),
+						td2 = document.createElement( "td" ),
+						img = document.createElement( "img" ),
+						a = document.createElement( "a" );
 
-						// TODO This should be done via CSS...
-						img.setAttribute( "height", "30" );
-						img.setAttribute( "src", lip.logo );
-						td1.classList.add( "col-sm-4" );
-						td1.appendChild( img );
-						a.setAttribute( "href", lip.href );
-						a.appendChild( document.createTextNode( lip.name ) );
-						td2.appendChild( a );
-						tr.appendChild( td1 );
-						tr.appendChild( td2 );
-						tbody.appendChild( tr );
-					} );
+					// TODO This should be done via CSS...
+					img.setAttribute( "height", "30" );
+					img.setAttribute( "src", lip.logo );
+					td1.classList.add( "col-sm-4" );
+					td1.appendChild( img );
+					a.setAttribute( "href", lip.href );
+					a.appendChild( document.createTextNode( lip.name ) );
+					td2.appendChild( a );
+					tr.appendChild( td1 );
+					tr.appendChild( td2 );
+					tbody.appendChild( tr );
+				} );
 
-					table.appendChild( tbody );
-					parent.appendChild( table );
+				table.appendChild( tbody );
+				parent.appendChild( table );
 
-					return Promise.resolve( true );
-				} catch ( error ) {
-					// We doesn't need to break workflow because of this
-					if ( CPK.verbose === true ) {
-						console.error( error );
-					}
-
-					return Promise.resolve( false );
-				}
+				return Promise.resolve( true );
+			} catch ( error ) {
+				// We doesn't need to break workflow because of this.
+				// It just means that we doesn't need render federative
+				// login because user is probably logged in.
+				return Promise.resolve( false );
 			}
-
-			return Promise.resolve( renderLipsPromise( lips ) );
 		}
 
 		/**
@@ -234,16 +206,10 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function registerLipsHandler() {
-			/**
-			 * @returns {Promise<boolean>}
-			 */
-			function registerLipsHandlerPromise() {
-				// For HTML see `templates/login/identity-providers.phtml`.
-				jQuery( "tr", "#table-regular_identity_providers" ).click( lipClickHandler );
-				return Promise.resolve( true );
-			}
+			// For HTML see `templates/login/identity-providers.phtml`.
+			jQuery( "tr", "#table-regular_identity_providers" ).click( lipClickHandler );
 
-			return Promise.resolve( registerLipsHandlerPromise() );
+			return Promise.resolve( true );
 		}
 
 		/**
@@ -269,22 +235,14 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function libraryCardsHomeLinkHandler( elm ) {
-			/**
-			 * @param {HTMLElement} _elm
-			 * @returns {Promise<boolean>}
-			 */
-			function libraryCardsHomeLinkHandlerPromise( _elm ) {
-				if ( typeof _elm === "object" ) {
-					resolve ( false );
-				} else if ( _elm.nodeType !== 1) {
-					resolve( false );
-				} else {
-					_elm.addEventListener( "click", toggleHelpContent, true );
-					resolve( true );
-				}
+			if ( typeof elm === "object" ) {
+				return Promise.resolve ( false );
+			} else if ( elm.nodeType !== 1) {
+				return Promise.resolve( false );
+			} else {
+				elm.addEventListener( "click", toggleHelpContent, true );
+				return Promise.resolve( true );
 			}
-
-			return Promise.resolve( libraryCardsHomeLinkHandlerPromise( elm ) );
 		}
 
 		/**
@@ -307,11 +265,7 @@
 		 * @param {Event} event
 		 */
 		function toggleHelpContent( event ) {
-			var elm = document.getElementById( "login-help-content" );
-
-			if ( elm.nodeType === 1 ) {
-				CPK.global.toggleDOM( elm );
-			}
+			CPK.global.toggleDOM( document.getElementById( "login-help-content" ) );
 		}
 
 		/**
@@ -325,8 +279,7 @@
 				}
 
 				var ipJson = event.currentTarget.getAttribute( "data-identityprovider" );
-				var ip = JSON.parse( ipJson ),
-					i = 0;
+				var ip = JSON.parse( ipJson );
 
 				if ( typeof ip !== "object" ) {
 					if ( CPK.verbose === true ) {
@@ -336,8 +289,17 @@
 					return;
 				}
 
+				/**
+				 * @private Filter callback for filtering LIPs.
+				 * @param {Object} lip
+				 * @returns {boolean}
+				 */
+				var filterLips = function filterLipsFunc( lip ) {
+					return lip.name !== ip.name;
+				};
+
 				// If identity provider is already saved, remove it.
-				lastIdentityProviders = lastIdentityProviders.filter(( lip ) => { return lip.name !== ip.name; });
+				lastIdentityProviders = lastIdentityProviders.filter( filterLips );
 
 				// And set it as the first one.
 				lastIdentityProviders.unshift( ip );
@@ -363,7 +325,7 @@
 	}
 
 	/**
-	 * @type {Object}
+	 * @type {FederativeLoginController}
 	 */
 	CPK.login = new FederativeLoginController();
 

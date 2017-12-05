@@ -17,9 +17,11 @@
       </div>
       <div id="notifications_list_cont"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
     </li>
-    <?php if ($user):
-        foreach ($libraryCards as $libraryCard):
-            $source = explode('.', $libraryCard['cat_username'])[0];
+    <?php
+    if ($user):
+      foreach ($libraryCards as $libraryCard):
+        if (array_key_exists('cat_username', $libraryCard)):
+          $source = explode('.', $libraryCard['cat_username'])[0];
     ?>
     <li data-institution="<?=$source?>.parent" data-username="<?=libraryCard['cat_username']?> id="<?=$source?>">
       <pre><?php var_dump($libraryCard)?></pre>
@@ -32,6 +34,6 @@
       </div>
       <div id="notifications_list_cont-<?=libraryCard['cat_username']?>"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
     </li>
-    <?php endforeach; endif;?>
+    <?php endif; endforeach; endif;?>
   </ul>
 </li>

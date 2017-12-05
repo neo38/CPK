@@ -11,24 +11,108 @@
         console.log("jquery-cpk/admin.js");
     }
 
-    var submitApprovalBtn = undefined;
-
     /**
-     * @returns {ApprovalController}
+     * Controller for Admin -> Configurations Approval.
+	 * @returns {Object}
+	 * @constructor
      */
     function ApprovalController() {
-        var editedAt = undefined,
-            currentTableRow = {
-                div : undefined,
-                input : undefined
-            },
-            vm = this;
+		/**
+		 * Holds array of linked HTML elements.
+		 * @property {HTMLElement} table
+		 * @property {HTMLElement} tbody
+		 * @property {HTMLElement} editCols
+		 * @property {HTMLElement} submit
+		 * @type {Object}
+		 */
+		var domLinker = Object.create( null );
 
-        vm.edit = edit;
-        vm.inputKeyDown = inputKeyDown;
-        vm.inputBlurred = inputBlurred;
+		var editedAt = undefined,
+			currentTableRow = {
+				div : undefined,
+				input : undefined
+			};
 
-        return vm;
+		/**
+		 * @returns {Promise<boolean>}
+		 */
+		function init() {
+			return Promise
+				.resolve( initDom() )
+				.then( resolveInitDom )
+				.then( resolveInitEventHandlers );
+		}
+
+		/**
+		 * @private Initializes DOM needed by the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function initDom() {
+			var result = true;
+
+			domLinker.table    = document.getElementById( "configurationsApprovalTable" );
+			domLinker.tbody    = document.getElementById( "configurationsApprovalTableTbody" );
+			domLinker.editCols = jQuery( ".approval-conf-edit-col", domLinker.tbody );
+			domLinker.submit   = document.getElementById( "configurationsApprovalTableSubmit" );
+
+			/**
+			 * @param {HTMLElement} elm
+			 */
+			function checkElm( elm ) {
+				try {
+					if ( elm.nodeType !== 1 ) {
+						result = false;
+					}
+				} catch ( e ) {
+					result = false;
+				}
+			}
+
+			// Check if we found all DOM elements we need
+			[ domLinker.table, domLinker.tbody, domLinker.submit ].forEach( checkElm );
+
+			return Promise.resolve( result );
+		}
+
+		/**
+		 * @private Resolves initialization of DOM.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function resolveInitDom( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "The initialization of DOM for ApprovalController succeeded."
+					: "The initialization of DOM for ApprovalController failed." );
+			}
+
+			return Promise.resolve( initEventHandlers() );
+		}
+
+		/**
+		 * @private Initializes event handlers.
+		 * @returns {Promise<boolean>}
+		 * @todo Finish this!
+		 */
+		function initEventHandlers() {
+			return Promise.resolve( false );
+		}
+
+		/**
+		 * @private Resolves initialization of event handlers.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function resolveInitEventHandlers( result ) {
+			if ( CPK.verbose === true ) {
+				console.info( result === true
+					? "The initialization of event handlers for ApprovalController succeeded."
+					: "The initialization of event handlers for ApprovalController failed." );
+			}
+
+			return Promise.resolve( result );
+		}
+
 
         // Public
 
@@ -195,9 +279,15 @@
 
             return contents;
         }
+
+		// Public API
+		var Controller = Object.create( null );
+		Controller.initialize = init;
+
+		return Controller;
     }
 
-    function submitApproval() {
+    /*function submitApproval() {
         return {
             restrict : 'A',
             link : linker
@@ -206,11 +296,11 @@
         function linker(scope, elements, attrs) {
             submitApprovalBtn = elements.context;
         }
-    }
+    }*/
 
     /**
      * @type {ApprovalController}
      */
-    CPK.admin.ApprovalController = ApprovalController;
+    CPK.admin.ApprovalController = new ApprovalController();
 
 }());

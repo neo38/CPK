@@ -213,7 +213,7 @@
               <h4><?=$this->transEsc("frontpage-text", ['10 000 000' => $this->localizedNumber($docCount)])?></h4>
             <? endif; ?>
             <div class="clearfix">
-               <div class='container'>
+               <div class="container">
                  <?=$this->render('search/searchbox.phtml'); ?>
                  <?=$this->render('shib-assertion.phtml')?>
                  <a href="/Search/Inspiration" class="pull-left arrow-link"><i class="pr-interface-arrowleft"></i> <?=$this->transEsc("frontpage-left-arrow-link")?></a>
@@ -253,20 +253,20 @@
         <?=$this->layout()->poweredBy ?>
       </div>
     </footer>
-    <!-- MODAL IN CASE WE NEED ONE -->
-    <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <?php/* Global modal dialog */?>
+    <div id="globalModal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 id="modalTitle" class="modal-title">&nbsp;</h4>
+            <h4 id="globalModalTitle" class="modal-title">&nbsp;</h4>
           </div>
-          <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
+          <div id="globalModalBody" class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
         </div>
       </div>
     </div>
     <? if (! $user): ?>
-    <!-- Modal for login -->
+    <?php/* Modal for login*/?>
     <div class="modal fade" id="loginModal" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -309,7 +309,7 @@
     <? endif; ?>
     <? if (! $user && isset($_GET['AcceptTermsOfUse'])):
       $agreeUrl = $this->url('myresearch-home').'?auth_method=Shibboleth&amp;terms_of_use_accepted=yes'?>
-    <!-- Modal for terms of use -->
+    <?php/* Modal for terms of use */?>
     <div class="modal fade" id="termsOfUseModal" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
