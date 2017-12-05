@@ -106,7 +106,7 @@
 		 */
 		function loadFavorites() {
 			return new Promise(function( resolve, reject ) {
-				if ( CPK.storage.isStorage( CPK.localStorage ) ) {
+				if ( CPK.storage.isStorage( CPK.localStorage ) !== true ) {
 					reject( "Storage is not available" );
 				}
 

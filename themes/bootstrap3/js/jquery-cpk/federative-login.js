@@ -1,8 +1,8 @@
 /**
  * New implementation of "federative login".
  *
- * Uses CPK.localStorage to store information about last used identity providers.
- * Initialized is in `jquery-cpk/common.js`.
+ * Uses `CPK.localStorage` to store information about last used identity
+ * providers.
  *
  * @author Jiří Kozlovský, original Angular solution
  * @author Ondřej Doněk, <ondrejd@gmail.com>
@@ -26,7 +26,7 @@
 
 		/**
 		 * Initializes notifications (just like linkers before for Angular app).
-		 * @return {Promise}
+		 * @return {Promise<boolean>}
 		 */
 		function initialize() {
 			return Promise
@@ -40,49 +40,52 @@
 		}
 
 		/**
-		 * @returns {Promise}
-		 * @private
+		 * @private Initializes the last used identity providers.
+		 * @returns {Promise<string|null>}
 		 */
 		function initLips() {
-			return new Promise( function ( resolve ) {
+			/**
+			 * @returns {Promise<string|boolean>}
+			 */
+			function initLipsPromise() {
 				try {
 					var lips;
 					lips = CPK.localStorage.getItem( _storageKey );
 					resolve( lips );
 				} catch ( error ) {
-					if ( CPK.verbose === true ) {
-						console.error( "Local storage is not initialized yet!", error );
-					}
+					// This mean that the page is opened for the first time
+					CPK.localStorage.setItem( _storageKey, JSON.stringify( [] ) );
 
-					return Promise.reject( error );
+					return Promise.resolve( null );
 				}
-			} );
+			}
+
+			return Promise.resolve( initLipsPromise() );
 		}
 
 		/**
-		 * @param {string} lips
-		 * @returns {Promise}
-		 * @private
+		 * @private Resolves initialization of the last used identity providers.
+		 * @param {string|null} lips
+		 * @returns {Promise<array>}
 		 */
 		function resolveInitLips( lips ) {
 			return Promise.resolve( parseLips( lips ) );
 		}
 
 		/**
-		 * @param {string} lips
-		 * @returns {Promise}
-		 * @private
+		 * @private Parses the last used identity providers.
+		 * @param {string|boolean} lips
+		 * @returns {Promise<array>}
 		 */
 		function parseLips( lips ) {
-			return new Promise( function ( resolve ) {
-				if ( lips === null || lips.length <= 0 ) {
-					resolve( [] );
-					return;
-				}
-
+			/**
+			 * @param {string} _lips
+			 * @returns {Promise<array>}
+			 */
+			function parseLipsPromise( _lips ) {
 				try {
 					var lip;
-					lip = JSON.parse( lips );
+					lip = JSON.parse( _lips );
 					resolve( jQuery.isArray( lip ) ? lip : [] );
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
@@ -91,26 +94,37 @@
 
 					resolve( [] );
 				}
-			} );
+			}
+
+			if ( lips === null ) {
+				return Promise.resolve( [] );
+			} else if ( lips.length <= 0 ) {
+				return Promise.resolve( [] );
+			} else {
+				return new Promise.resolve( parseLipsPromise( lips ) );
+			}
 		}
 
 		/**
-		 * @param {Array} lips
-		 * @returns {Promise}
-		 * @private
+		 * @private Resolves parsing of the last used identity providers.
+		 * @param {array} lips
+		 * @returns {Promise<array>}
 		 */
 		function resolveParseLips( lips ) {
 			return Promise.resolve( updateLips( lips ) );
 		}
 
 		/**
-		 * @param {Array} lips
-		 * @returns {Promise}
-		 * @private
-		 * @todo Check if "lips" are really updated!
+		 * @private Update the last identity provider with correct URL.
+		 * @param {array} lips
+		 * @returns {Promise<array>}
 		 */
 		function updateLips( lips ) {
-			return new Promise( function ( resolve, reject ) {
+			/**
+			 * @param {string} _lips
+			 * @returns {Promise<array>}
+			 */
+			function updateLipsPromise( _lips ) {
 				try {
 					// Setup default language
 					var lang = document.body.parentNode.getAttribute( "lang" ),
@@ -118,26 +132,28 @@
 
 					newTarget += ( newTarget.indexOf( "?" ) >= 0 ? "&" : "?" ) + "auth_method=Shibboleth";
 
-					lips.forEach( function ( lip ) {
+					_lips.forEach( function ( lip ) {
 						lip.name = lip[ "name_" + lang ];
 						lip.href = lip.href.replace( /target=[^&]*/, "target=" + encodeURIComponent( newTarget ) );
 					} );
 
-					resolve( lips );
+					return Promise.resolve( _lips );
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
 						console.error( "Updating of last identity providers by document's language failed!", error );
 					}
 
-					reject( error );
+					return Promise.resolve( lips );
 				}
-			} );
+			}
+
+			return Promise.resolve( updateLipsPromise( lips ) );
 		}
 
 		/**
-		 * @param {Array} lips
-		 * @returns {Promise}
-		 * @private
+		 * @private Resolves updating of the last identity providers.
+		 * @param {array} lips
+		 * @returns {Promise<boolean>}
 		 */
 		function resolveUpdateLips( lips ) {
 			lastIdentityProviders = lips;
@@ -146,25 +162,29 @@
 		}
 
 		/**
-		 * @param {Array} lips
-		 * @returns {Promise}
-		 * @private
+		 * @private Renders the last identity providers.
+		 * @param {array} lips
+		 * @returns {Promise<boolean>}
 		 */
 		function renderLips( lips ) {
-			return new Promise( function ( resolve ) {
+			/**
+			 * @param {array} _lips
+			 * @returns {Promise<boolean>}
+			 */
+			function renderLipsPromise( _lips ) {
 				try {
 					var parent = document.getElementById( "last-identity-providers" ),
 						table = document.createElement( "table" ),
 						tbody = document.createElement( "tbody" );
 
-					lips.forEach( function ( lip ) {
+					_lips.forEach( function ( lip ) {
 						var tr = document.createElement( "tr" ),
 							td1 = document.createElement( "td" ),
 							td2 = document.createElement( "td" ),
 							img = document.createElement( "img" ),
 							a = document.createElement( "a" );
 
-						// XXX This should be done via CSS...
+						// TODO This should be done via CSS...
 						img.setAttribute( "height", "30" );
 						img.setAttribute( "src", lip.logo );
 						td1.classList.add( "col-sm-4" );
@@ -180,21 +200,23 @@
 					table.appendChild( tbody );
 					parent.appendChild( table );
 
-					resolve( true );
+					return Promise.resolve( true );
 				} catch ( error ) {
 					// We doesn't need to break workflow because of this
 					if ( CPK.verbose === true ) {
 						console.error( error );
 					}
 
-					resolve( false );
+					return Promise.resolve( false );
 				}
-			} );
+			}
+
+			return Promise.resolve( renderLipsPromise( lips ) );
 		}
 
 		/**
 		 * @param {boolean} result
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 * @private
 		 */
 		function resolveRenderLips( result ) {
@@ -208,20 +230,25 @@
 		}
 
 		/**
-		 * @private Registers onclick event handler on rendered indentity providers.
-		 * @returns {Promise}
+		 * @private Registers onclick event handler on rendered identity providers.
+		 * @returns {Promise<boolean>}
 		 */
 		function registerLipsHandler() {
-			return new Promise(function( resolve ) {
+			/**
+			 * @returns {Promise<boolean>}
+			 */
+			function registerLipsHandlerPromise() {
 				// For HTML see `templates/login/identity-providers.phtml`.
 				jQuery( "tr", "#table-regular_identity_providers" ).click( lipClickHandler );
-				resolve( true );
-			});
+				return Promise.resolve( true );
+			}
+
+			return Promise.resolve( registerLipsHandlerPromise() );
 		}
 
 		/**
 		 * @param {boolean} result
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 * @private
 		 */
 		function resolveRegisterLipsHandler( result ) {
@@ -239,25 +266,31 @@
 		/**
 		 * @private Registers onclick event handler on link in librarycards/home.phtml.
 		 * @param {HTMLElement} elm
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 */
 		function libraryCardsHomeLinkHandler( elm ) {
-			return new Promise(function( resolve ) {
-				if ( typeof elm === "object" ) {
+			/**
+			 * @param {HTMLElement} _elm
+			 * @returns {Promise<boolean>}
+			 */
+			function libraryCardsHomeLinkHandlerPromise( _elm ) {
+				if ( typeof _elm === "object" ) {
 					resolve ( false );
-				} else if ( elm.nodeType !== 1) {
+				} else if ( _elm.nodeType !== 1) {
 					resolve( false );
 				} else {
-					elm.addEventListener( "click", toggleHelpContent, true );
+					_elm.addEventListener( "click", toggleHelpContent, true );
 					resolve( true );
 				}
-			});
+			}
+
+			return Promise.resolve( libraryCardsHomeLinkHandlerPromise( elm ) );
 		}
 
 		/**
+		 * @private Resolves registering of library cards home link handler.
 		 * @param {boolean} result
-		 * @returns {Promise}
-		 * @private
+		 * @returns {Promise<boolean>}
 		 */
 		function resolveLibrarycardsHomeLinkHandler( result ) {
 			if ( CPK.verbose === true ) {
@@ -284,7 +317,6 @@
 		/**
 		 * @private Handler for click on identity provider.
 		 * @param {Event} event
-		 * @todo Would be better if event we're handling here be directly on <a> not on parent <tr>.
 		 */
 		function lipClickHandler( event ) {
 			try {
