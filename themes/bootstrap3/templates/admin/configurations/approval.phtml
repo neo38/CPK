@@ -61,31 +61,37 @@ $hasRequests = false;
             <?php
             foreach($keys as $key => $value):
               if (array_search($section . ':' . $key, $hidden) === false):
-                $isChanged = isset($transActive[$section][$key]) && $value != $transActive[$section][$key];
+                $isChanged  = isset($transActive[$section][$key]) && $value != $transActive[$section][$key];
                 $isRequired = ! in_array($section . ':' . $key, $defs['optional']);
                 $isCheckbox = $defs[$section][$key] === 'checkbox';
+                $itsValue   = $isChanged ? $transActive[$section][$key] : '';
+                $itsLabel   = $this->transEsc($template[$section][$key]);
+                $checkValue = function( $val ) {
+                    return ( strtolower( $val ) === 'on' || intval( $val ) === 1) ? '1' : '0';
+                };
+
+                // Fix for checkboxes ("on" vs "1" :/)
+                if ($isCheckbox) {
+                    $itsValue  = $checkValue( $itsValue );
+                    $isChanged = ( $checkValue( $value ) !== $itsValue );
+                }
             ?>
-            <tr title="<?=($isRequired ? $this->transEsc('This field is required') . ' - ' : '')  . $this->transEsc($template[$section][$key])?>">
+            <tr title="<?=($isRequired ? $this->transEsc('This field is required') . ' - ' : '')  . $itsLabel?>">
               <td class="col-sm-3"><?=$key . (($isRequired) ? ' *' : '')?></td>
-              <td class="col-sm-9 approval-conf-edit-col"><!-- TODO Replace `ng-dblclick="approvalCtrl.edit($event)"`! -->
+              <td class="col-sm-9 approval-conf-edit-col">
                 <div><?=
                   ($isChanged)
-                      ? ((!empty($transActive[$section][$key]))
-                          ? '<del style="color: red">' . $transActive[$section][$key] . '</del><br>'
-                          : '<ins style="color: green">' . $value . '</ins>' )
+                      ? ((!empty($itsValue))
+                            ? '<del style="color: red">' . $itsValue . '</del><br>'
+                            : ''
+                        ) . '<ins style="color: green">' . $value . '</ins>'
                       : $value
                 ?></div>
-                <?php
-                /**
-                 * @todo Replace `ng-keydown="approvalCtrl.inputKeyDown($event)"`!
-                 * @todo Replace `ng-blur="approvalCtrl.inputBlurred($event)"`!
-                 */
-                ?>
                 <?=sprintf(
                   '<input class="form-control hidden" value="%1$s" type="%2$s" placeholder="%3$s" title="%3$s" name="%4$s"%5$s%6$s>',
                   $value,
                   $defs[$section][$key],
-                  $this->transEsc($template[$section][$key]),
+                  $itsLabel,
                   $section . '[' . $key . ']',
                   ($isCheckbox && $value) ? ' checked="checked"' : '',
                   ($isRequired) ? ' required="required"' : ''
@@ -96,15 +102,10 @@ $hasRequests = false;
           <?php endif; endforeach; ?>
           </tbody>
         </table>
-        <textarea class="col-sm-12" name="message"
-                  placeholder="<?=$this->transEsc('approval_description')?>"
-                  title="<?=$this->transEsc('approval_description')?>"></textarea>
+        <textarea class="col-sm-12" name="message" placeholder="<?=$this->transEsc('approval_description')?>" title="<?=$this->transEsc('approval_description')?>"></textarea>
         <div class="btn-group">
-          <input class="btn btn-primary" type="submit" name="approved"
-                 value="<?=$this->transEsc('approve_config_change') ?>"
-                 id="configurationsApprovalTableSubmit"><!-- TODO Replace `ng-submit-approval`! -->
-          <input class="btn btn-primary" type="submit" name="denied"
-                 value="<?=$this->transEsc('deny_config_change') ?>" formnovalidate>
+          <input id="configurationsApprovalTableSubmit" class="btn btn-primary" type="submit" name="approved" value="<?=$this->transEsc('approve_config_change') ?>">
+          <input class="btn btn-primary" type="submit" name="denied" value="<?=$this->transEsc('deny_config_change') ?>" formnovalidate>
         </div>
         <input type="hidden" name="source" value="<?=$source?>">
       </form>
