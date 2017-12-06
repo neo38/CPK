@@ -10,10 +10,6 @@
 (function() {
 	"use strict";
 
-	if ( CPK.verbose === true ) {
-		console.info( "jquery-cpk/storage.js" );
-	}
-
 	/**
 	 * Single fake storage item.
 	 * @param {string} id

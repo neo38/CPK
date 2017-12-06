@@ -8,10 +8,6 @@
 (function () {
 	"use strict";
 
-	if ( CPK.verbose === true ) {
-		console.info( "jquery-cpk/federative-login.js" );
-	}
-
 	/**
 	 * Federative login controller.
 	 * @returns {Object}
@@ -25,15 +21,14 @@
 		 * Initializes notifications (just like linkers before for Angular app).
 		 * @return {Promise<boolean>}
 		 */
-		function initialize() {
+		function init() {
 			return Promise
 				.resolve( initLips() )
-				.then( resolveInitLips )
-				.then( resolveParseLips )
-				.then( resolveUpdateLips )
-				.then( resolveRenderLips )
-				.then( resolveRegisterLipsHandler )
-				.then( resolveLibrarycardsHomeLinkHandler );
+				.then( parseLips )
+				.then( updateLips )
+				.then( renderLips )
+				.then( registerLipsHandler )
+				.then( resolveRegisterLipsHandler );
 		}
 
 		/**
@@ -54,15 +49,6 @@
 		}
 
 		/**
-		 * @private Resolves initialization of the last used identity providers.
-		 * @param {string|null} lips
-		 * @returns {Promise<array>}
-		 */
-		function resolveInitLips( lips ) {
-			return Promise.resolve( parseLips( lips ) );
-		}
-
-		/**
 		 * @private Parses the last used identity providers.
 		 * @param {string|boolean} lips
 		 * @returns {Promise<array>}
@@ -76,6 +62,7 @@
 				try {
 					var lip;
 					lip = JSON.parse( _lips );
+
 					return Promise.resolve( jQuery.isArray( lip ) ? lip : [] );
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
@@ -93,15 +80,6 @@
 			} else {
 				return Promise.resolve( parseLipsPromise( lips ) );
 			}
-		}
-
-		/**
-		 * @private Resolves parsing of the last used identity providers.
-		 * @param {array} lips
-		 * @returns {Promise<array>}
-		 */
-		function resolveParseLips( lips ) {
-			return Promise.resolve( updateLips( lips ) );
 		}
 
 		/**
@@ -133,22 +111,13 @@
 		}
 
 		/**
-		 * @private Resolves updating of the last identity providers.
-		 * @param {array} lips
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveUpdateLips( lips ) {
-			lastIdentityProviders = lips;
-
-			return Promise.resolve( renderLips( lips ) );
-		}
-
-		/**
 		 * @private Renders the last identity providers.
 		 * @param {array} lips
 		 * @returns {Promise<boolean>}
 		 */
 		function renderLips( lips ) {
+			lastIdentityProviders = lips;
+
 			try {
 				var parent = document.getElementById( "last-identity-providers" ),
 					table = document.createElement( "table" ),
@@ -161,7 +130,6 @@
 						img = document.createElement( "img" ),
 						a = document.createElement( "a" );
 
-					// TODO This should be done via CSS...
 					img.setAttribute( "height", "30" );
 					img.setAttribute( "src", lip.logo );
 					td1.classList.add( "col-sm-4" );
@@ -187,27 +155,22 @@
 		}
 
 		/**
-		 * @param {boolean} result
-		 * @returns {Promise<boolean>}
-		 * @private
-		 */
-		function resolveRenderLips( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( result === true
-					? "The last identity providers were rendered."
-					: "The last identity providers were not rendered." );
-			}
-
-			return Promise.resolve( registerLipsHandler() );
-		}
-
-		/**
 		 * @private Registers onclick event handler on rendered identity providers.
 		 * @returns {Promise<boolean>}
 		 */
-		function registerLipsHandler() {
-			// For HTML see `templates/login/identity-providers.phtml`.
-			jQuery( "tr", "#table-regular_identity_providers" ).click( lipClickHandler );
+		function registerLipsHandler( result ) {
+			if ( result === false ) {
+				return Promise.resolve( true );
+			}
+
+			try {
+				var table = document.getElementById( "table-regular_identity_providers" );
+				jQuery( "tr", table ).click( lipClickHandler );
+			} catch ( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( error );
+				}
+			}
 
 			return Promise.resolve( true );
 		}
@@ -218,12 +181,6 @@
 		 * @private
 		 */
 		function resolveRegisterLipsHandler( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( result === true
-					? "Links of identity providers were initialized."
-					: "Links of identity providers were not initialized." );
-			}
-
 			var elm = document.getElementById( "login-help-content-link" );
 
 			return Promise.resolve( libraryCardsHomeLinkHandler( elm ) );
@@ -236,28 +193,13 @@
 		 */
 		function libraryCardsHomeLinkHandler( elm ) {
 			if ( typeof elm === "object" ) {
-				return Promise.resolve ( false );
+				return Promise.resolve ( true );
 			} else if ( elm.nodeType !== 1) {
-				return Promise.resolve( false );
+				return Promise.resolve( true );
 			} else {
 				elm.addEventListener( "click", toggleHelpContent, true );
 				return Promise.resolve( true );
 			}
-		}
-
-		/**
-		 * @private Resolves registering of library cards home link handler.
-		 * @param {boolean} result
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveLibrarycardsHomeLinkHandler( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( result === true
-					? "Librarycards home link was initialized."
-					: "Librarycards home link was not initialized." );
-			}
-
-			return Promise.resolve( true );
 		}
 
 		/**
@@ -319,7 +261,7 @@
 
 		// Public API
 		var Login = Object.create( null );
-		Login.initialize = initialize;
+		Login.initialize = init;
 
 		return Login;
 	}
