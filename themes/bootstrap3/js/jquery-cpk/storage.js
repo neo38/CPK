@@ -15,32 +15,17 @@
 	}
 
 	/**
-	 * @private
-	 * @param {FakeStorageItem} elm
-	 * @returns {boolean}
-	 */
-	function findIndex( elm ) {
-		return (elm.id === id);
-	}
-
-	/**
-	 * @private
-	 * @param {FakeStorageItem} elm
-	 * @returns {boolean}
-	 */
-	function filterItem( elm ) {
-		return (elm.id === id);
-	}
-
-	/**
 	 * Single fake storage item.
 	 * @param {string} id
 	 * @param {string} val
 	 * @constructor
 	 */
 	function FakeStorageItem( id, val ) {
-		this.id  = id;
-		this.val = val;
+		var Item = Object.create( null );
+		Item.id  = id;
+		Item.val = val;
+
+		return Item;
 	}
 
 	/**
@@ -63,7 +48,7 @@
 			/**
 			 * @type {number}
 			 */
-			var idx = fakeStore.findIndex( findIndex );
+			var idx = fakeStore.findIndex(function setItem_findIndex( elm ) { return ( elm.id === id ); });
 
 			if ( idx === -1 ) {
 				// We are adding new item.
@@ -83,7 +68,7 @@
 			/**
 			 * @type {FakeStorageItem[]}
 			 */
-			var result = fakeStore.filter( filterItem );
+			var result = fakeStore.filter(function filterItem( elm ) { return ( elm.id === id ); });
 
 			if ( result.length === 1 ) {
 				return result[ 0 ].val;
@@ -101,7 +86,7 @@
 			/**
 			 * @type {number}
 			 */
-			var idx = fakeStore.findIndex( findIndex );
+			var idx = fakeStore.findIndex(function removeItem_findIndex( elm ) { return ( elm.id === id ); });
 
 			if ( idx === -1 ) {
 				// Requested item was not found.
@@ -131,7 +116,7 @@
 				return null;
 			}
 
-			return fakeStore[key].id;
+			return fakeStore[ key ].id;
 		}
 
 		/**
@@ -142,15 +127,20 @@
 			return fakeStore.length;
 		}
 
+		// Public API
+		var Storage = Object.create( null );
+
 		// Properties
-		Object.defineProperty( this, "length", { get: getLength } );
+		Object.defineProperty( Storage, "length", { get: getLength } );
 
 		// Methods
-		this.getItem    = getItem;
-		this.setItem    = setItem;
-		this.removeItem = removeItem;
-		this.clear      = clear;
-		this.key        = key;
+		Storage.getItem    = getItem;
+		Storage.setItem    = setItem;
+		Storage.removeItem = removeItem;
+		Storage.clear      = clear;
+		Storage.key        = key;
+
+		return Storage;
 	}
 
 	/**

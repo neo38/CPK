@@ -374,7 +374,7 @@ class NotificationsHandler
         $shouldSetUnread = $wasShownBefore && $notificationShows === false;
 
         if (! $shouldSetUnread) {
-            $controlHash = $notificationDetails['hash'];
+            $controlHash = array_key_exists( 'hash', $notificationDetails ) ? $notificationDetails['hash'] : null;
 
             $shouldSetUnread = ($controlHash !== $notificationsRow->control_hash_md5);
 

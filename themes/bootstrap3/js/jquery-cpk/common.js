@@ -2,13 +2,6 @@
  * XXX Měli by jsme se uživatele zeptat zda chce ukládat citlivé údaje
  *     do paměti svého počítače - nejen cookies ale i localStorage
  *
- * XXX Základní "FakeStorage" by měla být na základě `cookies` -> ale je to špaténka...
- *
- * XXX Musíme si rozmyslet, jak udělat testy pro JavaScript!
- *
- *
- *
- *
  * jQuery-based replacement for original Angular-based ng-cpk module.
  *
  * Application self is split into several modules:
@@ -54,6 +47,12 @@
  * @todo Move comments above (about jquery-cpk) to the standalone README.md file
  *
  * @todo Notifications, "Add/Remove Favorite" and "Federative login" should be implemented as jQuery/jQuery UI/Bootstrap widgets (but in un-obstructive way)...
+ *
+ * @todo WE NEED TO USE JQUERY DEFERREDS INSTEAD OF NATIVE PROMISES (compatibility with IE and maybe we will be able to kick-off es6-promise.js; see links below)
+ * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility
+ * @link http://jqfundamentals.com/chapter/ajax-deferreds
+ *
+ * @todo Remove most of `console.log` debug messages!
  */
 
 /**

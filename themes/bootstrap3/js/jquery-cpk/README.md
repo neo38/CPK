@@ -1,6 +1,8 @@
 # jquery-cpk
 
-This code is replacement of previous solution based [Angular][1] library. It's based just on [jQuery][2] and native components of JavaScript self - above all [Worker][3], [Promise][4] etc.
+This code is replacement of previous solution based [Angular][1] library. It's based just on [jQuery][2] ~~and native components of JavaScript self - above all [Worker][3], [Promise][4] etc.~~
+
+__Note__: Originally I used native [Promise][4] but this is not supported in _IE_ (see [table Browser compatibility][18]) so I switched to pure [jQuery deferreds][19] which should work everywhere (e.g. on all [browsers supported by jQuery][20]). Please note, that __examples in this README file still doesn't reflect this change__.
 
 ## Code structure
 
@@ -90,7 +92,7 @@ Administration module (located in [admin.js][17]) currently contains just `Appro
 
 ## Initialization and module construction
 
-All modules are initialized in [common.js][5] - firstly storage and then rest of all other modules as parallel jobs. This functionality is available by using chains of promises.
+All modules are initialized in [common.js][5] - firstly storage and then rest of all other modules as parallel jobs. This functionality is available by using chains of deferreds.
 
 ### Example module
 
@@ -140,7 +142,7 @@ function initializeTermsOfUseModal() {
 }
 ```
 
-Is initialized between other _non_-important modules as a parallel [Promise][4] and as we can see is pretty obvious how it's work. If we have more complex module we just chain more promises to fulfill functionality by safe way.
+Is initialized between other _non_-important modules as a parallel deferreds and as we can see is pretty obvious how it's work. If we have more complex module we just chain more deferreds to fulfill functionality by safe way.
 
 For more examples see other modules - there are simple ones like [federative-login.js][13] or [global.js][14] but also more complex like [notifications.js][12] or [favorites.js][15].
 
@@ -169,3 +171,6 @@ This way of initializing code has these benefits (some of them will be visible a
 [15]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/favorites.js
 [16]:http://requirejs.org/
 [17]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/admin.js
+[18]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility
+[19]:http://jqfundamentals.com/chapter/ajax-deferreds
+[20]:https://jquery.com/browser-support/

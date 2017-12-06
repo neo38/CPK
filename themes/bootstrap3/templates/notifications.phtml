@@ -20,20 +20,18 @@
     <?php
     if ($user):
       foreach ($libraryCards as $libraryCard):
-        if (array_key_exists('cat_username', $libraryCard)):
-          $source = explode('.', $libraryCard['cat_username'])[0];
+        $source = explode('.', $libraryCard->cat_username)[0];
     ?>
-    <li data-institution="<?=$source?>.parent" data-username="<?=libraryCard['cat_username']?> id="<?=$source?>">
-      <pre><?php var_dump($libraryCard)?></pre>
+    <li data-institution="<?=$source?>.parent" data-source="<?=$source?>" data-username="<?=$libraryCard->cat_username?>" id="<?=$source?>" class="institutionNotificationsLi">
       <div class="notif-header"> <?=$this->translate('source_' . $source, null, $source)?>
         <img height="20" class="pull-right" src="<?=$this->logos()->getLogo($source)?>">
-        <div data-institution="<?=$source?>" class="notif-default">
+        <div id="notificationsListLoader_<?=$libraryCard->cat_username?>" data-institution="<?=$source?>" class="notif-default">
           <i class="fa fa-spinner fa-spin"></i>
           <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
         </div>
       </div>
-      <div id="notificationsListDiv_<?=libraryCard['cat_username']?>" class="notif-list-div institution-notif-list-div"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
+      <div id="notificationsListDiv_<?=$libraryCard->cat_username?>" class="notif-list-div institution-notif-list-div"><?php/* Here will be rendered notifications from CPK.notifications */?></div>
     </li>
-    <?php endif; endforeach; endif;?>
+    <?php endforeach; endif;?>
   </ul>
 </li>
