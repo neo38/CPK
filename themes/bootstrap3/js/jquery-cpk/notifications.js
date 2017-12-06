@@ -171,7 +171,7 @@
 			/**
 			 * @type {function[]} Array of functions that returns Promise resolved to boolean.
 			 */
-			var jobs = [ fetchNotificationsForUser/* TODO , fetchNotificationsForUserCard */];
+			var jobs = [ fetchNotificationsForUser, fetchNotificationsForUserCard ];
 
 			/**
 			 * @param {function} job

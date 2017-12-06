@@ -86,7 +86,7 @@ __TBD__
 
 ### `CPK.admin`
 
-Currently contains just `ApprovalController` which controls page _Configurations Approval_ ([approval.phtml][9]).
+Administration module (located in [admin.js][17]) currently contains just `ApprovalController` which controls page _Configurations Approval_ ([approval.phtml][9]).
 
 ## Initialization and module construction
 
@@ -94,7 +94,7 @@ All modules are initialized in [common.js][5] - firstly storage and then rest of
 
 ### Example module
 
-In [common.js][5] is small _module_ `TermsOfUseModal` - is so simple that is inserted directly into [common.js][5] as one function but it should be placed in standalone file. Now look at code of this _module_:
+In [common.js][5] is small _module_ `TermsOfUseModal` - is so simple that is inserted directly into [common.js][5] as one function (but should be in standalone file). Now look at code of this _module_:
 
 ```javascript
 /**
@@ -168,3 +168,4 @@ This way of initializing code has these benefits (some of them will be visible a
 [14]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/global.js
 [15]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/favorites.js
 [16]:http://requirejs.org/
+[17]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/admin.js
