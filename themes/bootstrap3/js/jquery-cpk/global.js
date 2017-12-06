@@ -6,9 +6,7 @@
  */
 
 (function() {
-	if (CPK.verbose === true) {
-		console.log("jquery-cpk/global.js");
-	}
+	"use strict";
 
 	// Private variables
 	var MODAL_PARAM = "viewModal",
@@ -85,14 +83,11 @@
 
 		/**
 		 * @returns {Promise<boolean>}
-		 * @todo Finish this!
-		 * @todo Initialize also `$rootScope.$on( 'notificationClicked', onNotificationClick )` (or move it into notifications.js)!
 		 */
 		function init() {
 			return Promise
 				.resolve( initModalParam() )
-				.then( resolveInitModalParam )
-				.then( resolveInitDom );
+				.then( initDom );
 		}
 
 		/**
@@ -102,24 +97,9 @@
 		function initModalParam() {
 			var modalParam = getGetParam( MODAL_PARAM );
 
-			return Promise.resolve(
-				( modalParam !== null && modalParam.length > 0 ) ? modalParam : false
-			);
-		}
+			viewModalParam = ( modalParam !== null && modalParam.length > 0 ) ? modalParam : null;
 
-		/**
-		 * @private Resolves initializing of "viewModal" parameter.
-		 * @param {string|boolean} result
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveInitModalParam( result ) {
-			if ( typeof result === "string" && result.length > 0 ) {
-				viewModalParam = result;
-			} else {
-				viewModalParam = null;
-			}
-
-			return Promise.resolve( initDom() );
+			return Promise.resolve( true );
 		}
 
 		/**
@@ -149,22 +129,13 @@
 			// Check if we found all DOM elements we need
 			[ domLinker.main, domLinker.title, domLinker.body ].forEach( checkElm );
 
-			return Promise.resolve( result );
-		}
-
-		/**
-		 * @private Resolves initialization of "domLinker".
-		 * @param {boolean} result
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveInitDom( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( result === true
-					? "DOM for global modal was initialized."
-					: "DOM for global modal was not initialized." );
+			// Just inform that something is wrong
+			if ( result === false && CPK.verbose === true ) {
+				console.error( "DOM for GlobalConstructor was not initialized." );
 			}
 
-			return Promise.resolve( result );
+			// But do not stop the process
+			return Promise.resolve( true );
 		}
 
 		/**

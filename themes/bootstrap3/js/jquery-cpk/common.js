@@ -173,9 +173,7 @@ if ( typeof CPK === "undefined" )
 
 
 
-/**
- * @todo This should be the only document.onReady handler.
- */
+// Main document.onReady handler
 jQuery(function onDocumentReady() {
 	"use strict";
 
@@ -195,30 +193,14 @@ jQuery(function onDocumentReady() {
 				if ( elm.nodeType === 1 ) {
 					jQuery( elm ).modal( "show" ).unbind( "click" );
 				}
-
-				return Promise.resolve( true );
 			} catch ( error ) {
-				return Promise.resolve( false );
-			}
-		}
-
-		/**
-		 * @param {boolean} result
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveTermsOfUseModalPromise( result ) {
-			if ( CPK.verbose === true ) {
-				console.info( result === true
-					? "Modal 'Terms of Use' was initialized."
-					: "Modal 'Terms of Use' was not initialized." );
+				// We don't care about errors raised here.
 			}
 
 			return Promise.resolve( true );
 		}
 
-		return Promise
-			.resolve( termsOfUseModalPromise() )
-			.then( resolveTermsOfUseModalPromise );
+		return Promise.resolve( termsOfUseModalPromise() );
 	}
 
 	/**
