@@ -29,7 +29,7 @@ $id = $this->driver->getUniqueID();
         <div class='eds-want-it' style="display: none;">
             <?=$this->translate('Availability information')?>
         </div>
-        <table class="table" summary="<?=$this->transEsc('Bibliographic Details')?>">
+        <table class="table table-with-summary" summary="<?=$this->transEsc('Bibliographic Details')?>">
             <? foreach ($items as $key => $item): ?>
                 <? if (!empty($item['Data'])): ?>
                     <? if($item['Group'] !== 'Ti'): ?>

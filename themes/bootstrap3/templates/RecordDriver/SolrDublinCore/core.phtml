@@ -57,7 +57,7 @@
     <? endif; ?>
 
     <?/* Display Main Details */?>
-    <table class="table" summary="<?=$this->transEsc('Bibliographic Details')?>">
+    <table class="table table-with-summary" summary="<?=$this->transEsc('Bibliographic Details')?>">
       <? $journalTitle = $this->driver->getContainerTitle(); if (!empty($journalTitle)): ?>
       <tr>
         <th class="col-md-4"><?=$this->transEsc('Published in')?>:</th>
