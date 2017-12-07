@@ -83,6 +83,9 @@ function Cpk() {
 	 * @property {FavoritesStorage} storage
 	 * @property {Favorite} Favorite
 	 * @property {FavoritesBroadcaster} broadcaster
+	 * @property {RecordController} RecordController
+	 * @property {SearchController} SearchController
+	 * @property {ListController} ListController
 	 * @type {Object}
 	 */
 	this.favorites = Object.create( null );
@@ -262,9 +265,12 @@ jQuery(function onDocumentReady() {
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
-			CPK.favorites.broadcaster.initialize,
+			//CPK.favorites.broadcaster.initialize,
 			CPK.global.controller.initialize,
 			CPK.admin.ApprovalController.initialize,
+			CPK.favorites.SearchController.initialize,
+			CPK.favorites.RecordController.initialize,
+			CPK.favorites.ListController.initialize,
 			initializeTermsOfUseModal
 		].forEach( initJob );
 	}

@@ -1216,6 +1216,858 @@
 	}
 
 	/**
+	 * Controller for the search page.
+	 * @returns {Object}
+	 * @constructor
+	 * @todo Holds pointers to all created event handlers to proper removal of them.
+	 */
+	function SearchController() {
+
+		/**
+		 * Holds array of linked HTML elements.
+		 * @type {Object}
+		 */
+		var domLinker = Object.create( null );
+
+		/**
+		 * @type {array} Holds array of HTML elements on which we were attached event handler.
+		 */
+		var targetElms = [];
+
+		/**
+		 * Initializes the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function init() {
+			/*rankedItems = document.querySelectorAll('div#result-list-placeholder div[id]');
+
+			if (typeof directly === 'undefined')
+				$compile(rankedItems)($scope);
+
+			rankedItemsLength = rankedItems.length;
+			for (var rank = 0; rank < rankedItemsLength; ++rank) {
+				isFavorite(rank).then(function(result) {
+
+					rank = result.rank;
+					favorite = result.favorite;
+
+					favs[rank] = favorite;
+
+					switchAddRemoveSpanVisibility(rank);
+				});
+			}*/
+			return Promise
+				.resolve( initDom() )
+				.then( initEventHandlers )
+				.then( initAddRemoveLinks );
+		}
+
+		/**
+		 * Resets controller.
+		 */
+		function resetController() {
+			/*favs = [];
+			recordIsFav = [];
+			pubElements = [];
+			pubElementsLinked = [];*/
+			removeEventHandlers();
+		}
+
+		/**
+		 * Initializes DOM required by the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function initDom() {
+			console.warn( "XXX Finish this!" );
+
+			return Promise.resolve( true );
+		}
+
+		/**
+		 * Initializes event handlers for "searchResults*" events.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function initEventHandlers( result ) {
+			if ( result === false ) {
+				return Promise.resolve( false );
+			}
+
+			window.addEventListener( "searchResultsLoaded", onSearchResultsLoaded, true );
+			window.addEventListener( "searchResultsLoading", onSearchResultsLoading, true );
+		}
+
+		/**
+		 * Initializes "Add/Remove favorite" links.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function initAddRemoveLinks( result ) {
+			if ( result === false ) {
+				return Promise.resolve( false );
+			}
+
+			console.warn( "XXX Finish this!" );
+
+			return Promise.resolve( true );
+		}
+
+		/**
+		 * @private Executed when search results are loaded.
+		 * @param {Event} event
+		 */
+		function onSearchResultsLoaded( event ) {
+			if ( CPK.verbose === true ) {
+				console.log( "CPK.favorites.SearchController", "onSearchResultsLoaded", event );
+			}
+
+			event.preventDefault();
+			event.stopPropagation();
+
+			Promise.resolve( CPK.favorites.SearchController.initialize() );
+		}
+
+		/**
+		 * @private Executed when search results are going to be loaded.
+		 * @param {Event} event
+		 */
+		function onSearchResultsLoading( event ) {
+			if ( CPK.verbose === true ) {
+				console.log( "CPK.favorites.SearchController", "onSearchResultsLoading", event );
+			}
+
+			event.preventDefault();
+			event.stopPropagation();
+
+			CPK.favorites.SearchController.reset();
+		}
+
+
+		/**
+		 * @private Removes all event handlers from "Add/Remove Favorite" links.
+		 */
+		function removeEventHandlers() {
+
+			/**
+			 * @param {HTMLElement} elm
+			 */
+			function removeClickEventHandler( elm ) {
+				try {
+					elm.removeEventListener( "click", addRemoveFavorite );
+				} catch ( e ) { /*...*/ }
+			}
+
+			// Remove all event handlers
+			targetElms.forEach( removeClickEventHandler );
+
+			// Clear `targetElms`
+			targetElms = [];
+		}
+
+		/**
+		 * Dispatches the user's click based on the logic implemented ..
+		 * @param {Event} event
+		 * @returns {Promise<boolean>}
+		 */
+		function addRemoveFavorite( event ) {
+			/**
+			 * @type {string}
+			 * @todo Resolve `rank`!
+			 */
+			var rank;
+
+			/**
+			 * @param {boolean} result
+			 */
+			function resolveIsFavorite( result ) {
+				return Promise.resolve( ( result === true )
+					? removeFavorite( rank )
+					: addFavorite( rank ) );
+			}
+
+			// Check if is already favorite then either add or remove...
+			Promise
+				.resolve( isFavorite( rank ) )
+				.then( resolveIsFavorite );
+		}
+
+		/**
+		 * @private Prompts the storage to add the current record to the favorites.
+		 * @param {string} rank
+		 * @returns {Promise<boolean>}
+		 */
+		function addFavorite( rank ) {
+			/**
+			 * @type {Favorite}
+			 */
+			var favorite = new Favorite();
+			favorite.fromSearch( rank );
+
+			return Promise
+				.resolve( CPK.favorites.storage.add( favorite ) )
+				.then(function( result ) {
+					//switchAddRemoveSpanVisibility( rank );
+					//CPK.favorites.broadcaster.broadcastAdded( favorite );
+					return Promise.resolve( true );
+				});
+		}
+
+		/**
+		 * @private Prompts the storage to remove the current favorite.
+		 * @param {string} rank
+		 * @returns {Promise<boolean>}
+		 */
+		function removeFavorite(rank) {
+			/**
+			 * @type {Favorite}
+			 */
+			var favorite = new Favorite();
+			favorite.fromSearch( rank );
+
+			return Promise
+				.resolve( CPK.favorites.storage.remove( favorite.getCreated() ) )
+				.then(function( result ) {
+					//switchAddRemoveSpanVisibility( rank );
+					//CPK.favorites.broadcaster.broadcastRemoved( favorite );
+					return Promise.resolve( true );
+				});
+		}
+
+		/**
+		 * Prompts storage module to see if there already is favorite with
+		 * current recordId ..
+		 *
+		 * It returns Promise, which will resolve the favorite as a Favorite
+		 * class if found ..
+		 *
+		 * If it doesn't find anything, it fires the reject method only.
+		 *
+		 * @todo Finish review!!!
+		 */
+		function isFavorite(rank) {
+			return new Promise(function(resolve, reject) {
+
+				var recordId = getRecordId(undefined, rank);
+
+				storage.hasFavorite(recordId).then(function(favorite) {
+					resolve({
+						rank: rank,
+						favorite: favorite
+					});
+				}).catch(reject);
+			});
+		}
+
+		/**
+		 * Gets the RecordId from the specified element.
+		 * @param {HTMLElement} elm
+		 * @returns {string|boolean} Returns FALSE if element doesn't represent a record.
+		 */
+		function getRecordId( elm ) {
+			try {
+				var recordId = elm.querySelector( "a.title" ).getAttribute( "href" ).match(/^\/Record\/([^\?]*)/)[1];
+
+				if ( typeof recordId === "string" ) {
+					if ( recordId.trim().length > 0 ) {
+						return recordId;
+					}
+				}
+			} catch ( e ) {/*...*/}
+
+			return false;
+			//var fromWhat = (typeof fromThis === "undefined") ? location.pathname : fromThis;
+			//return fromWhat.split('/')[2];
+		}
+
+		// Public API
+		var Controller = Object.create( null );
+
+		Controller.initialize        = init;
+		Controller.reset             = resetController;
+		Controller.addRemoveFavorite = addRemoveFavorite;
+		Controller.isFavorite        = isFavorite;
+		Controller.getRecordId       = getRecordId;
+
+		return Controller;
+	}
+
+	/**
+	 * Controller for the record's detail page.
+	 * @returns {Object}
+	 * @constructor
+	 */
+	function RecordController() {
+		var pubElements = {
+				remFavBtn : undefined,
+				addFavBtn : undefined
+			},
+			fav = undefined,
+			recordIsFav = false;
+
+		/**
+		 * Initializes the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function init() {
+			console.error( "Implement RecordController!" );
+			return Promise.resolve( false );
+		}
+
+		/**
+		 * Dispatches the user's click based on the logic implemented ..
+		 */
+		function addRemoveFavorite() {
+			if (! recordIsFav) {
+				addFavorite();
+			} else {
+				removeFavorite();
+			}
+		};
+
+		/**
+		 * @private Prompts the storage to add the current record to the favorites.
+		 */
+		function addFavorite() {
+
+			fav = favoritesFactory.createFromCurrentRecord();
+
+			storage.addFavorite(fav).then(function() {
+
+				switchAddRemoveSpanVisibility();
+
+				// Broadcast this event across all tabs
+				favsBroadcaster.broadcastAdded(fav);
+
+			}).catch(function(reason) {
+
+				$log.error(reason);
+			});
+		};
+
+		/**
+		 * @private Prompts the storage to remove the current favorite.
+		 */
+		function removeFavorite() {
+
+			var id = fav.created();
+
+			storage.removeFavorite(id).then(function() {
+
+				switchAddRemoveSpanVisibility();
+
+				// Broadcast this event across all tabs
+				favsBroadcaster.broadcastRemoved(fav);
+
+			}).catch(function(reason) {
+
+				$log.error(reason);
+			});
+		}
+
+		/**
+		 * Prompts storage module to see if there already is favorite with
+		 * current recordId ..
+		 *
+		 * It returns Promise, which will resolve the favorite as a Favorite
+		 * class if found ..
+		 *
+		 * If it doesn't find anything, it fires the reject method only.
+		 */
+		function isFavorite() {
+			return new Promise(function(resolve, reject) {
+
+				var recordId = getRecordId();
+
+				storage.hasFavorite(recordId).then(function(favorite) {
+					resolve(favorite);
+				}).catch(reject);
+			});
+		}
+
+		/**
+		 * Gets the record id of current record page
+		 */
+		function getRecordId(fromThis) {
+
+			var fromWhat = (typeof fromThis === "undefined") ? location.pathname : fromThis;
+
+			var match = fromWhat.match(/^\/Record\/([^\?]*)/);
+
+			return match ? match[1] : null;
+		}
+
+		/**
+		 * It switches the visibility of two spans with "addRemove" attribute.
+		 *
+		 * It should be called with caution only when you're certain the
+		 * visibility change is desired !
+		 */
+		function switchAddRemoveSpanVisibility() {
+
+			// Switch their roles ..
+			pubElements.remFavBtn.hidden = ! pubElements.remFavBtn.hidden;
+			pubElements.addFavBtn.hidden = ! pubElements.addFavBtn.hidden;
+
+			// record is favorite boolean is now being inverted ..
+			recordIsFav = ! recordIsFav;
+		}
+
+		/*=============================================================================================================
+		function RecordController($log, storage, favoritesFactory, Favorite, favsBroadcaster) {
+			isFavorite().then(function(favorite) {
+				fav = favorite;
+
+				switchAddRemoveSpanVisibility();
+
+			// Public function about to be called from the favsBroadcaster when an event
+			// happens (meaning adding / removal of the favorite)
+			window.__favChanged = function(isNew, newFav) {
+				if (newFav instanceof Favorite)
+					if (isNew === true) {
+						// This ctrl doesnt know it & we are talking about current rec
+						if (recordIsFav === false && getRecordId(newFav.titleLink()) === getRecordId()) {
+							fav = newFav;
+							switchAddRemoveSpanVisibility();
+						}
+					} else if (isNew === false) {
+						//Was removed old & this ctrl doesnt know it & we are talking about current rec
+						if (recordIsFav === true && newFav.created() === fav.created()) {
+							fav = newFav;
+							switchAddRemoveSpanVisibility();
+						}
+					}
+			}
+		}
+
+		function RecordDirective() {
+			return {
+				restrict : 'A',
+				link : linker
+			};
+
+			function linker(scope, elements, attrs) {
+				var el = elements.context;
+				var attr = el.getAttribute('data-add-remove-record');
+
+				// Add favorite will be shown by default & remove hidden by def
+				if (attr === "add") {
+
+					// Store the pointer to this element
+					pubElements.addFavBtn = el;
+
+					// Set it to shown
+					el.hidden = false;
+
+				} else if (attr === "rem") {
+
+					// Store the pointer to this element
+					pubElements.remFavBtn = el;
+
+					// Set it to hidden
+					el.hidden = true;
+				}
+			};
+		};
+		==============================================================================================================*/
+
+		// Public API
+		var Controller = Object.create( null );
+
+		Controller.initialize = init;
+		Controller.addRemoveFavorite = addRemoveFavorite;
+		Controller.isFavorite = isFavorite;
+
+		return Controller;
+	}
+
+	/**
+	 * Controller for myresearch/favorites (only for not-logged users!).
+	 * @see themes/bootstrap3/templates/myresearch/mylist-notlogged.phtml
+	 * @returns {Object}
+	 * @constructor
+	 */
+	function ListController() {
+		var divsAsFavs = {},
+			listEmptyDiv = undefined,
+			listNotEmptyDiv = undefined,
+			activeSorting = "recent",
+			modal = jQuery( document.getElementById( "modal" ) );
+
+		/**
+		 * Initializes the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function init() {
+			console.error( "Implement ListController!" );
+			return Promise.resolve( false );
+		}
+
+		function onGetFavorites(favs) {
+
+			// Default sorting is by most recent, so flip the order ..
+			favs = favs.reverse();
+
+			vm.favorites = favs;
+
+			var length = favs.length;
+
+			if (length) {
+				changeVisibleDiv();
+
+				vm.listLength = length;
+			}
+		}
+
+		function removeFavorite(id) {
+
+			// We need to refresh the view with async job .. use Promise
+			new Promise(function(resolve, reject) {
+
+				storage.removeFavorite(id).then(function() {
+
+					var el = divsAsFavs[id];
+
+					if (window.usesIE) {
+						el.parentElement.removeChild(el);
+					} else
+						el.remove();
+
+					delete divsAsFavs[id];
+
+					--vm.listLength;
+
+					if (Object.keys(divsAsFavs).length === 0)
+						changeVisibleDiv();
+
+					var idAsInt = parseInt(id);
+
+					// Delete it from the vm.favorites list ..
+					vm.favorites = vm.favorites.filter(function(favorite) {
+
+						if (favorite.created() !== idAsInt)
+							return true;
+
+
+						// And also broadcast it's removal
+						favsBroadcaster.broadcastRemoved(favorite);
+
+						return false;
+					});
+
+				}).catch(function(reason) {
+
+					$log.error(reason);
+				});
+
+				resolve();
+
+				// Then refresh the scope
+			}).then($scope.$applyAsync);
+		}
+
+		function removeSelected() {
+			Object.keys(vm.favSelected).forEach(function(key) {
+				if (vm.favSelected[key] === true) {
+
+					removeFavorite(parseInt(key));
+
+					delete vm.favSelected[key];
+				}
+			});
+		}
+
+		function exportSelected() {
+
+			Lightbox.titleSet = false;
+
+			useLightboxWithSelected('export');
+		}
+
+		function emailSelected(event) {
+
+			modal.find('.modal-title').html(event.target.value);
+			Lightbox.titleSet = true;
+
+			useLightboxWithSelected('email');
+		}
+
+		/**
+		 * Redirects user to /Records/Home action if selected something
+		 */
+		function printSelected() {
+
+			var selectedIds = getSelectedIds();
+
+			if (selectedIds.length === 0)
+				return;
+
+			var printLocation = '/Records/Home?print=1';
+
+			selectedIds.forEach(function(selectedId){
+				printLocation += '&id[]=Solr|' + selectedId;
+			});
+
+			// Open in new tab
+			window.open(printLocation, '_blank').focus();
+		}
+
+		function selectAll() {
+			vm.favorites.forEach(function(favorite) {
+				vm.favSelected[favorite.created()] = vm.allSelected;
+			});
+		}
+
+		/**
+		 * Returns current sorting if no argument supplied.
+		 *
+		 * Else sets the sorting provided & updates the view.
+		 */
+		function sortVal(val) {
+			return arguments.length ? setSorting(val) : getSorting();
+		}
+
+		// Private
+
+		function addFavorite(favorite) {
+
+			// We need to refresh the view with async job .. use Promise
+			new Promise(function(resolve, reject) {
+
+				if (! favorite instanceof Favorite) {
+					reject();
+					return;
+				}
+
+				vm.favorites.push(favorite);
+
+				// Apply current sorting
+				setSorting(getSorting());
+
+				if (vm.favorites.length === 1) {
+					changeVisibleDiv();
+
+					vm.listLength = 1;
+				}
+
+				resolve();
+
+			}).then($scope.$applyAsync);
+		}
+
+		function changeVisibleDiv() {
+			listEmptyDiv.hidden = ! listEmptyDiv.hidden;
+			listNotEmptyDiv.hidden = ! listNotEmptyDiv.hidden;
+		}
+
+		function getSelectedIds() {
+
+			var selectedIds = [];
+
+			Object.keys(vm.favSelected).forEach(function(key) {
+				if (vm.favSelected[key] === true) {
+
+					var id = getFavoriteId(key);
+
+					selectedIds.push(id);
+				}
+			});
+
+			return selectedIds;
+		}
+
+		function useLightboxWithSelected(type) {
+
+			var selectedIds = getSelectedIds();
+
+			if (selectedIds.length === 0)
+				return;
+
+			// Append "Solr|" string to all the ids selected
+			for (var i = 0; i < selectedIds.length; ++i) {
+				selectedIds[i] = 'Solr|' + selectedIds[i];
+			}
+
+			var data = {
+				ids : selectedIds,
+			};
+
+			data[type] = true;
+
+			var options = {
+				headers : {
+					'Content-Type' : 'application/x-www-form-urlencoded'
+				}
+			};
+
+			function setModalContent(response) {
+				Lightbox.changeContent(response.data);
+			}
+
+			$http.post('/AJAX/JSON?method=getLightbox&submodule=Cart&subaction=MyResearchBulk', $.param(data), options).then(setModalContent);
+
+			modal.modal('show');
+		}
+
+		function setSorting(val) {
+
+			// We need to refresh the view with async job .. use Promise
+			new Promise(function(resolve, reject) {
+
+				var validSorting = true;
+
+				switch(val) {
+
+					case 'alphabetical':
+
+						vm.favorites.sort(function(a, b) {
+							return a.title() > b.title();
+						});
+						break;
+
+					case 'author':
+
+						vm.favorites.sort(function(a, b) {
+							return a.author() > b.author();
+						});
+						break;
+
+					case 'recent':
+
+						vm.favorites.sort(function(a, b) {
+							return a.created() < b.created();
+						});
+						break;
+
+					default:
+						validSorting = false;
+						$log.error('Invalid sorting provided');
+				}
+
+				if (validSorting)
+					activeSorting = val;
+
+			}).then($scope.$applyAsync);
+
+		}
+
+		function getSorting() {
+			return activeSorting;
+		}
+
+		/**
+		 * Returns Solr ID of favorite identified by timestamp created
+		 *
+		 * @param key
+		 */
+		function getFavoriteId(key) {
+			var fav = vm.favorites.find(function(favorite) {
+				return favorite.created() === parseInt(key);
+			});
+
+			if (typeof fav === 'undefined')
+				return;
+
+			return fav.titleLink().replace('/Record/', '');
+		}
+
+		/*==============================================================================================================
+		function ListController($q, $http, $log, $scope, storage, favsBroadcaster, Favorite) {
+			$q.resolve(storage.getFavorites()).then(onGetFavorites).catch(function(reason) {
+				$log.error(reason);
+			});
+
+			// Public function about to be called from the favsBroadcaster when an
+			// event happens (meaning adding / removal of the favorite)
+			window.__favChanged = function(isNew, favorite) {
+				if (favorite instanceof Favorite)
+					if (isNew === true) { // being added ..
+						addFavorite(favorite);
+					} else if (isNew === false) { // being deleted ..
+						// We need to refresh the view with async job .. use Promise
+						new Promise(function(resolve, reject) {
+							var id = favorite.created();
+							var el = divsAsFavs[id];
+
+							if (window.usesIE) {
+								el.parentElement.removeChild(el);
+							} else
+								el.remove();
+
+							delete divsAsFavs[id];
+
+							--vm.listLength;
+
+							if (Object.keys(divsAsFavs).length === 0)
+								changeVisibleDiv();
+
+							// Delete it from the vm.favorites list ..
+							vm.favorites = vm.favorites.filter(function(fav) {
+								return fav.created() !== favorite.created();
+							});
+
+							resolve();
+						}).then($scope.$applyAsync);
+					}
+			};
+		}
+
+		function favoritesListDirective() {
+			return {
+				restrict : 'A',
+				templateUrl : '/themes/bootstrap3/js/ng-cpk/favorites/list-item.html',
+				link : linker
+			};
+
+			function linker(scope, elements, attrs) {
+				// Assing the divs to an object with fav ID
+				divsAsFavs[scope.fav.created()] = elements.context;
+			}
+		}
+
+		function listNotEmptyDirective() {
+			return {
+				restrict : 'A',
+				link : linker
+			};
+
+			function linker(scope, elements, attrs) {
+				if (attrs.listNotEmpty === "true") {
+
+					listNotEmptyDiv = elements.context;
+					listNotEmptyDiv.hidden = true;
+				} else if (attrs.listNotEmpty === "false") {
+
+					listEmptyDiv = elements.context;
+					listEmptyDiv.hidden = false;
+				}
+			}
+		}
+		==============================================================================================================*/
+
+		// Public API
+		var Controller = Object.create( null );
+
+		// Properties
+		Controller.favSelected = {};
+		Controller.favorites   = [];
+		Controller.sortVal     = sortVal;
+		Controller.allSelected = false;
+		Controller.listStart   = 1;
+		Controller.listLength  = 1;
+
+		// Methods
+		Controller.initialize     = init;
+		Controller.selectAll      = selectAll;
+		Controller.removeFavorite = removeFavorite;
+		Controller.removeSelected = removeSelected;
+		Controller.emailSelected  = emailSelected;
+		Controller.exportSelected = exportSelected;
+		Controller.printSelected  = printSelected;
+
+		return Controller;
+	}
+
+	/**
 	 * @type {FavoritesNotifications}
 	 */
 	CPK.favorites.notifications = new FavoritesNotifications();
@@ -1234,5 +2086,20 @@
 	 * @type {FavoritesBroadcaster}
 	 */
 	CPK.favorites.broadcaster = new FavoritesBroadcaster();
+
+	/**
+	 * @type {SearchController}
+	 */
+	CPK.favorites.SearchController = new SearchController();
+
+	/**
+	 * @type {RecordController}
+	 */
+	CPK.favorites.RecordController = new RecordController();
+
+	/**
+	 * @type {ListController}
+	 */
+	CPK.favorites.ListController   = new ListController();
 
 }());
