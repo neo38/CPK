@@ -82,13 +82,14 @@
 	 * Favorites storage.
 	 * @returns {Object}
 	 * @constructor
+	 * @todo There are some possible optimalizations (several "filterIndex"es etc.)...
 	 */
 	function FavoritesStorage() {
-		var favorites = [];
+		var favoritesCache = [];
 
 		/**
 		 * @private Loads favorites from the storage.
-		 * @returns {Promise<Array,string>}
+		 * @returns {Promise<boolean>}
 		 */
 		function loadFavorites() {
 			if ( CPK.storage.isStorage( CPK.localStorage ) !== true ) {
@@ -107,13 +108,13 @@
 
 				if ( typeof favoritesStr === "string" ) {
 					try {
-						favorites = JSON.parse( favoritesStr );
+						favoritesCache = JSON.parse( favoritesStr );
 					} catch ( error ) {
 						if ( CPK.verbose === true ) {
 							console.error( error );
 						}
 
-						favorites = [];
+						favoritesCache = [];
 					}
 				}
 
@@ -127,143 +128,319 @@
 		/**
 		 * Adds new favorite into the storage.
 		 * @param {Favorite} item
-		 * @returns {Promise}
-		 * @todo We need to call `CPK.favorites.notifications.favoriteAdded()`!
+		 * @returns {Promise<boolean>}
+		 * @todo Add final "finishJob" which sends notification in case of success.
 		 */
 		function add( item ) {
-			console.log( item ); // TODO Remove this line!
-
-			if ( ! ( item instanceof Favorite ) ) {
-				return Promise.reject( "Invalid favorite provided (not an instance of Favorite class)!" );
+			if ( typeof item !== "object" ) {
+				return Promise.reject( "Invalid favorite provided (not an anonymous object or an instance of Favorite class)!" );
 			}
 
+			if ( item instanceof Favorite ) {
+				item = item.toObject();
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function resolveLoadFavorites( result ) {
+				if ( result === false ) {
+					return Promise.resolve( result );
+				}
+
+				favoritesCache.push( item );
+
+				return Promise.resolve( saveFavorites() );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function finishJob( result ) {
+				if ( result === true ) {
+					CPK.favorites.notifications.favoriteAdded();
+				}
+
+				return Promise.resolve( result );
+			}
+
+			// Load favorites -> add item -> save favorites -> sent notification and resolve
 			return Promise
 				.resolve( loadFavorites() )
-				.then(function( favorites ) {
-					return Promise.resolve( saveFavorites( favorites.push( item ) ) );
-				});
+				.then( resolveLoadFavorites )
+				.then( finishJob );
 		}
 
 		/**
 		 * Removes favorite with given identifier.
-		 * @param {number} id
-		 * @returns {Promise}
+		 * @param {string} id
+		 * @returns {Promise<boolean>}
 		 */
 		function remove( id ) {
 			if ( typeof id === "undefined" ) {
-				return Promise.reject( "No ID provided!" );
+				if ( CPK.verbose === true ) {
+					console.log( "No ID provided!");
+				}
+
+				return Promise.resolve( "No ID provided!" );
 			}
 
+			/**
+			 * @param {Object} favorite
+			 * @returns {boolean}
+			 */
+			function findFavoriteIndex( favorite ) {
+				var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
+
+				return !! favorite.title.link.match( regexp );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function removeFavorite( result ) {
+				if ( result !== true ) {
+					return Promise.resolve( false );
+				}
+
+				/**
+				 * @type {number} Index of found item or -1.
+				 */
+				var found = favoritesCache.findIndex( findFavoriteIndex );
+
+				// And remove it if was found
+				if ( found !== -1 ) {
+					favoritesCache.splice( found, 1 );
+				}
+
+				return Promise.resolve( true );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function resolveRemoveFavorite( result ) {
+				if ( result === false ) {
+					return Promise.resolve( false );
+				}
+
+				return Promise.resolve( saveFavorites() );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function finishJob( result ) {
+				if ( result === true ) {
+					CPK.favorites.notifications.favoriteRemoved();
+				}
+
+				return Promise.resolve( result );
+			}
+
+			// Load favorites -> find & remove item -> save favorites -> sent notification and resolve
 			return Promise
 				.resolve( loadFavorites() )
-				.then(function( favorites ) {
-					var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
-					var found = favorites.findIndex(function( fav ) {
-						return !!fav.title.link.match( regexp );
-					});
-
-					console.log( found );
-
-					return Promise.resolve( favs.splice( found, 1 ) );
-				})
-				.then(function( favorites ) {
-					return Promise
-						.resolve( saveFavorites( favorites ) )
-						.then(function() {
-							CPK.favorites.notifications.favoriteRemoved();
-						});
-				});
+				.then( removeFavorite )
+				.then( resolveRemoveFavorite )
+				.then( saveFavorites )
+				.then( finishJob );
 		}
 
 		/**
 		 * Removes all favorites.
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 */
 		function removeAll() {
-			return Promise
-				.resolve( saveFavorites( [] ) )
-				.then(function( favs ) {
-					CPK.favorites.notifications.allFavoritesRemoved();
+			favoritesCache = [];
 
-					return Promise.resolve();
-				});
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function finishJob( result ) {
+				if ( result === true ) {
+					CPK.favorites.notifications.allFavoritesRemoved();
+				}
+
+				return Promise.resolve( result );
+			}
+
+			// Empty & save `favoritesCache` -> sent notification and resolve
+			return Promise
+				.resolve( saveFavorites )
+				.then( finishJob );
 		}
 
 		/**
 		 * Checks if favorite with given identifier exist.
 		 * @param {number} id
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 */
 		function has( id ) {
+			if ( typeof id === "undefined" ) {
+				if ( CPK.verbose === true ) {
+					console.log( "No ID provided!");
+				}
+
+				return Promise.resolve( "No ID provided!" );
+			}
+
+			/**
+			 * @param {Object} favorite
+			 * @returns {boolean}
+			 */
+			function findFavoriteIndex( favorite ) {
+				var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
+
+				return !! favorite.title.link.match( regexp );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function findFavorite( result ) {
+				if ( result !== true ) {
+					return Promise.resolve( false );
+				}
+
+				return Promise
+					.resolve( favoritesCache.find( findFavoriteIndex ) === -1 );
+			}
+
+			// Load favorites -> find favorite -> resolve it
 			return Promise
 				.resolve( loadFavorites() )
-				.then(function( favorites ) {
-					var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
-					var found = favorites.find(function( fav ) {
-						return !!fav.title.link.match( regexp );
-					});
-
-					if ( typeof found === "undefined" ) {
-						return Promise.reject( false );
-					} else {
-						var fav = new CPK.favorites.Favorite().fromObject( found );
-
-						return Promise.resolve( fav );
-					}
-				});
+				.then( findFavorite );
 		}
 
 		/**
 		 * Get favorite by its identifier.
 		 * @param {number} id
-		 * @returns {Promise}
+		 * @returns {Promise<Favorite|boolean>}
 		 */
 		function get( id ) {
-			return Promise
-				.resolve( loadFavorites() )
-				.then(function( favorites ) {
-					if ( id in favorites ) {
-						var fav = new CPK.favorites.Favorite().fromObject( favorites.id );
+			if ( typeof id === "undefined" ) {
+				if ( CPK.verbose === true ) {
+					console.log( "No ID provided!");
+				}
 
-						return Promise.resolve( fav );
-					} else {
-						return Promise.reject( false );
-					}
-				});
+				return Promise.resolve( "No ID provided!" );
+			}
+
+			/**
+			 * @param {Object} favorite
+			 * @returns {boolean}
+			 */
+			function findFavoriteIndex( favorite ) {
+				var regexp = new RegExp( "\/" + id.replace( /\./,"\\." ) );
+
+				return !! favorite.title.link.match( regexp );
+			}
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function findFavorite( result ) {
+				if ( result !== true ) {
+					return Promise.resolve( false );
+				}
+
+				/**
+				 * @type {number} Index of found item or -1.
+				 */
+				var found = favoritesCache.find( findFavoriteIndex );
+
+				if ( found === -1 ) {
+					return Promise.resolve( false );
+				}
+
+				return Promise.resolve( favoritesCache[ found ] );
+			}
+
+			// Load favorites -> Find favorite -> Resolve it
+			return Promise
+				.resolve( loadFavorites )
+				.then( findFavorite );
 		}
 
 		/**
 		 * Get all saved favorites.
-		 * @returns {Promise}
+		 * @returns {Promise<Array>}
 		 */
 		function getAll() {
+
+			/**
+			 * @param {boolean} result
+			 * @returns {Promise<Array>}
+			 */
+			function resolveLoadFavorites( result ) {
+				if ( result !== true ) {
+					return Promise.resolve( [] );
+				}
+
+				/**
+				 * @param {Object} favorite
+				 */
+				function mapFavoriteObj( favorite ) {
+					favs.push( ( new Favorite() ).fromObject( favorite ) );
+				}
+
+				/**
+				 * @type {Array} Favorites to return.
+				 */
+				var favorites = [];
+
+				// Ensure that all favorites are instances of {@see Favorite} object
+				favoritesCache.forEach( mapFavoriteObj );
+
+				// Return them
+				return Promise.resolve( favorites );
+			}
+
+			// Load favorites -> Parse & Return favorites
 			return Promise
 				.resolve( loadFavorites() )
-				.then(function( favorites ) {
-					return Promise.resolve( favorites.map(function( fav ) {
-						return new CPK.favorites.Favorite().fromObject( fav );
-					}) );
-				});
+				.then( resolveLoadFavorites );
 		}
 
 		/**
 		 * @private Save favorites into the storage (aka `CPK.localStorage`).
-		 * @param {Array} favorites
-		 * @returns {Promise}
+		 * @returns {Promise<boolean>}
 		 */
-		function saveFavorites( favorites ) {
-			return new Promise(function( resolve, reject ) {
+		function saveFavorites() {
+
+			/**
+			 * @returns {Promise<boolean>}
+			 */
+			function saveFavoritesPromises() {
 				if ( CPK.storage.isStorage( CPK.localStorage ) !== true ) {
-					reject( "Storage is not available!" );
-				} else {
-					CPK.storage.setItem( "__favs", JSON.stringify( favorites ) );
-					resolve( true );
+					if ( CPK.verbose === true ) {
+						console.log( "Storage is not available!" );
+					}
+
+					return Promise.resolve( false );
 				}
-			});
+
+				CPK.localStorage.setItem( "__favs", JSON.stringify( favoritesCache ) );
+
+				return Promise.resolve( true );
+			}
+
+			// Try to save favoritesCache
+			return Promise.resolve( saveFavoritesPromises() );
 		}
 
 		// Public API
 		var Storage       = Object.create( null );
+
 		Storage.add       = add;
 		Storage.get       = get;
 		Storage.getAll    = getAll;
