@@ -109,15 +109,21 @@
 		function initDom() {
 			var result = true;
 
+			// Get DOM links
 			domLinker.main  = document.getElementById( "globalModal" );
 			domLinker.title = document.getElementById( "globalModalTitle" );
 			domLinker.body  = document.getElementById( "globalModalBody" );
 
 			/**
-			 * @param {HTMLElement} elm
+			 * @param {string} elmName
 			 */
-			function checkElm( elm ) {
+			function checkElm( elmName ) {
 				try {
+					/**
+					 * @type {HTMLElement}
+					 */
+					var elm = domLinker[ elmName ];
+
 					if ( elm.nodeType !== 1 ) {
 						result = false;
 					}
@@ -127,7 +133,7 @@
 			}
 
 			// Check if we found all DOM elements we need
-			[ domLinker.main, domLinker.title, domLinker.body ].forEach( checkElm );
+			[ "main", "title", "body" ].forEach( checkElm );
 
 			// Just inform that something is wrong
 			if ( result === false && CPK.verbose === true ) {

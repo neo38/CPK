@@ -62,34 +62,25 @@ $this->jsTranslations()->addStrings(array(
   <div class="<?=$this->layoutClass('mainbody')?>">
     <h2><?=$this->transEsc('Checked Out History')?></h2>
     <?=$this->flashmessages()?>
-
     <?php foreach($this->libraryIdentities as $eppn => $libraryIdentity):
       $source = explode('.', $libraryIdentity['cat_username'])[0];
-    ?>
-    <div>
+
+    ?><div>
       <h3 class="well row blickable" style="margin-bottom: 3px;" id="<?=$source?>">
-      <?=$this->transEsc("source_$source", null, $source)?>
-      <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source)?>"/>
-      <?php/* The next label contains select box with items per page. It is lame, so it is hidden now. */?>
-      <label style="padding-right: 40px;" class="dropdown-select-label pull-right hidden">
-      <select data-pages-count="<?=$libraryIdentity['cat_username']?>" data-model="historyCtrl.perPage" data-change="historyCtrl.perPageUpdated()" class="jumpMenu form-control dropdown-select hidden" style="margin-right: -12px;">
-        <option value="10" selected="selected">10 <?=$this->translate('records-in-genitive')?></option>
-        <option value="50">50 <?=$this->translate('records-in-genitive')?></option>
-        <option value="100">100 <?=$this->translate('records-in-genitive')?></option>
-      </select>
-      </label>
+        <?=$this->transEsc("source_$source", null, $source)?>
+        <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source)?>">
       </h3>
-      <div data-ng-history-item data-ng-repeat="resource in historyCtrl.historyPage">
-      </div>
+      <div id="historyListCont"><?php/* Here will be listed history items */?></div>
       <div data-history-username="<?=$libraryIdentity['cat_username']?>" id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
-        <i class="fa fa-spinner fa-spin"></i>
-        <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
+        <div id="historyListLoader">
+          <i class="fa fa-spinner fa-spin"></i>
+          <span class="label label-info"><?=$this->transEsc('Loading')?> &hellip;</span>
+        </div>
       </div>
-      <div data-ng-pagination="<?=$source ?>" class='row well' data-ng-if="paginator && paginator.lastPage != 1" ></div>
+      <div id="historyListPagination" data-pagination="<?=$source?>" class="row well"></div>
     </div>
     <?php endforeach; ?>
   </div>
-
   <div class="<?=$this->layoutClass('sidebar')?>">
     <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'checkedouthistory'))?>
   </div>

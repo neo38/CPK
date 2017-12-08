@@ -210,6 +210,10 @@
     </div>
 </div>
 <script>
+    <?php
+    /**
+     * @todo Move this elsewhere (and use `CPK.localStorage` instead of direct `window.localStorage`.
+     */?>
     jQuery( document ).ready( function( $ ) {
         <? if ($this->extraResults && $this->referer): ?>
         	/* Save results to local storage for swithing to next/previous record of search results */

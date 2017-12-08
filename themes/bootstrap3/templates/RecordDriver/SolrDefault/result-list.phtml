@@ -383,8 +383,8 @@
 
                 ?><a id="save-record" class="to-favorites-link modal-link <?=$controllerClass?>" href="<?=$linkHref?>" data-rank="<?=$linkRank?>" title="<?=$addTitle?>" rel="nofollow">
                     <i class="pr-interface-favoritestar"> </i>
-                    <span data-add_remove_search="add<?=empty($rank) ? '' : ":{$rank}"?>"><?=$addTitle?></span>
-                    <span data-add_remove_search="rem<?=empty($rank) ? '' : ":{$rank}"?>" hidden ><b><?=$remTitle?></b></span>
+                    <span class="add-favorite-link"><?=$addTitle?></span>
+                    <span class="remove-favorite-link" hidden><b><?=$remTitle?></b></span>
                   </a>
                 </li>
               <? endif; ?>

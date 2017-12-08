@@ -1,3 +1,4 @@
+
 <?
   $addThis = $this->addThis();
   if (!empty($addThis)) {
@@ -105,8 +106,8 @@
 
       ?><a id="save-record" class="modal-link <?=$controllerClass?>" href="<?=$linkHref?>" title="<?=$addTitle?>" rel="nofollow">
           <i class="pr-interface-favoritestar"> </i>
-          <span data-add-remove-record="add"><?=$addTitle?></span>
-          <span data-add-remove-record="rem" hidden ><b><?=$remTitle?></b></span>
+          <span class="add-favorite-link"><?=$addTitle?></span>
+          <span class="remove-favorite-link" hidden><b><?=$remTitle?></b></span>
         </a>
       </li>
     <? endif; ?>

@@ -55,6 +55,13 @@
  * @todo Remove most of `console.log` debug messages!
  */
 
+
+// Here are some functions that extends jQuery self
+(function( $ ) {
+
+}( jQuery ) );
+
+
 /**
  * @property {Object} admin
  * @property {Object} favorites
@@ -260,8 +267,10 @@ jQuery(function onDocumentReady() {
 			return Promise.resolve( false );
 		}
 
-		// Here are listed all others that need init too.
-		[
+		/**
+		 * @type {array} modules Array with modules to init
+		 */
+		var modules = [
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
@@ -272,7 +281,10 @@ jQuery(function onDocumentReady() {
 			CPK.favorites.RecordController.initialize,
 			CPK.favorites.ListController.initialize,
 			initializeTermsOfUseModal
-		].forEach( initJob );
+		];
+
+		// Initialize all modules
+		modules.forEach( initJob );
 	}
 
 	// Initialize application

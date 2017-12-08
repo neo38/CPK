@@ -5,47 +5,205 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function($) {
+(function() {
     if (CPK.verbose === true) {
-        console.log("jquery-cpk/history.js");
+        console.log( "jquery-cpk/history.js" );
     }
-
-    var onHistoryUsernameLinked = function() {},
-        pagesCountDOM = {};
 
     /**
      * History service controller
-     * @param {Object} $q
-     * @returns {CheckedOutHistoryController}
+     * @returns {Object}
      * @constructor
-     * @todo Resolve "$q"!
      */
-    function CheckedOutHistoryController($q) {
+    function CheckedOutHistoryController() {
         // Private
         var username = undefined,
-            loaderDiv = undefined,
             currentPage = 1,
-            pagesCache = [];
-
-        onHistoryUsernameLinked = onHistoryUsernameDirectiveLinked;
-
-        var vm = this;
-        vm.historyPage = [];
-        vm.pageSelected = pageSelected;
-        vm.perPage = 10;
-        vm.perPageUpdated = perPageUpdated;
-        vm.initialize = init;
-
-        return vm;
-
-        // Public
+            pagesCache = [],
+			pagesCountDOM = {};
 
 		/**
+		 * @property {HTMLElement} list
+		 * @property {HTMLElement} loader
+		 * @property {HTMLElement} pagination
+		 * @type {Object}
+		 */
+		var domLinker = Object.create( null );
+
+		/**
+		 * Initializes the controller.
 		 * @returns {Promise<boolean>}
-		 * @todo Finish this!
 		 */
 		function init() {
-			return Promise.resolve( false );
+			return Promise
+				.resolve( initDom() )
+				.then( initEventHandlers )
+				.then( getHistoryPage );
+		}
+
+		/**
+		 * Initializes DOM links for the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function initDom() {
+			var result = true;
+
+			// Get DOM links
+			domLinker.list       = document.getElementById( "historyListCont" );
+			domLinker.loader     = document.getElementById( "historyListLoader" );
+			domLinker.pagination = document.getElementById( "historyListPagination" );
+
+			/**
+			 * @param {string} elmName
+			 */
+			function checkElm( elmName ) {
+				try {
+					/**
+					 * @type {HTMLElement}
+					 */
+					var elm = domLinker[ elmName ];
+
+					if ( elm.nodeType !== 1 ) {
+						result = false;
+					}
+				} catch ( e ) {
+					result = false;
+				}
+			}
+
+			// Check if we found all DOM elements we need
+			[ "list", "loader", "pagination" ].forEach( checkElm );
+
+			// Resolve whole job
+			return Promise.resolve( result );
+		}
+
+		/**
+		 * Initializes event handlers for the controller.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function initEventHandlers( result ) {
+			if ( result === false ) {
+				if ( CPK.verbose === true ) {
+					console.info( "Can not initialize event handlers for history because of missing DOM links.", domLinker );
+				}
+
+				return Promise.resolve( false );
+			}
+
+			//...
+
+			return Promise.resolve( true );
+		}
+
+		/**
+		 * Gets page with history of borrows.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function getHistoryPage( result ) {
+			if ( result === false ) {
+				return Promise.resolve( false );
+			}
+
+			/**
+			 * @type {number}
+			 */
+			var cacheIndex = currentPage - 1;
+
+			/**
+			 * @private
+			 * @param {Object} response
+			 * @returns {Promise<boolean>}
+			 */
+			function onAjaxDone( response ) {
+				console.log( "CheckedOutHistoryController", ">", "getHistoryPage", ">", "onAjaxDone", response );
+
+				if ( typeof response.data.php_errors !== "undefined" ) {
+					if ( CPK.verbose === true ) {
+						console.error( response.data.php_errors );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				if ( response.data.status === "OK" ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Returned not OK status!", response );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				/**
+				 * @property {string} source
+				 * @property {string} html
+				 */
+				var xhrData = response.data.data;
+				console.log( xhrData );
+
+				// Check if data are correct
+				if ( typeof xhrData.html === undefined || typeof xhrData.source === "undefined" ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Returned history page data are not correct!", response, xhrData );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				// Save page into the cache
+				pagesCache[ cacheIndex ] = xhrData;
+
+				return Promise.resolve( true );
+			}
+
+			/**
+			 * @private Injects HTML from the `pagesCache[ cacheIndex ]`.
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function injectHtml( result ) {
+				console.log( result );
+
+				if ( result !== true ) {
+					return Promise.resolve( false );
+				}
+
+				// Insert returned HTML
+				try {
+					var elm = document.getElementById( pagesCache[ cacheIndex ].source );
+					elm.innerHTML = pagesCache[ cacheIndex ].html;
+
+					return Promise.resolve( true );
+				} catch ( error ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Inserting of history page failed!", error );
+					}
+
+					return Promise.resolve( false );
+				}
+			}
+
+
+			// Check cache and use it or make request
+			if ( typeof pagesCache[ cacheIndex ] !== "undefined" ) {
+				return Promise.resolve( injectHtml( true ) );
+			} else {
+
+				// Prepare data for request
+				var data = {
+					cat_username : username,
+					page         : currentPage,
+					perPage      : CPK.history.perPage
+				};
+
+				// Send request and process the response
+				return Promise
+					.resolve( jQuery.post( "/AJAX/JSON?method=getMyHistoryPage", data ) )
+					.then( onAjaxDone )
+					.then( injectHtml )
+			}
 		}
 
         /**
@@ -114,51 +272,6 @@
         }
 
         // Private
-
-        /**
-         * Method for fetching the history page specified by currentPage variable.
-         * @returns {Promise}
-         */
-        function getMyHistoryPage() {
-            return new Promise(function(resolve, reject) {
-                var cacheIndex = currentPage - 1;
-
-                // Search cache for existing page
-                if (typeof pagesCache[cacheIndex] !== "undefined") {
-                    return resolve(pagesCache[cacheIndex]);
-                }
-
-                var data = {
-                    cat_username : username,
-                    page : currentPage,
-                    perPage : vm.perPage
-                };
-
-                $.post("/AJAX/JSON?method=getMyHistoryPage", data).done(
-                    function(response) {
-                        response = response.data;
-
-                        if (typeof response.php_errors !== "undefined") {
-                            $log.error(response.php_errors);
-                        }
-
-                        if (response.status === "OK") {
-                            // Cache the answer ..
-                            pagesCache[cacheIndex] = response.data;
-
-                            if (typeof response.data.html !== "undefined" && typeof response.data.source !== "undefined") {
-                                $("div#" + response.data.source).html(response.data.html);
-                                return;
-                            }
-
-                            return resolve(response.data);
-                        } else {
-                            return reject(response.data);
-                        }
-                    }
-                );
-            });
-        }
 
         /**
          * Handles the call of an improvised "onload" event when script links
@@ -321,11 +434,25 @@
                 resolve();
             }).then($scope.$applyAsync);
         }
+
+		// Public API
+		var Controller = Object.create( null );
+
+		// Properties
+		Controller.historyPage    = [];
+		Controller.perPage        = 10;
+
+		// Methods
+		Controller.initialize     = init;
+		Controller.pageSelected   = pageSelected;
+		Controller.perPageUpdated = perPageUpdated;
+
+		return Controller;
     }
 
     /**
      * @type {CheckedOutHistoryController}
      */
-    CPK.history = new CheckedOutHistoryController(null);
+    CPK.history = new CheckedOutHistoryController();
 
-}(jQuery));
+}());

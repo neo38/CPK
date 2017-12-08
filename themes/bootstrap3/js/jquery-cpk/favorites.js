@@ -1215,47 +1215,101 @@
 		return Broadcaster;
 	}
 
+
+
+
+
+	/**
+	 * Dispatches the user's click based on the logic implemented ..
+	 * @param {Event} event
+	 * @returns {Promise<boolean>}
+	 */
+	function addRemoveFavorite( event ) {
+		/**
+		 * @type {string}
+		 * @todo Resolve `rank`!
+		 */
+		var rank;
+
+		/**
+		 * @param {boolean} result
+		 */
+		function resolveIsFavorite( result ) {
+			return Promise.resolve( ( result === true )
+				? removeFavorite( rank )
+				: addFavorite( rank ) );
+		}
+
+		// Check if is already favorite then either add or remove...
+		Promise
+			.resolve( isFavorite( rank ) )
+			.then( resolveIsFavorite );
+	}
+
+	/**
+	 * @private Prompts the storage to add the current record to the favorites.
+	 * @param {string} rank
+	 * @returns {Promise<boolean>}
+	 */
+	function addFavorite( rank ) {
+		/**
+		 * @type {Favorite}
+		 */
+		var favorite = new Favorite();
+		favorite.fromSearch( rank );
+
+		return Promise
+			.resolve( CPK.favorites.storage.add( favorite ) )
+			.then(function( result ) {
+				//switchAddRemoveSpanVisibility( rank );
+				//CPK.favorites.broadcaster.broadcastAdded( favorite );
+				return Promise.resolve( true );
+			});
+	}
+
+	/**
+	 * @private Prompts the storage to remove the current favorite.
+	 * @param {string} rank
+	 * @returns {Promise<boolean>}
+	 */
+	function removeFavorite(rank) {
+		/**
+		 * @type {Favorite}
+		 */
+		var favorite = new Favorite();
+		favorite.fromSearch( rank );
+
+		return Promise
+			.resolve( CPK.favorites.storage.remove( favorite.getCreated() ) )
+			.then(function( result ) {
+				//switchAddRemoveSpanVisibility( rank );
+				//CPK.favorites.broadcaster.broadcastRemoved( favorite );
+				return Promise.resolve( true );
+			});
+	}
+
+
 	/**
 	 * Controller for the search page.
 	 * @returns {Object}
 	 * @constructor
-	 * @todo Holds pointers to all created event handlers to proper removal of them.
 	 */
 	function SearchController() {
 
 		/**
 		 * Holds array of linked HTML elements.
+		 * @property {HTMLElement} list
+		 * @property {array} records
 		 * @type {Object}
 		 */
 		var domLinker = Object.create( null );
-
-		/**
-		 * @type {array} Holds array of HTML elements on which we were attached event handler.
-		 */
-		var targetElms = [];
+		domLinker.records = [];
 
 		/**
 		 * Initializes the controller.
 		 * @returns {Promise<boolean>}
 		 */
 		function init() {
-			/*rankedItems = document.querySelectorAll('div#result-list-placeholder div[id]');
-
-			if (typeof directly === 'undefined')
-				$compile(rankedItems)($scope);
-
-			rankedItemsLength = rankedItems.length;
-			for (var rank = 0; rank < rankedItemsLength; ++rank) {
-				isFavorite(rank).then(function(result) {
-
-					rank = result.rank;
-					favorite = result.favorite;
-
-					favs[rank] = favorite;
-
-					switchAddRemoveSpanVisibility(rank);
-				});
-			}*/
 			return Promise
 				.resolve( initDom() )
 				.then( initEventHandlers )
@@ -1264,13 +1318,21 @@
 
 		/**
 		 * Resets controller.
+		 * @returns {Promise<boolean>}
 		 */
 		function resetController() {
-			/*favs = [];
-			recordIsFav = [];
-			pubElements = [];
-			pubElementsLinked = [];*/
-			removeEventHandlers();
+
+			// Remove onClick event handlers from "addRemoveFavorite" links
+			if ( domLinker.records.length > 0 ) {
+				jQuery( "body" ).off( "click", domLinker.records, addRemoveFavorite );
+			}
+
+			// Clear linked DOM
+			domLinker.list = null;
+			domLinker.records = [];
+
+			// Always resolve as TRUE
+			return Promise.resolve( true );
 		}
 
 		/**
@@ -1278,9 +1340,37 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function initDom() {
-			console.warn( "XXX Finish this!" );
 
-			return Promise.resolve( true );
+			// Create DOM links
+			domLinker.list    = document.getElementById( "result-list-placeholder" );
+			domLinker.records = jQuery( ".result", domLinker.list );
+			console.log( typeof domLinker.records, domLinker.records );
+
+			/**
+			 * @param {string} elmName
+			 */
+			function checkElm( elmName ) {
+				try {
+					/**
+					 * @type {HTMLElement}
+					 */
+					var elm = domLinker[ elmName ];
+
+					if ( elm.nodeType !== 1 ) {
+						return false;
+					}
+				} catch ( e ) {
+					return false;
+				}
+
+				return true;
+			}
+
+			// Check if we found all DOM elements we need
+			var result = [ "list" ].every( checkElm );
+
+			// Resolve whole job
+			return Promise.resolve( result );
 		}
 
 		/**
@@ -1290,11 +1380,17 @@
 		 */
 		function initEventHandlers( result ) {
 			if ( result === false ) {
+				if ( CPK.verbose === true ) {
+					console.info( "Can not initialize event handlers for SearchController because of missing DOM links.", domLinker );
+				}
+
 				return Promise.resolve( false );
 			}
 
 			window.addEventListener( "searchResultsLoaded", onSearchResultsLoaded, true );
 			window.addEventListener( "searchResultsLoading", onSearchResultsLoading, true );
+
+			return Promise.resolve( true );
 		}
 
 		/**
@@ -1307,7 +1403,16 @@
 				return Promise.resolve( false );
 			}
 
-			console.warn( "XXX Finish this!" );
+			if ( domLinker.records.length === 0 ) {
+				console.info( "There are no addRemoveFavorite links...", domLinker );
+				return Promise.resolve( true );
+			}
+
+			// Updates all to have correct label
+			domLinker.records.switchAddRemoveFavoriteLinkLabel();
+
+			// Add onClick event handlers to all links
+			domLinker.records.click( addRemoveFavorite );
 
 			return Promise.resolve( true );
 		}
@@ -1340,97 +1445,6 @@
 			event.stopPropagation();
 
 			CPK.favorites.SearchController.reset();
-		}
-
-
-		/**
-		 * @private Removes all event handlers from "Add/Remove Favorite" links.
-		 */
-		function removeEventHandlers() {
-
-			/**
-			 * @param {HTMLElement} elm
-			 */
-			function removeClickEventHandler( elm ) {
-				try {
-					elm.removeEventListener( "click", addRemoveFavorite );
-				} catch ( e ) { /*...*/ }
-			}
-
-			// Remove all event handlers
-			targetElms.forEach( removeClickEventHandler );
-
-			// Clear `targetElms`
-			targetElms = [];
-		}
-
-		/**
-		 * Dispatches the user's click based on the logic implemented ..
-		 * @param {Event} event
-		 * @returns {Promise<boolean>}
-		 */
-		function addRemoveFavorite( event ) {
-			/**
-			 * @type {string}
-			 * @todo Resolve `rank`!
-			 */
-			var rank;
-
-			/**
-			 * @param {boolean} result
-			 */
-			function resolveIsFavorite( result ) {
-				return Promise.resolve( ( result === true )
-					? removeFavorite( rank )
-					: addFavorite( rank ) );
-			}
-
-			// Check if is already favorite then either add or remove...
-			Promise
-				.resolve( isFavorite( rank ) )
-				.then( resolveIsFavorite );
-		}
-
-		/**
-		 * @private Prompts the storage to add the current record to the favorites.
-		 * @param {string} rank
-		 * @returns {Promise<boolean>}
-		 */
-		function addFavorite( rank ) {
-			/**
-			 * @type {Favorite}
-			 */
-			var favorite = new Favorite();
-			favorite.fromSearch( rank );
-
-			return Promise
-				.resolve( CPK.favorites.storage.add( favorite ) )
-				.then(function( result ) {
-					//switchAddRemoveSpanVisibility( rank );
-					//CPK.favorites.broadcaster.broadcastAdded( favorite );
-					return Promise.resolve( true );
-				});
-		}
-
-		/**
-		 * @private Prompts the storage to remove the current favorite.
-		 * @param {string} rank
-		 * @returns {Promise<boolean>}
-		 */
-		function removeFavorite(rank) {
-			/**
-			 * @type {Favorite}
-			 */
-			var favorite = new Favorite();
-			favorite.fromSearch( rank );
-
-			return Promise
-				.resolve( CPK.favorites.storage.remove( favorite.getCreated() ) )
-				.then(function( result ) {
-					//switchAddRemoveSpanVisibility( rank );
-					//CPK.favorites.broadcaster.broadcastRemoved( favorite );
-					return Promise.resolve( true );
-				});
 		}
 
 		/**
@@ -1505,12 +1519,46 @@
 			recordIsFav = false;
 
 		/**
+		 * @type {Object}
+		 */
+		var domLinker = Object.create( null );
+
+		/**
 		 * Initializes the controller.
 		 * @returns {Promise<boolean>}
 		 */
 		function init() {
-			console.error( "Implement RecordController!" );
-			return Promise.resolve( false );
+			console.warn( "XXX Implement RecordController!" );
+
+			return Promise
+				.resolve( initDom() )
+				.then( initEventHandlers );
+		}
+
+		/**
+		 * Initializes DOM links required by the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function initDom() {
+			console.warn( "XXX Implement RecordController->initDom" );
+
+			return Promise.resolve( true );
+		}
+
+		/**
+		 * Initializes event handlers.
+		 * @param {boolean} result
+		 * @returns {Promise<boolean>}
+		 */
+		function initEventHandlers( result ) {
+			if ( result !== false ) {
+				return Promise.resolve( false );
+			}
+
+			console.warn( "XXX Implement RecordController->InitEventHandlers" );
+			//...
+
+			return Promise.resolve( true );
 		}
 
 		/**
