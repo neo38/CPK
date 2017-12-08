@@ -87,10 +87,9 @@
 
 	/**
 	 * @private Initializes modal links.
-	 * @param {HTMLElement[]} links
 	 * @returns {Promise<boolean>}
 	 */
-	function initModalLinks( links ) {
+	function initModalLinks() {
 
 		// Initialize all handlers
 		$( "#citace-pro" ).on( "click", ".citations-link", citationsModalHandler );
