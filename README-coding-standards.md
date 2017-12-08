@@ -74,6 +74,25 @@ Ale tak jako tak, i na toto je __nativní__ funkce objektu [Array][6]
 lastIdps = lastIdps.slice( 0, 3 );
 ```
 
+Další příklad je ze souboru [toolbar.phtml][20], kde je definována funkce `arraySearch`:
+
+```javascript
+var currentPosition = arraySearch( extraRecords, id );
+
+function arraySearch( arr, value ) {
+  for ( var i=0; i<arr.length; i++ ) {
+    if ( arr[i] === value ) {
+      return i;
+    }
+  }
+  return false;
+}
+```
+Přestože nativní funkce [indexOf][21] dělá to samé mnohem efektivněji:
+```javascript
+var currentPosition = extraRecords.indexOf( id );
+```
+
 #### Shrnutí
 
 Každý by si měl projít, jaké vlastně JavaScript nabízí možnosti a co jeho [základní objekty][12] umí... Vždy totiž platí, že je třeba využívat nativní součásti JavaScriptu než na všechno zneužívat [jQuery][1] nebo dokonce nativní možnosti implementovat po svém.
@@ -468,3 +487,5 @@ __TBD__
 [17]:https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 [18]:https://developer.mozilla.org/en-US/docs/Web/Events/storage
 [19]:https://developer.mozilla.org/en-US/docs/Web/Events
+[20]:https://github.com/moravianlibrary/CPK/themes/bootstrap3/templates/RecordDriver/SolrDefault/toolbar.phtml#L30
+[21]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
