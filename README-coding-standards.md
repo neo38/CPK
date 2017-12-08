@@ -487,5 +487,5 @@ __TBD__
 [17]:https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
 [18]:https://developer.mozilla.org/en-US/docs/Web/Events/storage
 [19]:https://developer.mozilla.org/en-US/docs/Web/Events
-[20]:https://github.com/moravianlibrary/CPK/themes/bootstrap3/templates/RecordDriver/SolrDefault/toolbar.phtml#L30
+[20]:https://github.com/moravianlibrary/CPK/blob/master/themes/bootstrap3/templates/RecordDriver/SolrDefault/toolbar.phtml#L30
 [21]:https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
