@@ -71,6 +71,7 @@
  * @property {FederativeLoginController} login
  * @property {NotificationsController} notifications
  * @property {CpkStorage} storage
+ * @property {SolrDefaultToolbar} toolbar
  * @property {boolean} verbose
  * @constructor
  */
@@ -196,7 +197,7 @@ jQuery(function onDocumentReady() {
 		/**
 		 * @returns {Promise<boolean>}
 		 */
-		function termsOfUseModalPromise() {
+		function termsOfUseModal() {
 			try {
 				var elm = document.getElementById( "termsOfUseModal" );
 
@@ -210,7 +211,7 @@ jQuery(function onDocumentReady() {
 			return Promise.resolve( true );
 		}
 
-		return Promise.resolve( termsOfUseModalPromise() );
+		return Promise.resolve( termsOfUseModal() );
 	}
 
 	/**
@@ -274,12 +275,13 @@ jQuery(function onDocumentReady() {
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
-			//CPK.favorites.broadcaster.initialize,
+			CPK.favorites.broadcaster.initialize,
 			CPK.global.controller.initialize,
 			CPK.admin.ApprovalController.initialize,
 			CPK.favorites.SearchController.initialize,
 			CPK.favorites.RecordController.initialize,
 			CPK.favorites.ListController.initialize,
+			CPK.toolbar.initialize,
 			initializeTermsOfUseModal
 		];
 

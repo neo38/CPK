@@ -46,6 +46,7 @@ $toRet = array(
         'jquery-cpk/favorites-new.js',
         'jquery-cpk/global.js',
         'jquery-cpk/admin.js',
+        'jquery-cpk/toolbar.js'
     ),
     'less' => array(
         'active' => false,
