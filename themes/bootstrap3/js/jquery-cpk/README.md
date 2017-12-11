@@ -15,9 +15,9 @@ __Note #3__: Some parts of this documents referrs to the future and doesn't refl
 
 ## Code structure
 
-There are several more or less standalone parts which all are initialized in [common.js][5]. In this file is also defined basic structure of `CPK` module which is the main entry point for all of our code (not now but in future there should be no _wild_ variables in global scope (e.g. `window` - all code will be hidden besides few global objects - `jQuery`, `CPK` etc.)).
+The main file is [common.js][5] where is defined basic structure of `CPK` module which is the main entry point for all of our code ~~(not now but in future there should be no _wild_ variables in global scope (e.g. `window` - all code will be hidden besides few global objects - `jQuery`, `CPK` etc.))~~.
 
-Secondary, some functionality is created as plugins for [jQuery][2] (and other basic libraries) self - we have some widely used methods, some widgets where this is usefull... Anyway, this code is also placed in modules where by functionality logic belongs.
+The rest of code is defined as modules which are mapping functionality we need - some of this functionality is fulfilled by our own [jQuery][2] plugins but this code is also placed in modules (files) where by functionality logic belongs.
 
 ### jQuery extensions
 
@@ -27,7 +27,40 @@ Here is a list of provided [jQuery][2] plugins:
 - `$.fn.cpkCover` - small plugin that handles covers of the books. Now should be possible write something like this `$( "img.obalka" ).cover()` to get covers of all books rendered on the page.
 - `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements. It also handles favorites and covers functionality... Simply - it encapsulates given DOM with all functionality that we require from single record  (e.g. book, author etc.).
 
-### `CPK.storage`
+
+#### Books covers
+
+Another important module (and probably the most used one) is __covers service__ implemented in file [covers.js][24]. Is a more efficient and usable version of original module `obalky` (see file [obalkyknih.js][25]).
+
+Service is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] ). The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
+
+```javascript
+jQuery( document.getElementById( "targetElement" ) ).cpkCover( "fetchImage" );
+```
+
+Where `targetElement` should be ID of empty `<div>` element where will be rendered either proper cover or substitute image.
+
+For multiple covers on one page (like search records is command similar) do something like this:
+
+```javascript
+jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCover( "fetchImage" );
+```
+
+Where `.result-cover-cont` should be class of empty `<div>` elements inside the element with ID `results-list`.
+
+__TBD__ Function `jQuery.cpkCover` can be also used as _Deferred_.
+
+__TBD__ Inside `jQuery.cpkCover` is used `BibInfo` object.
+
+### Search Records
+
+__TBD__ ... `$.fn.cpkRecord`
+
+### Global CPK object
+
+Below is listed functionality that is hidden below global `CPK` object.
+
+#### `CPK.storage`
 
 Our most important module which is used behind several others - it offers unified and simple access to [`window.localStorage`][6] as well as [`window.sessionStorage`][7]. It also came with fall-back storage `FakeStorage` - which is just in-time-memory storage.
 
@@ -79,7 +112,7 @@ Usage of `CPK.storage` is easy:
        .then( doSomething );
    ```
 
-### `CPK.global`
+#### `CPK.global`
 
 ~~This object contains some widely used methods:~~
 
@@ -91,19 +124,19 @@ __Note__: Functions above were refactored so now extends [jQuery][2] - e.g. `$.f
 
 Also holds `GlobalController` which serves global modal dialog (via `viewModal` GET parameter).
 
-### `CPK.login`
+#### `CPK.login`
 
 This contains all what's needed for _Federative Login_. Basically it has just one functionality - it offers to users the last identity providers which they are used and creates list with these providers on top of _federative login_ modal dialog.
 
-### `CPK.notifications`
+#### `CPK.notifications`
 
 This contains functionality for notifications. They are two sources of notifications: _user_ and _user cards_ - `NotificationsController` (initialized as `CPK.notifications`) handles them both and combine them into single widget (see [notifications.phtml][10] for more details about rendered HTML).
 
-### `CPK.history`
+#### `CPK.history`
 
 This module handles checked-out items (e.g. page _MyResearch_ -> _Checked Out History_; source file [checkedouthistory.phtml][11]).
 
-### `CPK.favorites`
+#### `CPK.favorites`
 
 This modules handles all about favorites. It consists of these parts below the `CPK` module:
 
@@ -116,9 +149,13 @@ And these parts are below the `jQuery`:
 
 - `$.fn.favoriteLink` - small plugin thet handles behavior of _Add/Remove Favorite_ links
 
-### `CPK.admin`
+#### `CPK.admin`
 
 Administration module (located in [admin.js][17]) currently contains just `ApprovalController` which controls page _Configurations Approval_ ([approval.phtml][9]).
+
+#### `CPK.covers.BibInfo`
+
+__TBD__
 
 ## Initialization and module construction
 
@@ -207,3 +244,5 @@ This way of initializing code has these benefits (some of them will be visible a
 [21]:https://en.wikipedia.org/wiki/Unobtrusive_JavaScript
 [22]:https://jqueryui.com/
 [23]:https://getbootstrap.com/
+[24]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js
+[25]:https://github.com/moravianlibrary/CPK/blob/master/themes/bootstrap3/js/obalkyknih.js
