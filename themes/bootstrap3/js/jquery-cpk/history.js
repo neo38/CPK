@@ -63,8 +63,6 @@
 			 * @returns {Promise<boolean>}
 			 */
 			function onAjaxDone( response ) {
-				console.log( "HistoryItemPrototype", ">", "getHistoryPage", ">", "onAjaxDone", response );
-
 				if ( typeof response.data.php_errors !== "undefined" ) {
 					if ( CPK.verbose === true ) {
 						console.error( response.data.php_errors );
@@ -105,19 +103,11 @@
 			}
 
 			/**
-			 *
-			 * @type
-			 */
-			var t = { id: "", item_id: "", title: "", author: "", barcode: "", reqnum: "", loandate: "", duedate: "", returned: "", publicationYear: ""}
-
-			/**
 			 * @private Injects HTML from the `pagesCache[ cacheIndex ]`.
 			 * @param {boolean} result
 			 * @returns {Promise<boolean>}
 			 */
 			function injectHtml( result ) {
-				console.log( "HistoryItemPrototype", ">", "getHistoryPage", ">", "injectHtml", result );
-
 				if ( result !== true ) {
 					return Promise.resolve( false );
 				}
@@ -126,34 +116,118 @@
 				try {
 
 					/**
-					 *
 					 * @param {{id: string, item_id: string, title: string, author: string, barcode: string, reqnum: string, loandate: string, duedate: string, returned: string, publicationYear: string, rowNo: number, uniqueId: string, z36_item_id: string, z36_sub_library_code: string, formats: Array}} historyItem
 					 * @param {number} index
+					 * @todo All inline CSS should be moved into CSS files!
 					 */
 					function createHmlForItem( historyItem, index ) {
 						var itemDiv = document.createElement( "div" );
+						itemDiv.setAttribute( "id", "record" + historyItem.uniqueId );
+						itemDiv.classList.add( "row", "well" );
+						itemDiv.style.marginBottom = "2px";
 
-						var thumbDiv = document.createElement( "div" );
-
+						// Column with thumbnail
+						var thumbDiv = document.createElement( "div" ),
+							coverId = "#cover_" + historyItem.uniqueId;
+						thumbDiv.classList.add( "col-sm-2", "text-center" );
 						thumbDiv.appendChild( ( document.createElement( "string" ) ).appendChild( document.createTextNode( ( ( index + 1 ) + "." ) ) ) );
 
 						var thumbInnerDiv = document.createElement( "div" );
-						thumbInnerDiv.setAttribute( "id", "cover_" + historyItem.uniqueId );
-						// XXX Append thumbnail!
+						thumbInnerDiv.setAttribute( "id", coverId );
+
+						if ( typeof pageCache.covers[ coverId ] !== "undefined" ) {
+							var cover = pageCache.covers[ coverId ],
+								thumbImg = document.createElement( "img" );
+
+							thumbImg.setAttribute( "alt", "cover" );
+							thumbImg.setAttribute( "width", "63" );
+							thumbImg.setAttribute( "height", "80" );
+							thumbInnerDiv.appendChild( thumbImg );
+
+							setTimeout(function createHtmlForItemThumb() {
+								try {
+									obalky.display_thumbnail_cover_without_links( thumbImg, cover.bibinfo, cover.advert );
+								} catch ( error ) {
+									console.error( "Unable to get cover for the history item", historyItem, cover );
+								}
+							});
+						}
 
 						thumbDiv.appendChild( thumbInnerDiv );
 
-						// ...
+						// Column with text
+						var textDiv = document.createElement( "div" );
+						textDiv.classList.add( "col-sm-9" );
 
+						// Title
+						var titleDiv = document.createElement( "div" ),
+							titleAnchor = document.createElement( "a" );
+						titleAnchor.classList.add( "title" );
+						titleAnchor.setAttribute( "href", "/Record/" + encodeURIComponent( historyItem.id ) );
+						titleAnchor.appendChild( document.createTextNode( historyItem.title ) );
+						titleDiv.appendChild( titleAnchor );
+
+						// Author
+						var authorDiv = document.createElement( "div" ),
+							authorAnchor = document.createElement( "a" );
+						authorAnchor.classList.add( "author" );
+						authorAnchor.setAttribute( "href", "/Home/?author=" + encodeURIComponent( historyItem.author ) );
+						authorAnchor.appendChild( document.createTextNode( historyItem.author ) );
+						authorDiv.appendChild( authorAnchor );
+
+						// Volume
+						var volumeDiv = document.createElement( "div" );
+
+						// Formats
+						historyItem.formats.forEach(
+							/**
+							 * @param {{ orig: string, format: string }} format
+							 */
+							function createHtmlForItemFormat( format ) {
+								var formatDiv    = document.createElement( "div" ),
+									formatItalic = document.createElement( "i" ),
+									formatSpan   = document.createElement( "span" );
+
+								formatItalic.classList.add( "small-format-icon", "pr-format-" + format.format );
+
+								formatSpan.setAttribute( "data-orig", format.orig );
+								formatSpan.classList.add( "format-text" )
+								formatSpan.appendChild( document.createTextNode( VuFind.translate( format.orig ) ) );
+
+								formatDiv.classList.add( "iconlabel" );
+								formatDiv.style.color = "#777";
+								formatDiv.appendChild( formatItalic );
+								formatDiv.appendChild( formatSpan );
+
+								textDiv.appendChild( formatDiv );
+							}
+						);
+
+						// Renewed
+						var renewedDiv = document.createElement( "div" );
+
+						if ( typeof historyItem.renewed !== "undefined" ) {
+							renewedDiv.appendChild( ( document.createElement( "strong" ) ).appendChild( document.createTextNode( historyItem.renewed ) ) );
+						}
+
+						// Finalize text column
+						textDiv.appendChild( titleDiv );
+						textDiv.appendChild( authorDiv );
+						textDiv.appendChild( volumeDiv );
+						textDiv.appendChild( renewedDiv );
+
+						// Finalize it
 						itemDiv.appendChild( thumbDiv );
+						itemDiv.appendChild( textDiv );
 						cont.append( itemDiv );
-						loader.attr( "hidden", "hidden" );
 					}
 
-
+					// Create HTML for all history items
 					pageCache.items.forEach( createHmlForItem );
 
-
+					// Hide loader
+					// XXX This should be in chained promise and should act according to `result`.
+					loader.attr( "hidden", "hidden" );
 
 					return Promise.resolve( true );
 				} catch ( error ) {
@@ -181,7 +255,6 @@
 					},
 					dataType: "JSON"
 				};
-				console.log( request );
 
 				// Send request and process the response
 				return Promise
