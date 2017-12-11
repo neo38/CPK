@@ -5,10 +5,220 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function() {
+(function( $ ) {
     if (CPK.verbose === true) {
         console.log( "jquery-cpk/history.js" );
     }
+
+	/**
+	 * @param {Object} data
+	 * @property {Array} items
+	 * @property {Object} covers
+	 * @property {number} pages
+	 * @constructor
+	 */
+    function HistoryItemDataPrototype( data ) {
+    	this.items  = data.historyPage;
+    	this.covers = data.obalky;
+    	this.pages  = data.totalPages;
+	}
+
+	/**
+	 * @param {number} idx
+	 * @param {jQuery) elm
+	 * @constructor
+	 */
+	function HistoryItemPrototype( idx, elm ) {
+		console.log( idx, elm );
+
+		/**
+		 * @var {string} username
+		 */
+		var username = $( elm ).data( "username" );
+
+		/**
+		 * @var {string} source
+		 */
+		var source = $( elm ).data( "source" );
+
+		/**
+		 * @var {HistoryItemDataPrototype} pageCache
+		 */
+		var pageCache;
+
+		// Private
+		var cont       = $( ".history-item-list-cont", elm ),
+			loader     = $( ".history-item-list-loader", elm ),
+			pagination = $( ".history-item-list-pagination", elm );
+
+		/**
+		 * Gets page with history of borrows.
+		 * @returns {Promise<boolean>}
+		 */
+		function getHistoryPage() {
+
+			/**
+			 * @private
+			 * @param {Object} response
+			 * @returns {Promise<boolean>}
+			 */
+			function onAjaxDone( response ) {
+				console.log( "HistoryItemPrototype", ">", "getHistoryPage", ">", "onAjaxDone", response );
+
+				if ( typeof response.data.php_errors !== "undefined" ) {
+					if ( CPK.verbose === true ) {
+						console.error( response.data.php_errors );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				if ( response.data.status === "OK" ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Returned not OK status!", response );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				/**
+				 * @property {Array} historyPage
+				 * @property {Object} obalky
+				 * @property {number} totalPages
+				 */
+				var data = response.data;
+				console.log( data );
+
+				// Check if data are correct
+				if ( typeof data.historyPage === undefined || typeof data.obalky === "undefined" ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Returned history page data are not correct!", response, data );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				// Save page into the cache
+				pageCache = new HistoryItemDataPrototype( data );
+
+				return Promise.resolve( true );
+			}
+
+			/**
+			 *
+			 * @type
+			 */
+			var t = { id: "", item_id: "", title: "", author: "", barcode: "", reqnum: "", loandate: "", duedate: "", returned: "", publicationYear: ""}
+
+			/**
+			 * @private Injects HTML from the `pagesCache[ cacheIndex ]`.
+			 * @param {boolean} result
+			 * @returns {Promise<boolean>}
+			 */
+			function injectHtml( result ) {
+				console.log( "HistoryItemPrototype", ">", "getHistoryPage", ">", "injectHtml", result );
+
+				if ( result !== true ) {
+					return Promise.resolve( false );
+				}
+
+				// Insert returned HTML
+				try {
+
+					/**
+					 *
+					 * @param {{id: string, item_id: string, title: string, author: string, barcode: string, reqnum: string, loandate: string, duedate: string, returned: string, publicationYear: string, rowNo: number, uniqueId: string, z36_item_id: string, z36_sub_library_code: string, formats: Array}} historyItem
+					 * @param {number} index
+					 */
+					function createHmlForItem( historyItem, index ) {
+						var itemDiv = document.createElement( "div" );
+
+						var thumbDiv = document.createElement( "div" );
+
+						thumbDiv.appendChild( ( document.createElement( "string" ) ).appendChild( document.createTextNode( ( ( index + 1 ) + "." ) ) ) );
+
+						var thumbInnerDiv = document.createElement( "div" );
+						thumbInnerDiv.setAttribute( "id", "cover_" + historyItem.uniqueId );
+						// XXX Append thumbnail!
+
+						thumbDiv.appendChild( thumbInnerDiv );
+
+						// ...
+
+						itemDiv.appendChild( thumbDiv );
+						cont.append( itemDiv );
+						loader.attr( "hidden", "hidden" );
+					}
+
+
+					pageCache.items.forEach( createHmlForItem );
+
+
+
+					return Promise.resolve( true );
+				} catch ( error ) {
+					if ( CPK.verbose === true ) {
+						console.warn( "Inserting of history page failed!", error );
+					}
+
+					return Promise.resolve( false );
+				}
+			}
+
+			// Check cache and use it or make request
+			if ( typeof pageCache !== "undefined" ) {
+				return Promise.resolve( injectHtml( true ) );
+			} else {
+
+				// Prepare data for request
+				var request = {
+					type : "POST",
+					url  : "/AJAX/JSON?method=getMyHistoryPage",
+					data : {
+						cat_username : username,
+						page         : idx,
+						perPage      : CPK.history.perPage
+					},
+					dataType: "JSON"
+				};
+				console.log( request );
+
+				// Send request and process the response
+				return Promise
+					.resolve( $.ajax( request ) )
+					.then( onAjaxDone )
+					.then( injectHtml );
+			}
+		}
+
+		/**
+		 * @returns {string}
+		 */
+		function getUsername() { return username; }
+
+		/**
+		 * @returns {string}
+		 */
+		function getSource() { return source; }
+
+		// Public API
+		/**
+		 * @property {string} username
+		 * @property {string} source
+		 * @type {Object}
+		 */
+		var HistoryItem = Object.create( null );
+
+		// Properties
+		Object.defineProperty( HistoryItem, "username", { get: getUsername } );
+		Object.defineProperty( HistoryItem, "source", { get: getSource } );
+
+		// Methods
+		HistoryItem.getPage = getHistoryPage();
+
+		// Expose public API
+		return HistoryItem;
+	}
 
     /**
      * History service controller
@@ -17,18 +227,17 @@
      */
     function CheckedOutHistoryController() {
         // Private
-        var username = undefined,
-            currentPage = 1,
+        var currentPage = 1,
             pagesCache = [],
 			pagesCountDOM = {};
 
 		/**
-		 * @property {HTMLElement} list
-		 * @property {HTMLElement} loader
-		 * @property {HTMLElement} pagination
+		 * @property {HTMLElement} parent
+		 * @property {HistoryItemPrototype[]} items
 		 * @type {Object}
 		 */
 		var domLinker = Object.create( null );
+		domLinker.items = [];
 
 		/**
 		 * Initializes the controller.
@@ -37,8 +246,7 @@
 		function init() {
 			return Promise
 				.resolve( initDom() )
-				.then( initEventHandlers )
-				.then( getHistoryPage );
+				.then( initHistory );
 		}
 
 		/**
@@ -49,9 +257,20 @@
 			var result = true;
 
 			// Get DOM links
-			domLinker.list       = document.getElementById( "historyListCont" );
-			domLinker.loader     = document.getElementById( "historyListLoader" );
-			domLinker.pagination = document.getElementById( "historyListPagination" );
+			domLinker.parent = document.getElementById( "checked-out-history-cont" );
+
+			/**
+			 * @param {number} idx
+			 * @param {jQuery} elm
+			 */
+			function prepareHistoryItemDom( idx, elm ) {
+				domLinker.items.push( new HistoryItemPrototype( idx, elm ) );
+			}
+
+			// Initialize DOM for all institutions
+			$( ".checked-out-history-item-cont", domLinker.parent ).each( prepareHistoryItemDom );
+
+			console.log( $( domLinker ) );
 
 			/**
 			 * @param {string} elmName
@@ -72,7 +291,7 @@
 			}
 
 			// Check if we found all DOM elements we need
-			[ "list", "loader", "pagination" ].forEach( checkElm );
+			[ "parent" ].forEach( checkElm );
 
 			// Resolve whole job
 			return Promise.resolve( result );
@@ -83,127 +302,23 @@
 		 * @param {boolean} result
 		 * @returns {Promise<boolean>}
 		 */
-		function initEventHandlers( result ) {
+		function initHistory( result ) {
 			if ( result === false ) {
 				if ( CPK.verbose === true ) {
-					console.info( "Can not initialize event handlers for history because of missing DOM links.", domLinker );
+					console.info( "Can not initialize history because of missing DOM links.", domLinker );
 				}
 
 				return Promise.resolve( false );
 			}
 
-			//...
+			function initHistoryForItem( elm ) {
+				console.log( elm );
+			}
+
+			// XXX Go through all `domLinker.items`
+			domLinker.items.forEach( initHistoryForItem );
 
 			return Promise.resolve( true );
-		}
-
-		/**
-		 * Gets page with history of borrows.
-		 * @param {boolean} result
-		 * @returns {Promise<boolean>}
-		 */
-		function getHistoryPage( result ) {
-			if ( result === false ) {
-				return Promise.resolve( false );
-			}
-
-			/**
-			 * @type {number}
-			 */
-			var cacheIndex = currentPage - 1;
-
-			/**
-			 * @private
-			 * @param {Object} response
-			 * @returns {Promise<boolean>}
-			 */
-			function onAjaxDone( response ) {
-				console.log( "CheckedOutHistoryController", ">", "getHistoryPage", ">", "onAjaxDone", response );
-
-				if ( typeof response.data.php_errors !== "undefined" ) {
-					if ( CPK.verbose === true ) {
-						console.error( response.data.php_errors );
-					}
-
-					return Promise.resolve( false );
-				}
-
-				if ( response.data.status === "OK" ) {
-					if ( CPK.verbose === true ) {
-						console.warn( "Returned not OK status!", response );
-					}
-
-					return Promise.resolve( false );
-				}
-
-				/**
-				 * @property {string} source
-				 * @property {string} html
-				 */
-				var xhrData = response.data.data;
-				console.log( xhrData );
-
-				// Check if data are correct
-				if ( typeof xhrData.html === undefined || typeof xhrData.source === "undefined" ) {
-					if ( CPK.verbose === true ) {
-						console.warn( "Returned history page data are not correct!", response, xhrData );
-					}
-
-					return Promise.resolve( false );
-				}
-
-				// Save page into the cache
-				pagesCache[ cacheIndex ] = xhrData;
-
-				return Promise.resolve( true );
-			}
-
-			/**
-			 * @private Injects HTML from the `pagesCache[ cacheIndex ]`.
-			 * @param {boolean} result
-			 * @returns {Promise<boolean>}
-			 */
-			function injectHtml( result ) {
-				console.log( result );
-
-				if ( result !== true ) {
-					return Promise.resolve( false );
-				}
-
-				// Insert returned HTML
-				try {
-					var elm = document.getElementById( pagesCache[ cacheIndex ].source );
-					elm.innerHTML = pagesCache[ cacheIndex ].html;
-
-					return Promise.resolve( true );
-				} catch ( error ) {
-					if ( CPK.verbose === true ) {
-						console.warn( "Inserting of history page failed!", error );
-					}
-
-					return Promise.resolve( false );
-				}
-			}
-
-
-			// Check cache and use it or make request
-			if ( typeof pagesCache[ cacheIndex ] !== "undefined" ) {
-				return Promise.resolve( injectHtml( true ) );
-			} else {
-
-				// Prepare data for request
-				var data = {
-					cat_username : username,
-					page         : currentPage,
-					perPage      : CPK.history.perPage
-				};
-
-				// Send request and process the response
-				return Promise
-					.resolve( jQuery.post( "/AJAX/JSON?method=getMyHistoryPage", data ) )
-					.then( onAjaxDone )
-					.then( injectHtml )
-			}
 		}
 
         /**
@@ -455,4 +570,4 @@
      */
     CPK.history = new CheckedOutHistoryController();
 
-}());
+}( jQuery ));

@@ -59,25 +59,25 @@ $this->jsTranslations()->addStrings(array(
 ?>
 <!-- <ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs?></ul>-->
 <div class="row">
-  <div class="<?=$this->layoutClass('mainbody')?>">
+  <div id="checked-out-history-cont" class="<?=$this->layoutClass('mainbody')?>">
     <h2><?=$this->transEsc('Checked Out History')?></h2>
     <?=$this->flashmessages()?>
     <?php foreach($this->libraryIdentities as $eppn => $libraryIdentity):
       $source = explode('.', $libraryIdentity['cat_username'])[0];
 
-    ?><div>
+    ?><div data-username="<?=$libraryIdentity['cat_username']?>" data-source="<?=$source?>" class="checked-out-history-item-cont">
       <h3 class="well row blickable" style="margin-bottom: 3px;" id="<?=$source?>">
         <?=$this->transEsc("source_$source", null, $source)?>
         <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source)?>">
       </h3>
-      <div id="historyListCont"><?php/* Here will be listed history items */?></div>
-      <div data-history-username="<?=$libraryIdentity['cat_username']?>" id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
-        <div id="historyListLoader">
+      <div id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
+        <div class="history-item-list-cont"></div>
+        <div class="history-item-list-loader">
           <i class="fa fa-spinner fa-spin"></i>
           <span class="label label-info"><?=$this->transEsc('Loading')?> &hellip;</span>
         </div>
       </div>
-      <div id="historyListPagination" data-pagination="<?=$source?>" class="row well"></div>
+      <div class="row well history-item-list-pagination"></div>
     </div>
     <?php endforeach; ?>
   </div>
