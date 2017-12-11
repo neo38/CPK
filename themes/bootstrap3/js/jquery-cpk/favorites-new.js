@@ -14,10 +14,10 @@
 
 	// Here are some extensions to jQuery self
 	$.fn.switchAddRemoveFavoriteLink = switchAddRemoveFavoriteLinkLabel;
-	$.fn.addRemoveFavorite           = addRemoveFavoriteEventHandler;
-	$.fn.parseRecord                 = parseRecord;
+	//$.fn.parseRecord                 = parseRecord;
+	$.fn.cpkRecord                   = record;
 
-
+	function record() {}
 
 	/**
 	 * Switches between "Add favorite" and "Remove favorite" labels.
@@ -57,23 +57,16 @@
 	}
 
 	/**
-	 * On click event handler for "addRemoveFavorite" links.
-	 * @returns {jQuery}
-	 */
-	function addRemoveFavoriteEventHandler() {
-		//...
-
-		// Return context to allow chaining
-		return this;
-	}
-
-	/**
-	 * Parses record for the element (works for search results and record's detail page).
+	 * Parses record for the given elements.
 	 *
 	 * The resulted object with record's value is attached to given context
 	 * thus then is available through the target element self.
 	 *
+	 * Besides parsing it also appends event handler for "addRemoveFavorite"
+	 * link.
+	 *
 	 * @returns {jQuery}
+	 * @todo Would be nice have here other event handlers (if there are any) and also covers should be handled here...
 	 */
 	function parseRecord() {
 
@@ -82,7 +75,12 @@
 		 */
 		this.records = [];
 
-		this.getRecord = function( idx ) {
+		/**
+		 * Returns record by the index.
+		 * @param {number} idx
+		 * @returns {Object|null}
+		 */
+		this.getRecord = function parseRecord_getRecord( idx ) {
 			if ( records.length < idx || idx < 0 ) {
 				return null;
 			} else {
@@ -108,7 +106,8 @@
 			}
 		}
 
-
+		// Go through all elements and try to parse them
+		this.each( parseRecordInner );
 
 		// Return context to allow chaining
 		return this;

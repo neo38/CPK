@@ -1,79 +1,90 @@
 /**
- * Covers.
+ * Covers for books.
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function() {
+(function( $ ) {
 	if ( CPK.verbose === true ) {
 		console.log( "jquery-cpk/covers.js" );
 	}
 
+	// Here are some extensions to jQuery self
+	$.fn.cpkCover = cover;
+
+	// Default options
+	$.fn.cpkCover.defaults = {
+		normal: {
+			width: 63,
+			height: 80,
+			noImg: "themes/bootstrap3/images/noCover.jpg"
+		},
+		small: {
+			width: 63,
+			height: 80,
+			noImg: "themes/bootstrap3/images/noCover.jpg"
+		}
+	};
+
 	/**
-	 * History service controller
-	 * @returns {Object}
-	 * @constructor
+	 * @param {string} profile
+	 * @param {Object} options
+	 * @return {jQuery}
 	 */
-	function CoversController() {
+	function cover( profile, options ) {
+
+		// Check if only options are passed
+		if ( typeof profile === "object" && typeof options === undefined ) {
+			options = profile;
+			profile = "normal";
+		}
+
+		// Ensure the profile is correct
+		if ( [ "normal", "small"].indexOf( profile ) === -1 ) {
+			profile = "normal";
+		}
+
+		var opts = $.extend( {}, $.fn.cpkCover.defaults, options[ profile ] ),
+			requests = [],
+			responses = [];
 
 		/**
-		 * Initializes the controller.
-		 * @returns {Promise<boolean>}
+		 * @param {number} idx
+		 * @param {HTMLElement} elm
 		 */
-		function init() {
-			console.warn( "XXX Implement CoversController!" );
-
-			/**
-			 * @param {XXX} result
-			 * @returns {Promise<boolean>}
-			 */
-			function finalizeInit( result ) {
-				return Promise.resolve( true );
-			}
-
-			// Collect requests for covers -> perform them -> resolve (display images)
-			return Promise
-				.resolve( collectRequests() )
-				.then( performRequests )
-				.then( resolveRequests );
+		function prepareRequest( idx, elm ) {
+			//...
 		}
 
 		/**
-		 * @private Collect all cover requests.
-		 * @returns {Promise<array>}
+		 * @param {number} idx
+		 * @param {HTMLElement} elm
 		 */
-		function collectRequests() {
-
+		function makeRequest( idx, elm ) {
+			//...
 		}
 
 		/**
-		 * @private Perform requests for covers.
-		 * @param {array} requests
-		 * @returns {Promise<array>}
+		 * @param {number} idx
+		 * @param {HTMLElement} elm
 		 */
-		function performRequests( requests ) {
-
+		function useRequest( idx, elm ) {
+			//...
 		}
 
-		/**
-		 * @private Resolves requests (shows covers).
-		 * @param {array} requests
-		 * @returns {Promise<boolean>}
-		 */
-		function resolveRequests( requests ) {
+		this
+			// Collect info about all covers we need
+			.each( prepareRequest )
+			// Make request for needed covers
+			.each( makeRequest )
+			// Apply images into the page
+			.each( useRequest );
 
-		}
-
-		// Public API
-		var Controller = Object.create( null );
-
-		Controller.initialize = init;
-
-		return Controller;
+		// Return context to allow chaining
+		return this;
 	}
 
-	/**
-	 * @type {CoversController}
-	 */
-	CPK.covers = new CoversController();
-}());
+	// Return context to allow chaining
+	return this;
+
+}( jQuery ));
