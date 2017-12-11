@@ -32,7 +32,7 @@ Here is a list of provided [jQuery][2] plugins:
 
 Another important module (and probably the most used one) is __covers service__ implemented in file [covers.js][24]. Is a more efficient and usable version of original module `obalky` (see file [obalkyknih.js][25]).
 
-Service is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] ). The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
+Service is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
 
 ```javascript
 jQuery( document.getElementById( "targetElement" ) ).cpkCover( "fetchImage" );
