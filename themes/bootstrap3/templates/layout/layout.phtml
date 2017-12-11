@@ -265,9 +265,11 @@
         </div>
       </div>
     </div>
-    <? if (! $user): ?>
-    <?php/* Modal for login*/?>
-    <div class="modal fade" id="loginModal" role="dialog">
+    <? if (! $user):
+        // Modal for login
+        $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]);
+
+    ?><div class="modal fade" id="loginModal" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -275,11 +277,10 @@
             <h4 class="modal-title"><?=$this->translate('login_last_used')?></h4>
           </div>
           <div class="modal-body last-idps" id="last-identity-providers"><?php/* Here will be generated last identity providers from jquery-cpk/federative-login.js */?></div>
-		  <div class="modal-header link" style="cursor: pointer">
-		    <? $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]); ?>
+		  <div id="login-help-link" class="modal-header link" style="cursor: pointer">
 		    <h4 class="modal-title"><?=$portalPage['title']?></h4>
 		  </div>
-		  <div class="modal-body" hidden="hidden">
+		  <div id="login-help-content" class="modal-body" hidden="hidden">
 		    <?=$portalPage['content'] ?>
 		  </div>
           <div class="modal-header">

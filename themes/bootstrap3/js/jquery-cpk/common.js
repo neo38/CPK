@@ -56,12 +56,6 @@
  */
 
 
-// Here are some functions that extends jQuery self
-(function( $ ) {
-
-}( jQuery ) );
-
-
 /**
  * @property {Object} admin
  * @property {Object} favorites
@@ -133,9 +127,9 @@ function Cpk() {
 		 */
 		toggleDOM: function globalToggleDOM( elm ) {
 			if ( elm.hasAttribute( "hidden" ) ) {
-				self.global.hideDOM( elm );
-			} else {
 				self.global.showDOM( elm );
+			} else {
+				self.global.hideDOM( elm );
 			}
 		},
 
@@ -275,12 +269,12 @@ jQuery(function onDocumentReady() {
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
-			CPK.favorites.broadcaster.initialize,
+			//CPK.favorites.broadcaster.initialize,
 			CPK.global.controller.initialize,
 			CPK.admin.ApprovalController.initialize,
-			CPK.favorites.SearchController.initialize,
-			CPK.favorites.RecordController.initialize,
-			CPK.favorites.ListController.initialize,
+			//CPK.favorites.SearchController.initialize,
+			//CPK.favorites.RecordController.initialize,
+			//CPK.favorites.ListController.initialize,
 			CPK.toolbar.initialize,
 			initializeTermsOfUseModal
 		];

@@ -5,7 +5,7 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  */
 
-(function () {
+(function ( $ ) {
 	"use strict";
 
 	/**
@@ -23,7 +23,8 @@
 		 */
 		function init() {
 			return Promise
-				.resolve( initLips() )
+				.resolve( initHelp() )
+				.then( initLips )
 				.then( parseLips )
 				.then( updateLips )
 				.then( renderLips )
@@ -32,10 +33,32 @@
 		}
 
 		/**
+		 * @private Initializes show/hide help link.
+		 * @returns {Promise<boolean>}
+		 */
+		function initHelp() {
+			try {
+				var link    = document.getElementById( "login-help-link" ),
+				    content = document.getElementById( "login-help-content" );
+
+				$( "h4", link ).click( function onLoginHelpLinkClick() {
+					CPK.global.toggleDOM( content );
+				} );
+			} catch ( error ) {
+				if ( CPK.verbose === true ) {
+					console.error( error );
+				}
+			}
+
+			return Promise.resolve( true );
+		}
+
+		/**
 		 * @private Initializes the last used identity providers.
+		 * @param <boolean> result
 		 * @returns {Promise<string|null>}
 		 */
-		function initLips() {
+		function initLips( result ) {
 			try {
 				var lips;
 				lips = CPK.localStorage.getItem( _storageKey );
@@ -63,7 +86,7 @@
 					var lip;
 					lip = JSON.parse( _lips );
 
-					return Promise.resolve( jQuery.isArray( lip ) ? lip : [] );
+					return Promise.resolve( $.isArray( lip ) ? lip : [] );
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
 						console.error( "Could not parse the last identity provider from localStorage", error, _lips );
@@ -165,7 +188,7 @@
 
 			try {
 				var table = document.getElementById( "table-regular_identity_providers" );
-				jQuery( "tr", table ).click( lipClickHandler );
+				$( "tr", table ).click( lipClickHandler );
 			} catch ( error ) {
 				if ( CPK.verbose === true ) {
 					console.error( error );
@@ -200,14 +223,6 @@
 				elm.addEventListener( "click", toggleHelpContent, true );
 				return Promise.resolve( true );
 			}
-		}
-
-		/**
-		 * @private Toggles help content.
-		 * @param {Event} event
-		 */
-		function toggleHelpContent( event ) {
-			CPK.global.toggleDOM( document.getElementById( "login-help-content" ) );
 		}
 
 		/**
@@ -271,4 +286,4 @@
 	 */
 	CPK.login = new FederativeLoginController();
 
-}());
+}( jQuery ));
