@@ -11,7 +11,7 @@ __Note #2__: The whole `jquery-cpk` package is just a transitional package while
 3. there is just __one__ _document.onReady_ event handler
 4. we should reflect stack we are using - e.g. (from bottom levels) [jQuery][2], [jQuery UI][22] and [Bootstrap 3][23] - which means that we can hide some functionality inside widgets to get better code.
 
-__Note #3__: Some parts of this documents referrs to the future and doesn't reflect current state - __specification firstly -> implementation secondly__.
+__Note #3__: Some parts of this documents refers to the future and doesn't reflect current state - __specification firstly -> implementation secondly__.
 
 ## Code structure
 
@@ -68,7 +68,7 @@ The idea behind this _fake_ storage is simple - is better offer same (but limite
 
 Usage of `CPK.storage` is easy:
 
-1. Firstly there is one storage defined when application starts and it can be used anywhere programmer needs (it should be by default type of `localStorage`):
+1. Firstly there is one storage defined when application starts and it can be used anywhere programmer needs (it should be type [`window.localStorage`][6] by default):
    ```javascript
    // Load value
    CPK.localStorage.getItem( "key" );
@@ -84,16 +84,16 @@ Usage of `CPK.storage` is easy:
 
    /**
     * @param {Storage|boolean} result
-    * @returns {jQuery.Deferred<boolean>}
+    * @returns {Promise<boolean>}
     */
    function resolveMyStorageInitialization( result ) {
        if ( result === true ) {
-           return jQuery.Deferred.resolve( true );
+           return Promise.resolve( true );
        } else if ( CPK.storage.isStorage( result ) === true ) {
            myStorage = result;
-           return jQuery.Deferred.resolve( true );
+           return Promise.resolve( true );
        } else {
-           return jQuery.Deferred.resolve( CPK.storage.initStorage( "fakeStorage" ) );
+           return Promise.resolve( CPK.storage.initStorage( "fakeStorage" ) );
        }
    }
 

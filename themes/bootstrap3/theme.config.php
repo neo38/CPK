@@ -38,6 +38,7 @@ $toRet = array(
         'vendor/jquery.visible.min.js',
         'vendor/jquery.bootstrap-growl.js',
         'jquery-cpk/common.js',
+        'jquery-cpk/covers.js',
         'jquery-cpk/storage.js',
         'jquery-cpk/federative-login.js',
         'jquery-cpk/notifications.js',

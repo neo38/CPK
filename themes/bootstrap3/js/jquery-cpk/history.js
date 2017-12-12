@@ -11,24 +11,26 @@
     }
 
 	/**
+	 * Data for single history source (institution).
 	 * @param {Object} data
 	 * @property {Array} items
 	 * @property {Object} covers
 	 * @property {number} pages
 	 * @constructor
 	 */
-    function HistoryItemDataPrototype( data ) {
+    function HistorySourceData( data ) {
     	this.items  = data.historyPage;
     	this.covers = data.obalky;
     	this.pages  = data.totalPages;
 	}
 
 	/**
+	 * Prototype for single history source (institution).
 	 * @param {number} idx
 	 * @param {jQuery) elm
 	 * @constructor
 	 */
-	function HistoryItemPrototype( idx, elm ) {
+	function HistorySource( idx, elm ) {
 		console.log( idx, elm );
 
 		/**
@@ -42,7 +44,7 @@
 		var source = $( elm ).data( "source" );
 
 		/**
-		 * @var {HistoryItemDataPrototype} pageCache
+		 * @var {HistorySourceData} pageCache
 		 */
 		var pageCache;
 
@@ -85,7 +87,7 @@
 				 * @property {number} totalPages
 				 */
 				var data = response.data;
-				console.log( data );
+				console.log( "HistorySource", "getHistoryPage", "onAjaxDone", data );
 
 				// Check if data are correct
 				if ( typeof data.historyPage === undefined || typeof data.obalky === "undefined" ) {
@@ -97,7 +99,7 @@
 				}
 
 				// Save page into the cache
-				pageCache = new HistoryItemDataPrototype( data );
+				pageCache = new HistorySourceData( data );
 
 				return Promise.resolve( true );
 			}
@@ -119,6 +121,7 @@
 					 * @param {{id: string, item_id: string, title: string, author: string, barcode: string, reqnum: string, loandate: string, duedate: string, returned: string, publicationYear: string, rowNo: number, uniqueId: string, z36_item_id: string, z36_sub_library_code: string, formats: Array}} historyItem
 					 * @param {number} index
 					 * @todo All inline CSS should be moved into CSS files!
+					 * @todo Loader should be hidden in chained promise and should act according to `result` (`loaderDiv.innerHTML = "<span class='label label-danger'>" + err.message + "</span>";`).
 					 */
 					function createHmlForItem( historyItem, index ) {
 						var itemDiv = document.createElement( "div" );
@@ -133,24 +136,18 @@
 						thumbDiv.appendChild( ( document.createElement( "string" ) ).appendChild( document.createTextNode( ( ( index + 1 ) + "." ) ) ) );
 
 						var thumbInnerDiv = document.createElement( "div" );
-						thumbInnerDiv.setAttribute( "id", coverId );
+						thumbInnerDiv.setAttribute( "id", "cover_" + historyItem.uniqueId );
 
 						if ( typeof pageCache.covers[ coverId ] !== "undefined" ) {
-							var cover = pageCache.covers[ coverId ],
-								thumbImg = document.createElement( "img" );
+							var cover = pageCache.covers[ coverId ];
 
-							thumbImg.setAttribute( "alt", "cover" );
-							thumbImg.setAttribute( "width", "63" );
-							thumbImg.setAttribute( "height", "80" );
-							thumbInnerDiv.appendChild( thumbImg );
-
-							setTimeout(function createHtmlForItemThumb() {
-								try {
-									obalky.display_thumbnail_cover_without_links( thumbImg, cover.bibinfo, cover.advert );
-								} catch ( error ) {
+							try {
+								obalky.fetchImage( thumbInnerDiv, cover.bibInfo, cover.advert, "icon" );
+							} catch ( error ) {
+								if ( CPK.verbose === true ) {
 									console.error( "Unable to get cover for the history item", historyItem, cover );
 								}
-							});
+							}
 						}
 
 						thumbDiv.appendChild( thumbInnerDiv );
@@ -226,7 +223,6 @@
 					pageCache.items.forEach( createHmlForItem );
 
 					// Hide loader
-					// XXX This should be in chained promise and should act according to `result`.
 					loader.attr( "hidden", "hidden" );
 
 					return Promise.resolve( true );
@@ -280,17 +276,17 @@
 		 * @property {string} source
 		 * @type {Object}
 		 */
-		var HistoryItem = Object.create( null );
+		var Source = Object.create( null );
 
 		// Properties
-		Object.defineProperty( HistoryItem, "username", { get: getUsername } );
-		Object.defineProperty( HistoryItem, "source", { get: getSource } );
+		Object.defineProperty( Source, "username", { get: getUsername } );
+		Object.defineProperty( Source, "source", { get: getSource } );
 
 		// Methods
-		HistoryItem.getPage = getHistoryPage();
+		Source.getPage = getHistoryPage();
 
 		// Expose public API
-		return HistoryItem;
+		return Source;
 	}
 
     /**
@@ -306,11 +302,11 @@
 
 		/**
 		 * @property {HTMLElement} parent
-		 * @property {HistoryItemPrototype[]} items
+		 * @property {HistorySource[]} sources
 		 * @type {Object}
 		 */
 		var domLinker = Object.create( null );
-		domLinker.items = [];
+		domLinker.sources = [];
 
 		/**
 		 * Initializes the controller.
@@ -336,14 +332,12 @@
 			 * @param {number} idx
 			 * @param {jQuery} elm
 			 */
-			function prepareHistoryItemDom( idx, elm ) {
-				domLinker.items.push( new HistoryItemPrototype( idx, elm ) );
+			function prepareHistorySource( idx, elm ) {
+				domLinker.sources.push( new HistorySource( idx, elm ) );
 			}
 
 			// Initialize DOM for all institutions
-			$( ".checked-out-history-item-cont", domLinker.parent ).each( prepareHistoryItemDom );
-
-			console.log( $( domLinker ) );
+			$( ".checked-out-history-item-cont", domLinker.parent ).each( prepareHistorySource );
 
 			/**
 			 * @param {string} elmName
@@ -371,7 +365,7 @@
 		}
 
 		/**
-		 * Initializes event handlers for the controller.
+		 * Initializes available {@see HistorySource}s.
 		 * @param {boolean} result
 		 * @returns {Promise<boolean>}
 		 */
@@ -384,256 +378,30 @@
 				return Promise.resolve( false );
 			}
 
-			function initHistoryForItem( elm ) {
-				console.log( elm );
+			/**
+			 * @param {HistorySource} source
+			 */
+			function initHistoryForSource( source ) {
+				console.log( source );
 			}
 
-			// XXX Go through all `domLinker.items`
-			domLinker.items.forEach( initHistoryForItem );
+			// Go through `domLinker.sources` and initialize history for each institution
+			domLinker.sources.forEach( initHistoryForSource );
 
+			// Resolves as TRUE
 			return Promise.resolve( true );
 		}
-
-        /**
-         * Handler for selected page event.
-         * @param {number} page
-         */
-        function pageSelected(page) {
-            // Show loader
-            CPK.global.showDOM(loaderDiv);
-
-            // Clear the page
-            vm.historyPage = [];
-
-            currentPage = page;
-
-            updatePaginatorActivePage();
-
-            $q.resolve(getMyHistoryPage())
-                .then(onGotMyHistoryPage)
-                .catch(function(err) {
-                    if (CPK.verbose === true) {
-                        console.error(err);
-                    }
-                });
-
-            /**
-             * @todo What is "$scope.$applyAsync"!
-             */
-            function onGotMyHistoryPage(result) {
-                var historyPage = result.historyPage;
-
-                // We need to refresh the view with async job .. use Promise
-                new Promise(function(resolve) {
-                    loaderDiv.setAttribute("hidden", "hidden");
-                    vm.historyPage = historyPage;
-                    return resolve();
-                }).then($scope.$applyAsync).then(function() {
-                    downloadCovers(result["obalky"])
-                });
-            }
-        }
-
-        /**
-         * Is called when an perPage limit is chosen
-         * @todo What is "$scope.paginator" and "$scope.$applyAsync"!
-         */
-        function perPageUpdated() {
-            // Behave like we just reloaded the page
-            new Promise(function(resolve) {
-                // Hide paginator
-                $scope.paginator.lastPage = 1;
-                // Reset currentPage
-                currentPage = 1;
-                // Hide previous results
-                vm.historyPage = [];
-                // Show loader
-                loaderDiv.removeAttribute("hidden");
-                // Apply the view before prompting for new data
-                resolve();
-            }).then($scope.$applyAsync);
-
-            // Clear the cache
-            pagesCache = [];
-
-            onHistoryUsernameDirectiveLinked(loaderDiv, username);
-        }
-
-        // Private
-
-        /**
-         * Handles the call of an improvised "onload" event when script links
-         * the loader div with the username in it.
-         * @param {HTMLElement} domElement
-         * @param {String} parsedUsername
-         */
-        function onHistoryUsernameDirectiveLinked(domElement, parsedUsername) {
-            loaderDiv = domElement;
-
-            // Store the username value
-            username = parsedUsername;
-
-            // Execute non-blocking Q
-            $q.resolve(getMyHistoryPage()).then(onGotMyHistoryPage).catch(function(err) {
-                loaderDiv.innerHTML = "<span class='label label-danger'>" + err.message + "</span>";
-            });
-
-            /**
-             * Resolves history page that matches our username.
-             * @param {Object} result
-             * @todo What is "$scope.$applyAsync"!
-             */
-            function onGotMyHistoryPage(result) {
-                var historyPage = result.historyPage;
-                var totalPages = result.totalPages;
-
-                if (totalPages > 0) {
-                    pagesCountDOM[username].className = pagesCountDOM[username].className.replace("hidden", "");
-                }
-
-                // Initialize the cache length
-                pagesCache = new Array(totalPages);
-
-                // Cache this result as it was removed from the cache in previous command
-                pagesCache[0] = result;
-
-                initializePaginator();
-
-                // We need to refresh the view with async job .. use Promise
-                new Promise(function(resolve) {
-                    loaderDiv.setAttribute("hidden", "hidden");
-                    vm.historyPage = historyPage;
-                    resolve();
-                }).then($scope.$applyAsync).then(function() {
-                    downloadCovers(result["obalky"]);
-                });
-            }
-        }
-
-        /**
-         * Downloads book covers.
-         * @param {Object} covers
-         */
-        function downloadCovers(covers) {
-            if (CPK.verbose === true) {
-                console.log(covers);
-            }
-
-            if (typeof covers !== "undefined") {
-                return;
-            }
-
-            for (var id in covers) {
-                if (covers.hasOwnProperty(id)) {
-                    obalky.fetchImage(id, covers[id].bibInfo, covers[id].advert, "icon");
-                }
-            }
-        }
-
-        /**
-         * This function initializes paginator for history by setting totalPages
-         * to the paginator object within a $scope and sets the active page.
-         * @todo Here is "$scope" again!
-         */
-        function initializePaginator() {
-            var visiblePagesList = [],
-                pagesList = [],
-                totalPages = pagesCache.length;
-
-            // Initialize pagesList
-            for (var i = 0; i < totalPages;) {
-                pagesList[i++] = {
-                    number : i,
-                    clazz  : (i === 1) ? "active" : ""
-                };
-
-                if (i <= 5) {
-                    visiblePagesList[i - 1] = pagesList[i - 1];
-                }
-            }
-
-            // Now create the paginator object within the scope
-            $scope.paginator = {
-                lastPage : totalPages,
-                visiblePages : visiblePagesList,
-                pages : pagesList,
-                activePage : 1,
-                showFirst : false,
-                showLast : totalPages > 5,
-                goToPage : pageSelected
-            };
-        }
-
-        /**
-         * Updates paginator active page
-         * @todo Here is "$scope" again!
-         */
-        function updatePaginatorActivePage() {
-            new Promise(function(resolve) {
-                var lastActivePage = $scope.paginator.activePage,
-                    newPages = $scope.paginator.pages;
-
-                // Update active element
-                newPages[lastActivePage - 1].clazz = "";
-                newPages[currentPage - 1].clazz = "active";
-
-                var lastPage        = $scope.paginator.lastPage,
-                    willShowFirst   = currentPage > 3,
-                    willShowLast    = currentPage < ( lastPage - 2 ),
-                    newVisiblePages = [],
-                    maxPage         = currentPage + 2,
-                    tolerance       = 3;
-
-                if (maxPage > lastPage) {
-                    tolerance = maxPage - lastPage + tolerance;
-                    maxPage = lastPage;
-                }
-
-                for (var i = currentPage - tolerance, j = 0; i < maxPage; ++j, ++i) {
-                    if (i < 0) {
-                        maxPage = maxPage - i;
-
-                        if (maxPage > lastPage) {
-                            maxPage = lastPage;
-                        }
-
-                        i = 0;
-                    }
-
-                    var showThisPage = !((willShowLast && i === (lastPage - 1)) || (willShowFirst && i === 0));
-
-                    if (showThisPage) {
-                        newVisiblePages[j] = newPages[i];
-                    } else {
-                        --j;
-                    }
-                }
-
-                $scope.paginator = {
-                    lastPage : lastPage,
-                    visiblePages : newVisiblePages,
-                    pages : newPages,
-                    activePage : currentPage,
-                    showFirst : willShowFirst,
-                    showLast : willShowLast,
-                    goToPage : pageSelected
-                };
-
-                resolve();
-            }).then($scope.$applyAsync);
-        }
 
 		// Public API
 		var Controller = Object.create( null );
 
 		// Properties
-		Controller.historyPage    = [];
 		Controller.perPage        = 10;
 
 		// Methods
 		Controller.initialize     = init;
-		Controller.pageSelected   = pageSelected;
-		Controller.perPageUpdated = perPageUpdated;
+		//Controller.pageSelected   = pageSelected;
+		//Controller.perPageUpdated = perPageUpdated;
 
 		return Controller;
     }

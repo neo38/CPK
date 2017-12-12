@@ -9,29 +9,30 @@
 		console.log( "jquery-cpk/covers.js" );
 	}
 
-	// Here are some extensions to jQuery self
-	$.fn.cpkCover = cover;
-
-	// Default options
-	$.fn.cpkCover.defaults = {
-		normal: {
-			width: 63,
-			height: 80,
-			noImg: "themes/bootstrap3/images/noCover.jpg"
-		},
-		small: {
-			width: 63,
-			height: 80,
-			noImg: "themes/bootstrap3/images/noCover.jpg"
-		}
-	};
-
 	/**
-	 * @param {string} profile
-	 * @param {Object} options
+	 * @param {string} action Requested cover action.
+	 * @param {string} profile (Optional.) Size profile.
+	 * @param {Object} options (Optional.) Custom options (overrides default options).
 	 * @return {jQuery}
+	 * @todo Make `action` parameter optional -> set default action in `$.fn.cpkCovers.defaults`
 	 */
-	function cover( profile, options ) {
+	function cover( action, profile, options ) {
+
+		// V zásadě by to tady mělo být tak, že musí být nastavena
+		// pouze `action` - všechno ostatní má defaultní hodnoty.
+		// V proměnné `action` pak musí být uveden název akce, který
+		// odpovídá názvu metody objektu `$.fn.cover`.
+		//
+		// Tzn. tyto volání jsou platná (a v tomto případě i stejná):
+		//
+		// jQuery( "*" ).cover( "displayThumbnail" );
+		// jQuery( "*" ).cover( "displayThumbnail", "normal" );
+		// jQuery( "*" ).cover( "displayThumbnail", "normal", { noImg: "some.png" } );
+		// jQuery( "*" ).cover( "displayThumbnail", { noImg: "some.png" } );
+
+		if ( availableActions.indexOf( action ) === -1 ) {
+			// TODO Unknown action type!
+		}
 
 		// Check if only options are passed
 		if ( typeof profile === "object" && typeof options === undefined ) {
@@ -40,7 +41,7 @@
 		}
 
 		// Ensure the profile is correct
-		if ( [ "normal", "small"].indexOf( profile ) === -1 ) {
+		if ( [ "normal", "small" ].indexOf( profile ) === -1 ) {
 			profile = "normal";
 		}
 
@@ -83,6 +84,60 @@
 		// Return context to allow chaining
 		return this;
 	}
+
+	// Default options
+	cover.defaults = {
+		normal: {
+			width: 63,
+			height: 80,
+			noImg: "themes/bootstrap3/images/noCover.jpg"
+		},
+		thumbnail: {
+			width: 27,
+			height: 36,
+			noImg: "themes/bootstrap3/images/noCover.jpg"
+		}
+	};
+
+	/**
+	 * Sets cache URL for covers service.
+	 * @param {string} cacheUrl
+	 */
+	function setCoversCacheUrl( cacheUrl ) {
+		cover.cacheUrl = cacheUrl;
+		cover.coverUrl = obalky.cacheUrl + "/api/cover";
+		cover.tocUrl   = obalky.cacheUrl + "/api/toc/thumbnail";
+		cover.pdfUrl   = obalky.cacheUrl + "/api/toc/pdf";
+	}
+
+	/**
+	 * @param {Object} bibInfo
+	 * @returns {string}
+	 */
+	function setCoversQueryPart( bibInfo ) {
+		var queryPart = "",
+			sep       = "";
+
+		$.each( bibInfo, function( name, value ) {
+			queryPart += sep + name + "=" + encodeURIComponent( value );
+			sep = "&";
+		} );
+
+		return queryPart;
+	}
+
+	// Other properties
+	cover.setCacheUrl( "https://cache.obalkyknih.cz" );
+	cover.linkUrl   = "https://www.obalkyknih.cz/view";
+	cover.coverText = "cover";
+	cover.tocText   = "table of content";
+
+	// Some methods
+	cover.setCacheUrl = setCoversCacheUrl;
+	cover.queryPart = setCoversQueryPart;
+
+	// Here are some extensions to jQuery self
+	$.fn.cpkCover = cover;
 
 	// Return context to allow chaining
 	return this;
