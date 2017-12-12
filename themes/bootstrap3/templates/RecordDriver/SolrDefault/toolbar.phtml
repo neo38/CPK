@@ -16,9 +16,9 @@ $handleOfflineFavorites = ! $this->isLoggedIn && $this->offlineFavoritesEnabled;
 $source = explode(".", $id)[0];
 
 $this->jsTranslations()->addStrings([
-    'previousRecordText' => "<?=$this->translate('Switch to previous record')?>",
-    'nextRecordText'     => "<?=$this->translate('Switch to next record')?>",
-    'recordText'         => "<?=$this->translate('record')?>",
+    'previousRecordText' => $this->translate('Switch to previous record'),
+    'nextRecordText'     => $this->translate('Switch to next record'),
+    'recordText'         => $this->translate('record'),
 ]);
 
 ?>
