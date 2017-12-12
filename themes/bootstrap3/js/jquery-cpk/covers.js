@@ -10,6 +10,11 @@
 	}
 
 	/**
+	 * @var {jQuery} self
+	 */
+	var self = this;
+
+	/**
 	 * @param {string} action Requested cover action.
 	 * @param {string} profile (Optional.) Size profile.
 	 * @param {Object} options (Optional.) Custom options (overrides default options).
@@ -23,6 +28,9 @@
 		// V proměnné `action` pak musí být uveden název akce, který
 		// odpovídá názvu metody objektu `$.fn.cover`.
 		//
+		// Všechna data, které jsou potřebná k získání obálky knihy,
+		// jsou uložena v data atributech u cílového elementu.
+		//
 		// Tzn. tyto volání jsou platná (a v tomto případě i stejná):
 		//
 		// jQuery( "*" ).cover( "displayThumbnail" );
@@ -30,11 +38,21 @@
 		// jQuery( "*" ).cover( "displayThumbnail", "normal", { noImg: "some.png" } );
 		// jQuery( "*" ).cover( "displayThumbnail", { noImg: "some.png" } );
 
-		var availableActions  = [],
-			availableProfiles = [ "normal", "small" ];
+		var availableActions  = [ "fetchImage", "fetchImageWithoutLinks",
+		                          "displayThumbnail", "displayThumbnailWithoutLinks",
+		                          "displayCover", "displayCoverWithoutLinks",
+		                          "displayThumbnailCover", "displayThumbnailCoverWithoutLinks",
+		                          "displayAuthorityCover", "displayAuthorityCoverWithoutLinks",
+		                          "displayAuthorityResults",
+		                          "displaySummary", "displaySummaryShort" ],
+		    availableProfiles = [ "normal", "small" ];
 
 		if ( availableActions.indexOf( action ) === -1 ) {
-			// TODO Unknown action type!
+			if ( CPK.verbose === true ) {
+				console.error( "Unknown action type provided!", action );
+			}
+
+			return self;
 		}
 
 		// Check if only options are passed
@@ -76,7 +94,7 @@
 			//...
 		}
 
-		this
+		self
 			// Collect info about all covers we need
 			.each( prepareRequest )
 			// Make request for needed covers
@@ -85,7 +103,7 @@
 			.each( useRequest );
 
 		// Return context to allow chaining
-		return this;
+		return self;
 	}
 
 	// Default options

@@ -300,7 +300,7 @@
 				var cover = pageCache.covers[ coverId ];
 
 				try {
-					obalky.fetchImage( thumbInnerDiv, cover.bibInfo, cover.advert, "icon" );
+					$( thumbInnerDiv ).cover( "fetchImage", "icon", { bibinfo: cover.bibInfo, advert: cover.advert });
 				} catch ( error ) {
 					if ( CPK.verbose === true ) {
 						console.error( "Unable to get cover for the history item", historyItem, cover, error );
