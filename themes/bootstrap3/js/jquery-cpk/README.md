@@ -32,7 +32,39 @@ Here is a list of provided [jQuery][2] plugins:
 
 Another important module (and probably the most used one) is __covers service__ implemented in file [covers.js][24]. Is a more efficient and usable version of original module `obalky` (see file [obalkyknih.js][25]).
 
-Service is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
+Originally there was code like this in `PHTML` files:
+
+```php
+<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
+<div id="cover_<?php echo $recordId?>" class="coverThumbnail">
+    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
+    <script type="text/javascript">
+$(document).ready(function() {
+    obalky.display_thumbnail(
+        "#cover_<?php echo $recordId?>",
+        "<?php echo $bibinfo?>",
+        "<?php echo json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>"
+    );
+});
+    </script>
+    <?php endif;?>
+</div>
+```
+
+Now it should be like this:
+
+```php
+<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
+<div id="cover_<?php echo $recordId?>" class="coverThumbnail">
+    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
+    <div id="cover_inner_<?php echo $recordId?>" 
+         data-bibinfo="<?php echo json_encode($bibinfo)?>" 
+         data-advert="<?php echo json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>"></div>
+    <? endif;?>
+</div>
+```
+
+Service self is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
 
 ```javascript
 jQuery( document.getElementById( "targetElement" ) ).cpkCover( "fetchImage" );
