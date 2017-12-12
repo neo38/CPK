@@ -154,9 +154,16 @@ Usage of `CPK.storage` is easy:
 - ~~`CPK.global.hideDOM( Element elm )` - adds _hidden_ attribute~~
 - ~~`CPK.global.toggleDOM( Element elm )` - toggles _hidden_ attribute~~
 
-__Note__: Functions above were refactored so now extends [jQuery][2] - e.g. `$.fn.showDom`, `$.fn.hideDom` and `$.fn.toggleDom` but we should drop this `hidden` attribute functionality where it belongs - out - and use just CSS instead.
-
 Also holds `GlobalController` which serves global modal dialog (via `viewModal` GET parameter).
+
+__Note__: Functions above were refactored so now extends [jQuery][2]. So instead calling 
+```javascript
+CPK.global.showDOM( elm ); // Or `CPK.global.hideDOM/toggleDOM`
+```
+you should use
+```javascript
+jQuery( elm ).cpkHidden( "show" ); // Or `$.fn.cpkHidden( [hide,show,toggle] )
+```
 
 #### `CPK.login`
 
