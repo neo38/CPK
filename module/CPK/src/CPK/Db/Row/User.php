@@ -304,7 +304,6 @@ class User extends BaseUser
      * @param boolean $includingDummyCards
      *
      * @return \Zend\Db\ResultSet\AbstractResultSet
-     * @throws \VuFind\Exception\LibraryCard
      */
     public function getLibraryCards($includingDummyCards = false)
     {

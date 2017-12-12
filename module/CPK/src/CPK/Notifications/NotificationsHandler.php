@@ -123,7 +123,6 @@ class NotificationsHandler
         $source = explode('.', $cat_username)[0];
 
         $this->getUserCardApiRelevantNotifications($cat_username, $source);
-
         $this->getUserCardApiNonrelevantNotifications($cat_username, $source);
 
         return $this->prepareNotificationsRowsForOutput($this->userCardNotificationsRows, $source);
@@ -132,13 +131,12 @@ class NotificationsHandler
     /**
      * Retrieves all notifications related to provided User
      *
-     * @param string $cat_username
+     * @param User $user
      * @return string[][][]
      */
     public function getUserNotifications(User $user)
     {
         $this->getUserApiRelevantNotifications($user);
-
         $this->getUserApiNonrelevantNotifications($user);
 
         return $this->prepareNotificationsRowsForOutput($this->userNotificationsRows);
@@ -154,7 +152,11 @@ class NotificationsHandler
      */
     public function setUserCardNotificationRead(User $user, $notificationType, $source)
     {
-        NotificationTypes::assertValid($notificationType);
+        try {
+            NotificationTypes::assertValid($notificationType);
+        } catch ( \Exception $e ) {
+            return false;
+        }
 
         foreach ($user->getLibraryCards() as $libCard) {
             if ($libCard->home_library === $source) {
@@ -184,7 +186,7 @@ class NotificationsHandler
      *
      * @param User $user
      * @param string $notificationType
-     * @return boolean $success
+     * @return boolean
      */
     public function setUserNotificationRead(User $user, $notificationType)
     {
@@ -265,7 +267,7 @@ class NotificationsHandler
     }
 
     /**
-     * Gets all UserCard API nonrelevant Notifications identified by user_card's cat_username
+     * Gets all UserCard API non relevant Notifications identified by user_card's cat_username
      *
      * @param string $cat_username
      */
@@ -297,7 +299,7 @@ class NotificationsHandler
     }
 
     /**
-     * Gets all User API nonrelevant Notifications identified by provided User Row
+     * Gets all User API non relevant Notifications identified by provided User Row
      *
      * @param User $user
      */
@@ -316,12 +318,9 @@ class NotificationsHandler
      */
     protected function createNewUserCardApiRelevantNotifications($cat_username, $source)
     {
-        $blocksDetails = $this->fetchBlocksDetails($cat_username, $source);
-
-        $finesDetails = $this->fetchFinesDetails($cat_username, $source);
-
-        $overduesDetails = $this->fetchOverduesDetails($cat_username, $source);
-
+        $blocksDetails     = $this->fetchBlocksDetails($cat_username, $source);
+        $finesDetails      = $this->fetchFinesDetails($cat_username, $source);
+        $overduesDetails   = $this->fetchOverduesDetails($cat_username, $source);
         $userNotifications = [
             NotificationTypes::BLOCKS => $blocksDetails,
             NotificationTypes::FINES => $finesDetails,
@@ -418,6 +417,7 @@ class NotificationsHandler
      *
      * @param string $cat_username
      * @param string $source
+     * @return array
      */
     protected function fetchBlocksDetails($cat_username, $source)
     {
@@ -428,7 +428,8 @@ class NotificationsHandler
 
         if (is_array($profile) && count($profile) === 0) {
 
-            throw new ILSException('Error fetching profile in "' . $source . '": ' . $this->translate('profile_fetch_problem'));
+            //throw new ILSException('Error fetching profile in "' . $source . '": ' . $this->translate('profile_fetch_problem'));
+            return [ 'shows' => false ];
         } else
             if (count($profile['blocks'])) {
 
@@ -450,6 +451,7 @@ class NotificationsHandler
      *
      * @param string $cat_username
      * @param string $source
+     * @return array
      */
     protected function fetchFinesDetails($cat_username, $source)
     {
@@ -476,10 +478,11 @@ class NotificationsHandler
     }
 
     /**
-     * Returns notifications of user's overdues.
+     * Returns notifications of user's over paid dues.
      *
      * @param string $cat_username
      * @param string $source
+     * @return array
      */
     protected function fetchOverduesDetails($cat_username, $source)
     {
@@ -491,9 +494,9 @@ class NotificationsHandler
         $overduedIds = [];
 
         foreach ($result as $current) {
-
-            if (isset($current['dueStatus']) && $current['dueStatus'] === "overdue")
+            if (isset($current['dueStatus']) && $current['dueStatus'] === 'overdue') {
                 array_push($overduedIds, $current['id']);
+            }
         }
 
         if (count($overduedIds)) {
@@ -528,7 +531,7 @@ class NotificationsHandler
 
     /**
      * Checks if the provided array object of NotificationsRow has all the keys
-     * matching all API nonrelevant keys.
+     * matching all API non relevant keys.
      *
      * @param array $notifications
      * @return boolean $hasAllApiNonrelevantKeys
@@ -559,8 +562,9 @@ class NotificationsHandler
             if ($notificationRow->shows) {
                 $clazz = $this->newNotifClass;
 
-                if (! $notificationRow->read)
+                if (! $notificationRow->read) {
                     $clazz .= ' notif-unread';
+                }
 
                 $notification = [
                     'clazz' => $clazz,

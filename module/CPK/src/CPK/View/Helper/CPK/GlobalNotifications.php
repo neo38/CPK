@@ -94,8 +94,9 @@ class GlobalNotifications extends \Zend\View\Helper\AbstractHelper {
     /**
      * Constructor
      *
-     * @param
-     *            \Zend\Config\Config VuFind configuration
+     * @param \Zend\Config\Config VuFind configuration $config
+     * @param string $lang
+     * @param \VuFind\View\Helper\Root\TransEsc $translator
      */
     public function __construct(Config $config, $lang, TransEsc $translator) {
         $this->config = $config;
@@ -127,22 +128,27 @@ class GlobalNotifications extends \Zend\View\Helper\AbstractHelper {
             $this->messagesVariableName = false;
         }
     }
-    
+
+    /**
+     * Are notifications enabled?
+     *
+     * @return bool
+     */
     public function isEnabled() {
         return $this->enabled;
     }
 
     /**
-     * Returns URL of the institution's logo specified by the source.
+     * Render all notifications of all classes.
      *
-     * @param string $source            
+     * @return string
      */
     public function renderAll() {
         if ($this->enabled) {
             $html = '';
             
             if ($this->messagesVariableName === false) {
-                $errMsg = "Could not load the notifications.ini properly. (Couldn't find definition of ${$this->lang} language's messages)";
+                $errMsg = sprintf( 'Could not load the notifications.ini properly. (Couldn\'t find definition of %s language\'s messages)', $this->lang );
                 return $this->createNotification( $errMsg, 'danger' );
             }
             
@@ -155,6 +161,11 @@ class GlobalNotifications extends \Zend\View\Helper\AbstractHelper {
         return '';
     }
 
+    /**
+     * Parse messages of single class.
+     * @param $class
+     * @return string
+     */
     protected function parseMessages($class) {
         if ($this->config[$class][$this->messagesVariableName] !== null) {
             
@@ -173,6 +184,12 @@ class GlobalNotifications extends \Zend\View\Helper\AbstractHelper {
         return '';
     }
 
+    /**
+     * Create HTML for single notification.
+     * @param string $message
+     * @param string $class
+     * @return string
+     */
     protected function createNotification($message, $class = 'default') {
         return '<div class="notif-' . $class . '">' . htmlspecialchars( 
                 $message ) . '</div>';
