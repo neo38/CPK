@@ -25,7 +25,6 @@
 		 * @property {HTMLElement} listDiv
 		 * @property {HTMLElement} syncNotifs
 		 * @property {HTMLElement} loader
-		 * @property {HTMLElement} unread
 		 * @property {HTMLElement} icon
 		 * @property {array} institutionListDivs
 		 * @type {Object}
@@ -97,7 +96,6 @@
 			domLinker.listDiv     = document.getElementById( "notificationsListDiv" );
 			domLinker.syncNotifs  = document.getElementById( "notif_synchronous_notifications" );
 			domLinker.loader      = document.getElementById( "notif_loader" );
-			domLinker.unread      = document.getElementById( "notif_unread_count" );
 			domLinker.icon        = document.getElementById( "notif_icon" );
 
 			// Get `listDiv`s for all institutions to which current user belongs
@@ -123,8 +121,7 @@
 
 			// Check if we found all DOM elements we need
 			[
-				"dropDown", "dropDownUl", "listDiv", "syncNotifs", "loader",
-				"unread", "icon"
+				"dropDown", "dropDownUl", "listDiv", "syncNotifs", "loader", "icon"
 			].forEach( checkElm );
 
 			return Promise.resolve( result );
@@ -216,24 +213,19 @@
 
 			/**
 			 * @param {array} notifications
-			 * @returns {Promise<Number>}
+			 * @returns {Promise<boolean>}
 			 */
 			function useNotificationsPromise( notifications ) {
 				if ( ! ( notifications instanceof Array ) ) {
-					return Promise.resolve( 0 );
+					return Promise.resolve( false );
 				}
 
 				hasNotifications = true;
-				var unreadCount = 0;
 
 				/**
 				 * @param {Object} notification
 				 */
 				function processNotification( notification ) {
-					if ( notification.clazz.match( /unread/ ) ) {
-						unreadCount += 1;
-					}
-
 					try {
 						// Create notification's <div>
 						var div = document.createElement( "div" );
@@ -257,15 +249,17 @@
 				// Process all notifications
 				notifications.forEach( processNotification );
 
+				// Cache notifications
 				notificationsCache.user = notifications;
-				return Promise.resolve( unreadCount );
+
+				// Resolve promise
+				return Promise.resolve( true );
 			}
 
 			// Initialize notifications for user
 			return Promise
 				.resolve( getNotificationsPromise() )
 				.then( useNotificationsPromise )
-				.then( unreadCountPromise )
 				.then( warningIconPromise );
 		}
 
@@ -361,25 +355,20 @@
 
 			/**
 			 * @param {LibraryCards[]} libraryCards
-			 * @returns {Promise<Number>}
+			 * @returns {Promise<boolean>}
 			 */
 			function useNotifications( libraryCards ) {
-				var unreadCount = 0,
-				    currentParent,
+				var currentParent,
 				    currentCard;
 
 				/**
 				 * @param {Object} notification
 				 */
 				function processNotification( notification ) {
-					if ( notification.clazz.match( /unread/ ) ) {
-						unreadCount += 1;
-					}
-
 					try {
 						// Create notification's <div>
 						var div = document.createElement( "div" );
-						div.setAttribute( "class", "notif-" + notification.clazz );
+						div.setAttribute( "class", "notif-" + notification.clazz.replace( " notif-unread", "" ) );
 						div.setAttribute( "data-source", currentCard.source );
 						div.setAttribute( "data-clazz", notification.clazz );
 						div.setAttribute( "data-href", notification.href );
@@ -433,7 +422,7 @@
 				libraryCards.forEach( processCardNotifications );
 
 				// Returns resolved promise with count of new notifications
-				return Promise.resolve( unreadCount );
+				return Promise.resolve( true );
 			}
 
 			// Initialize notifications for library
@@ -441,47 +430,16 @@
 				.resolve( getLibraryCards() )
 				.then( getNotifications )
 				.then( useNotifications )
-				.then( unreadCountPromise )
 				.then( warningIconPromise );
 		}
 
 		/**
-		 * @private Used when notifications are initialized.
-		 * @param {Number} unreadCount
-		 * @returns {Promise<boolean>}
-		 */
-		function unreadCountPromise( unreadCount ) {
-			try {
-				var currentCount = parseInt( new Number( domLinker.unread.textContent ) ),
-					totalCount   = currentCount + parseInt( unreadCount );
-
-				if ( totalCount > 0 ) {
-					domLinker.unread.style.display = "block";
-				} else {
-					domLinker.unread.style.display = "none";
-				}
-
-				domLinker.unread.textContent =  totalCount;
-
-				return Promise.resolve( true );
-			} catch ( error ) {
-				if ( CPK.verbose === true ) {
-					console.error( error );
-				}
-
-				return Promise.resolve( false );
-			}
-		}
-
-		/**
-		 * @private Used after `unreadCountPromise`.
+		 * @private Shows warning icon if it should be visible.
 		 * @param {boolean} result
 		 * @returns {Promise<boolean>}
 		 */
 		function warningIconPromise( result ) {
-			var currentCount = new Number( domLinker.unread.textContent );
-
-			if ( result === true || hasNotifications === true || currentCount > 0 ) {
+			if ( result === true || hasNotifications === true ) {
 				showIcon();
 			} else {
 				hideIcon();
@@ -502,18 +460,9 @@
 				// Collect all necessary data
 				var targetElm   = event.target,
 					source      = targetElm.getAttribute( "data-source" ),
-					clazz       = targetElm.getAttribute( "data-clazz" ),
-					href        = targetElm.getAttribute( "data-href" ),
-					type        = targetElm.getAttribute( "data-type" );
+					href        = targetElm.getAttribute( "data-href" );
 
-				// Update notification's unread status
-				if ( clazz.match( /unread/ ) ) {
-					jQuery.post( "/AJAX/JSON?method=notificationRead", {
-						notificationType: type,
-						source: source
-					} );
-				}
-
+				// There is no href attribute
 				if ( typeof href === "undefined" || href.length === 0 ) {
 					return;
 				}
