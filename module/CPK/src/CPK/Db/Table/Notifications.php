@@ -27,7 +27,9 @@
  */
 namespace CPK\Db\Table;
 
-use CPK\Db\Table\Gateway, Zend\Config\Config, Zend\Db\Sql\Select;
+use CPK\Db\Table\Gateway as Gateway;
+use Zend\Config\Config;
+use Zend\Db\Sql\Select;
 use CPK\Db\Row\User as UserRow;
 
 class Notifications extends Gateway
@@ -83,8 +85,12 @@ class Notifications extends Gateway
         $timestampNow = date('Y-m-d H:i:s');
 
         foreach ($notificationsParsed as $notificationType => $notificationDetails) {
-
-            $notificationTypeId = $notificationTypesTable->getNotificationTypeId($notificationType);
+            try {
+                $notificationTypeId = $notificationTypesTable->getNotificationTypeId($notificationType);
+            } catch ( \Exception $e ) {
+                // TODO Log exception?
+                continue;
+            }
 
             $notificationShows = $notificationDetails['shows'];
 
@@ -96,7 +102,12 @@ class Notifications extends Gateway
             if (count($exists)) {
                 $row = $exists->current();
             } else {
-                $row = $this->createRow();
+                try {
+                    $row = $this->createRow();
+                } catch ( \Exception $e ) {
+                    // TODO Log exception?
+                    continue;
+                }
             }
 
             $row->user_card = $userCardId;
@@ -145,8 +156,12 @@ class Notifications extends Gateway
         $timestampNow = date('Y-m-d H:i:s');
 
         foreach ($notificationsParsed as $notificationType => $notificationShows) {
-
-            $notificationTypeId = $notificationTypesTable->getNotificationTypeId($notificationType);
+            try {
+                $notificationTypeId = $notificationTypesTable->getNotificationTypeId($notificationType);
+            } catch ( \Exception $e ) {
+                // TODO Log exception?
+                continue;
+            }
 
             $exists = $this->select([
                 'user' => $userId,
@@ -156,7 +171,12 @@ class Notifications extends Gateway
             if (count($exists)) {
                 $row = $exists->current();
             } else {
-                $row = $this->createRow();
+                try {
+                    $row = $this->createRow();
+                } catch ( \Exception $e ) {
+                    // TODO Log exception?
+                    continue;
+                }
             }
 
             $row->user = $userId;
@@ -192,11 +212,16 @@ class Notifications extends Gateway
      *
      * @param string $userCardId
      * @param string $notificationType
-     * @return \CPK\Db\Row\Notifications
+     * @return array|\ArrayObject|null
      */
     public function getNotificationsRowFromUserCardUsername($userCardId, $notificationType)
     {
-        $notificationTypeId = $this->getNotificationTypesTable()->getNotificationTypeId($notificationType);
+        try {
+            $notificationTypeId = $this->getNotificationTypesTable()->getNotificationTypeId($notificationType);
+        } catch ( \Exception $e ) {
+            // TODO Log exception?
+            return null;
+        }
 
         return $this->select([
             'user_card' => $userCardId,
@@ -222,11 +247,16 @@ class Notifications extends Gateway
      *
      * @param UserRow $user
      * @param string $notificationType
-     * @return \CPK\Db\Row\Notifications
+     * @return array|\ArrayObject|null
      */
     public function getNotificationsRowFromUser(UserRow $user, $notificationType)
     {
-        $notificationTypeId = $this->getNotificationTypesTable()->getNotificationTypeId($notificationType);
+        try {
+            $notificationTypeId = $this->getNotificationTypesTable()->getNotificationTypeId($notificationType);
+        } catch ( \Exception $e ) {
+            // TODO Log exception?
+            return null;
+        }
 
         return $this->select([
             'user' => $user->id,
@@ -256,9 +286,13 @@ class Notifications extends Gateway
         ]);
 
         foreach ($rows as $row) {
-
-            $notificationKey = $notificationTypesTable->getNotificationTypeFromId($row->type);
-            $returnArray[$notificationKey] = $row;
+            try {
+                $notificationKey = $notificationTypesTable->getNotificationTypeFromId($row->type);
+                $returnArray[$notificationKey] = $row;
+            } catch ( \Exception $e ) {
+                // TODO Log exception?
+                continue;
+            }
         }
 
         return $returnArray;
@@ -287,10 +321,14 @@ class Notifications extends Gateway
         return $userCard['id'];
     }
 
+    /**
+     * @return NotificationTypes|\CPK\Db\Table\Gateway
+     */
     protected function getNotificationTypesTable()
     {
-        if ($this->notificationTypesTable === null)
+        if ($this->notificationTypesTable === null) {
             $this->notificationTypesTable = $this->getDbTable('notification_types');
+        }
 
         return $this->notificationTypesTable;
     }
