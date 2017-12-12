@@ -70,8 +70,8 @@ $this->jsTranslations()->addStrings(array(
         <?=$this->transEsc("source_$source", null, $source)?>
         <img class="pull-right" height="32" src="<?=$this->logos()->getLogo($source)?>">
       </h3>
+      <div class="history-item-list-cont"></div>
       <div id="<?=$libraryIdentity['home_library']?>" class="row well" style="margin-bottom: 2px;">
-        <div class="history-item-list-cont"></div>
         <div class="history-item-list-loader">
           <i class="fa fa-spinner fa-spin"></i>
           <span class="label label-info"><?=$this->transEsc('Loading')?> &hellip;</span>
