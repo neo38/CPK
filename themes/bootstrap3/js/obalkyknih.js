@@ -4,13 +4,13 @@ obalky.setCacheUrl = function(cacheUrl) {
 	obalky.coverUrl  = obalky.cacheUrl + "/api/cover";
 	obalky.tocUrl    = obalky.cacheUrl + "/api/toc/thumbnail";
 	obalky.pdfUrl    = obalky.cacheUrl + "/api/toc/pdf";
-}
+};
 obalky.setCacheUrl("https://cache.obalkyknih.cz");
 obalky.linkUrl   = "https://www.obalkyknih.cz/view";
 obalky.coverText = "cover";
 obalky.tocText   = "table of content";
 
-obalky.queryPart = obalky.href || function(bibinfo) {
+obalky.queryPart = function(bibinfo) {
   var queryPart = "";
   var sep = "";
   $.each(bibinfo, function (name, value) {
@@ -18,21 +18,21 @@ obalky.queryPart = obalky.href || function(bibinfo) {
     sep = "&";
   });
   return queryPart;
-}
+};
 
-obalky.coverTargetUrl = obalky.coverTargetUrl || function (bibinfo) {
+obalky.coverTargetUrl = function (bibinfo) {
   return obalky.linkUrl + "?" + obalky.queryPart(bibinfo);
-}
+};
 
-obalky.pdfTargetUrl = obalky.pdfTargetUrl || function (bibinfo) {
+obalky.pdfTargetUrl = function (bibinfo) {
   return obalky.pdfUrl + "?" + obalky.queryPart(bibinfo);
-}
+};
 
-obalky.imageIsLoaded = obalky.imageIsLoaded || function (image) {
+obalky.imageIsLoaded = function (image) {
   return (image.height > 1 && image.width > 1);
-}
+};
 
-obalky.fetchImage = obalky.fetchImage || function (element, bibinfo, query, type) {
+obalky.fetchImage = function (element, bibinfo, query, type) {
 	    var img = new Image();
 
 	    var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -40,16 +40,16 @@ obalky.fetchImage = obalky.fetchImage || function (element, bibinfo, query, type
 	      if (obalky.imageIsLoaded(img)) {
 	        var href = obalky.coverTargetUrl(bibinfo);
 	        var dim = "height='80' width='63'";
-	        if (type == "thumbnail") {
+	        if (type === "thumbnail") {
 	            dim = "height='36' width='27'";
 	        }
-	        $(element).html("<a href='" + href + "' class='title'><img src='" + img.src + "' alt='" + obalky.coverText + "' " + dim + "></img></a>");
+	        $(element).html("<a href='" + href + "' class='title'><img src='" + img.src + "' alt='" + obalky.coverText + "' " + dim + "></a>");
 	      }
-	    }
+	    };
 	    img.src = obalky.coverUrl + "?multi=" + multi + "&type=" + type  + "&keywords=" + encodeURIComponent(query);
-}
+};
 
-obalky.fetchImage = obalky.fetchImageWithoutLinks || function (element, bibinfo, query, type) {
+obalky.fetchImageWithoutLinks = function (element, bibinfo, query, type) {
     var img = new Image();
 
     var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -57,34 +57,34 @@ obalky.fetchImage = obalky.fetchImageWithoutLinks || function (element, bibinfo,
       if (obalky.imageIsLoaded(img)) {
         var href = obalky.coverTargetUrl(bibinfo);
         var dim = "height='80' width='63'";
-        if (type == "thumbnail") {
+        if (type === "thumbnail") {
             dim = "height='36' width='27'";
         }
-        $("[id=" + $(element).attr('id') + "]").html("<img src='" + img.src + "' alt='" + obalky.coverText + "' " + dim + "></img>");
+        $("[id=" + $(element).attr('id') + "]").html("<img src='" + img.src + "' alt='" + obalky.coverText + "' " + dim + ">");
       }
-    }
+    };
     img.src = obalky.coverUrl + "?multi=" + multi + "&type=" + type  + "&keywords=" + encodeURIComponent(query);
-}
+};
 
-obalky.display_thumbnail = obalky.display_thumbnail || function (element, bibinfo, query, type) {
+obalky.display_thumbnail = function (element, bibinfo, query, type) {
   type = type || "icon";
   
   $(document).ready(
 	  obalky.fetchImage(element, bibinfo, query, type)
   );
   
-}
+};
 
-obalky.display_thumbnail_without_links = obalky.display_thumbnail || function (element, bibinfo, query, type) {
+obalky.display_thumbnail_without_links = function (element, bibinfo, query, type) {
 	  type = type || "icon";
 	  
 	  $(document).ready(
 		  obalky.fetchImageWithoutLinks(element, bibinfo, query, type)
 	  );
 	  
-	}
+	};
 
-obalky.display_cover = obalky.display_cover || function (element, bibinfo, query) {
+obalky.display_cover = function (element, bibinfo, query) {
   var multi = encodeURIComponent(JSON.stringify(bibinfo));
   $(document).ready(function() {
     var img = new Image();
@@ -93,7 +93,7 @@ obalky.display_cover = obalky.display_cover || function (element, bibinfo, query
         var href = obalky.coverTargetUrl(bibinfo);
         $(element).html("<div class='cover_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></a></div>");
       }
-    }
+    };;
     img.src = obalky.coverUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
   });
   $(document).ready(function() {
@@ -103,10 +103,10 @@ obalky.display_cover = obalky.display_cover || function (element, bibinfo, query
         var href = obalky.pdfTargetUrl(bibinfo);
         $(element).append("<div class='toc_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.tocText + "'></img></a></div>");
       }
-    }
+    };
     img.src = obalky.tocUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
   });
-}
+};
 
 obalky.display_cover_without_links = function (element, bibinfo, query) {
 	  var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -117,7 +117,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	        var href = obalky.coverTargetUrl(bibinfo);
 	        $(element).html("<div class='cover_thumbnail'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");	  	  
 	      }
-	    }
+	    };
 	    img.src = obalky.coverUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
 	  });
 	  
@@ -128,7 +128,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	        var href = obalky.pdfTargetUrl(bibinfo);
 	        $(element).append("<div class='toc_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.tocText + "'></img></a></div>");
 	      }
-	    }
+	    };
 	    img.src = obalky.tocUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
 	  });
 	  
@@ -139,7 +139,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 		  }
 		}
 	  });
-}
+};
 
 obalky.display_cover_without_links = function (element, bibinfo, query) {
 	  var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -150,7 +150,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	        var href = obalky.coverTargetUrl(bibinfo);
 	        $(element).html("<div class='cover_thumbnail clearfix'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");
 	      }
-	    }
+	    };
 	    img.src = obalky.coverUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
 	  });
 	  
@@ -161,7 +161,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	        var href = obalky.pdfTargetUrl(bibinfo);
 	        $(element).append("<div class='toc_thumbnail'><a target='_blank' href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.tocText + "'></img></a></div>");
 	      }
-	    }
+	    };
 	    img.src = obalky.tocUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
 	  });
 	  
@@ -174,7 +174,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 			  } 
 		  }, 2000);
 	  });
-}
+};
 
 obalky.display_thumbnail_cover_without_links = function (element, bibinfo, query) {
 	  var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -185,13 +185,13 @@ obalky.display_thumbnail_cover_without_links = function (element, bibinfo, query
 	        var href = obalky.coverTargetUrl(bibinfo);
 	        $(element).html("<div class='cover_thumbnail'><img align='center' width='100' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");	  	  
 	      }
-	    }
+	    };
 	    img.src = obalky.coverUrl + "?multi=" + multi + "&type=medium&keywords=" + encodeURIComponent(query);
 	    if (bibinfo.cover_medium_url) {
 	        img.src = bibinfo.cover_medium_url;
 	    }
 	  });
-}
+};
 
 obalky.display_authority_cover = function (element, bibinfo, query) {
     var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -205,12 +205,12 @@ obalky.display_authority_cover = function (element, bibinfo, query) {
 					var href = obalky.coverTargetUrl(bibinfo);
 					$(element).html("<div class='cover_thumbnail'><a href = 'http://www.obalkyknih.cz/view_auth?auth_id=" + auth_id + "'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></a></div>");
 				}
-			}
+			};
 			img.src = coverurl;
 
 		});
     });
-}
+};
 
 obalky.display_authority_thumbnail_cover_without_links = function (element, bibinfo, query) {
 	var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -224,12 +224,12 @@ obalky.display_authority_thumbnail_cover_without_links = function (element, bibi
 					var href = obalky.coverTargetUrl(bibinfo);
 					$(element).html("<div class='cover_thumbnail'><img align='left' width='65' src='" + img.src + "' alt='" + obalky.coverText + "'></div>");
 				}
-			}
+			};
 			img.src = coverurl;
 
 		});
     });
-}
+};
 
 obalky.display_authority_results = function (element, bibinfo, query) {
     var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -243,12 +243,12 @@ obalky.display_authority_results = function (element, bibinfo, query) {
                     var href = obalky.coverTargetUrl(bibinfo);
                     $(element).html("<div class='cover_thumbnail'><img align='left' width='100' src='" + img.src + "' alt='" + obalky.coverText + "'></div>");
                 }
-            }
+            };
             img.src = coverurl;
 
         });
     });
-}
+};
 
 obalky.display_summary = function (element, bibinfo) {
 	var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -257,7 +257,7 @@ obalky.display_summary = function (element, bibinfo) {
 			$(element).html(data.data);
 		});
 	});
-}
+};
 
 obalky.display_summary_short = function (element, bibinfo) {
 	var multi = encodeURIComponent(JSON.stringify(bibinfo));
@@ -266,4 +266,4 @@ obalky.display_summary_short = function (element, bibinfo) {
 			$(element).html(data.data);
 		});
 	});
-}
+};
