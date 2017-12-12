@@ -114,6 +114,7 @@
 	}
 
 	/**
+	 * Creates GET parameters from given `bibInfo`
 	 * @param {Object} bibInfo
 	 * @returns {string}
 	 */
