@@ -52,6 +52,8 @@ __TBD__ Function `jQuery.cpkCover` can be also used as _Deferred_.
 
 __TBD__ Inside `jQuery.cpkCover` is used `BibInfo` object.
 
+__TBD__ There is also `CPK.covers.CoversController` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
+
 ### Search Records
 
 __TBD__ ... `$.fn.cpkRecord`

@@ -30,18 +30,21 @@
 		// jQuery( "*" ).cover( "displayThumbnail", "normal", { noImg: "some.png" } );
 		// jQuery( "*" ).cover( "displayThumbnail", { noImg: "some.png" } );
 
+		var availableActions  = [],
+			availableProfiles = [ "normal", "small" ];
+
 		if ( availableActions.indexOf( action ) === -1 ) {
 			// TODO Unknown action type!
 		}
 
 		// Check if only options are passed
-		if ( typeof profile === "object" && typeof options === undefined ) {
+		if ( typeof profile === "object" && typeof options === "undefined" ) {
 			options = profile;
 			profile = "normal";
 		}
 
 		// Ensure the profile is correct
-		if ( [ "normal", "small" ].indexOf( profile ) === -1 ) {
+		if ( availableProfiles.indexOf( profile ) === -1 ) {
 			profile = "normal";
 		}
 
@@ -105,9 +108,9 @@
 	 */
 	function setCoversCacheUrl( cacheUrl ) {
 		cover.cacheUrl = cacheUrl;
-		cover.coverUrl = obalky.cacheUrl + "/api/cover";
-		cover.tocUrl   = obalky.cacheUrl + "/api/toc/thumbnail";
-		cover.pdfUrl   = obalky.cacheUrl + "/api/toc/pdf";
+		cover.coverUrl = cover.cacheUrl + "/api/cover";
+		cover.tocUrl   = cover.cacheUrl + "/api/toc/thumbnail";
+		cover.pdfUrl   = cover.cacheUrl + "/api/toc/pdf";
 	}
 
 	/**
@@ -126,8 +129,10 @@
 		return queryPart;
 	}
 
+	// Set covers cache URL
+	setCoversCacheUrl( "https://cache.obalkyknih.cz" );
+
 	// Other properties
-	cover.setCacheUrl( "https://cache.obalkyknih.cz" );
 	cover.linkUrl   = "https://www.obalkyknih.cz/view";
 	cover.coverText = "cover";
 	cover.tocText   = "table of content";
