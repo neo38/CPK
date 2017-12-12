@@ -47,7 +47,7 @@ $(document).ready(function() {
     );
 });
     </script>
-    <?php endif;?>
+    <?php endif?>
 </div>
 ```
 
@@ -60,7 +60,7 @@ Now it should be like this:
     <div id="cover_inner_<?php echo $recordId?>" 
          data-bibinfo="<?php echo json_encode($bibinfo)?>" 
          data-advert="<?php echo json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>"></div>
-    <? endif;?>
+    <?php endif?>
 </div>
 ```
 
