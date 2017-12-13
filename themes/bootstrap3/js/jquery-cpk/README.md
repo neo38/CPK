@@ -37,7 +37,6 @@ Originally there was code like this in `PHTML` files:
 ```php
 <?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
-    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
     <script type="text/javascript">
 $(document).ready(function() {
     obalky.display_thumbnail(
@@ -47,7 +46,6 @@ $(document).ready(function() {
     );
 });
     </script>
-    <?php endif?>
 </div>
 ```
 
@@ -56,35 +54,31 @@ Now it should be like this:
 ```php
 <?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
-    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-    <div id="cover_inner_<?php echo $recordId?>" 
-         data-bibinfo="<?php echo json_encode($bibinfo)?>" 
-         data-advert="<?php echo json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>"></div>
-    <?php endif?>
+    <div data-action="displayThumbnail" data-recordId="<?php echo $recordId?>" 
+         data-bibinfo="<?php echo htmlspecialchars($bibinfo, ENT_QUOTES)?>" 
+         data-advert="<?php echo htmlspecialchars($this->record($resource)->getObalkyKnihAdvert('checkedout'), ENT_QUOTES)?>"></div>
 </div>
 ```
 
-Service self is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
+Service self is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( [ACTION[, PROFILE[, OPTIONS]]] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
 
 ```javascript
-jQuery( document.getElementById( "targetElement" ) ).cpkCover( "fetchImage" );
+jQuery( document.getElementById( "targetElement" ) ).cpkCover();
 ```
 
-Where `targetElement` should be ID of empty `<div>` element where will be rendered either proper cover or substitute image.
+Where `targetElement` should be ID of empty `<div>` element witch proper _data-*_ attributes where will be rendered cover image (or substitute image).
 
 For multiple covers on one page (like search records is command similar) do something like this:
 
 ```javascript
-jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCover( "fetchImage" );
+jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCover();
 ```
 
-Where `.result-cover-cont` should be class of empty `<div>` elements inside the element with ID `results-list`.
+Where `.result-cover-cont` should be class of empty `<div>` elements witch proper _data-*_ attributes inside the element with ID `results-list`.
 
-__TBD__ Function `jQuery.cpkCover` can be also used as _Deferred_.
+__Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
 
-__TBD__ Inside `jQuery.cpkCover` is used `BibInfo` object.
-
-__TBD__ There is also `CPK.covers.CoversController` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
+__TBD__ Inside `jQuery.cpkCover` is used `BibInfoPrototype` and `CoverPrototype` object.
 
 ### Search Records
 
@@ -164,6 +158,10 @@ you should use
 ```javascript
 jQuery( elm ).cpkHidden( "show" ); // Or `$.fn.cpkHidden( [hide,show,toggle] )
 ```
+
+### `CPK.covers`
+
+Is an instance of `CoversController` and is used in [common.js][5] to initialize all covers that are in rendered HTML code.
 
 #### `CPK.login`
 
