@@ -263,9 +263,6 @@ jQuery(function onDocumentReady() {
 			return Promise.resolve( false );
 		}
 
-// TODO <img src="noImg.png" data-cover="true" ...>!!!
-//      Elementy jsou rozpoznávány dle [data-cover="true"] ...
-
 		/**
 		 * @type {array} modules Array with modules to init
 		 */
