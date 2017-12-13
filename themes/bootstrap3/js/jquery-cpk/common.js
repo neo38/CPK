@@ -267,7 +267,6 @@ jQuery(function onDocumentReady() {
 		 * @type {array} modules Array with modules to init
 		 */
 		var modules = [
-			CPK.covers.initialize,
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,
@@ -278,7 +277,8 @@ jQuery(function onDocumentReady() {
 			//CPK.favorites.RecordController.initialize,
 			//CPK.favorites.ListController.initialize,
 			CPK.toolbar.initialize,
-			initializeTermsOfUseModal
+			initializeTermsOfUseModal,
+			CPK.covers.initialize
 		];
 
 		// Initialize all modules

@@ -81,66 +81,10 @@
 	}
 
 	/**
-	 * @param {CoverSizePrototype} size
-	 * @returns {string}
-	 */
-	CoverSizePrototype.getHeightAndWidthAttrs = function getHeightAndWidthAttrs( size ) {
-		return "height=\"" + size.height.toString() + "\" width=\"" + size.width.toString() + "\"";
-	};
-
-	/**
 	 * Function that extends `jQuery.fn`.
-	 * @param {string} action (Optional.) Requested cover action.
-	 * @param {string} profile (Optional.) Size profile.
-	 * @param {Object} options (Optional.) Custom options (overrides default options).
 	 * @return {jQuery}
 	 */
-	function cover( action, profile, options ) {
-
-		/**
-		 * @type {string[]}
-		 */
-		var availableActions  = [ "fetchImage", "fetchImageWithoutLinks",
-		                          "displayThumbnail", "displayThumbnailWithoutLinks",
-		                          "displayCover", "displayCoverWithoutLinks",
-		                          "displayThumbnailCover", "displayThumbnailCoverWithoutLinks",
-		                          "displayAuthorityCover", "displayAuthorityCoverWithoutLinks",
-		                          "displayAuthorityResults",
-		                          "displaySummary", "displaySummaryShort" ],
-		    availableProfiles = [ "normal", "small" ];
-
-		// Normalize given parameters
-		if ( action === undefined && profile === undefined && options === undefined ) {
-			action  = "fetchImage";
-			profile = "normal";
-			options = Object.create( null );
-		} else if ( typeof action === "object" && profile === undefined && options === undefined ) {
-			options = action;
-			action  = "fetchImage";
-			profile = "normal";
-		} else if ( typeof action === "string" && typeof profile === "object" && options === undefined ) {
-			options = profile;
-			profile = "normal";
-		}
-
-		// Check if requested action is supported
-		if ( availableActions.indexOf( action ) === -1 ) {
-			if ( CPK.verbose === true ) {
-				console.error( "Unknown action type provided!", action );
-			}
-
-			return this;
-		}
-
-		// Ensure the profile is correct
-		if ( availableProfiles.indexOf( profile ) === -1 ) {
-			profile = "normal";
-		}
-
-		/**
-		 * @var {{ normal: CoverSizePrototype, thumbnail: CoverSizePrototype}} opts
-		 */
-		var opts = $.extend( {}, $.fn.cpkCover.defaults, options[ profile ] );
+	function cover() {
 
 		// Process all covers
 		$( this ).each( processCover );
@@ -209,6 +153,19 @@
 	}
 
 	/**
+	 * @private Returns URL for the cover's image.
+	 * @param {Object} bibInfo
+	 * @param {string} type
+	 * @param {string} query
+	 * @returns {string}
+	 */
+	function getImageUrl( bibInfo, type, query ) {
+		return cover.coverUrl +
+			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
+			"&type=" + type + "&keywords=" + encodeURIComponent( query )
+	}
+
+	/**
 	 * @private Fetches image for the given cover.
 	 * @param {CoverPrototype} cover
 	 * @param {string} type (Optional.)
@@ -227,16 +184,17 @@
 			}
 
 			var href   = cover.getCoverTargetUrl( cover.bibInfo ),
-				size   = ( type === "thumbnail" ) ? cover.defaults.thumbnail : cover.defaults.normal,
-				imgElm = createImage( img.src, cover.coverText, size ),
+				size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
+				imgElm = createImage( img.src, $.fn.cpkCover.coverText, size ),
 				aElm   = createAnchor( href, imgElm );
 
 			cover.target.appendChild( aElm );
 		};
 
-		img.src = cover.coverUrl +
-			"?multi=" + encodeURIComponent( JSON.stringify( cover.bibInfo ) ) +
-			"&type=" + type + "&keywords=" + encodeURIComponent( query );
+		var url = getImageUrl( cover.bibInfo, type, query );
+		console.log( url );
+
+		img.src = url;
 	}
 
 	/**
@@ -252,16 +210,18 @@
 			type = "thumbnail";
 		}
 
-		img.onload = function() {
-			var size   = ( type === "thumbnail" ) ? cover.defaults.thumbnail : cover.defaults.normal,
-				imgElm = createImage( img.src, cover.coverText, size );
+		img.onload = function( event ) {
+			console.log( event );
+			var size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
+				imgElm = createImage( img.src, $.fn.cpkCover.coverText, size );
 
 			cover.target.appendChild( imgElm );
 		};
 
-		img.src = cover.coverUrl +
-			"?multi=" + encodeURIComponent( JSON.stringify( cover.bibInfo ) ) +
-			"&type=" + type + "&keywords=" + encodeURIComponent( query );
+		var url = getImageUrl( cover.bibInfo, type, query );
+		console.log( url );
+
+		img.src = url;
 	}
 
 	/**
@@ -329,9 +289,9 @@
 	 */
 	function setCoversCacheUrl( cacheUrl ) {
 		cover.cacheUrl = cacheUrl;
-		cover.coverUrl = cover.cacheUrl + "/api/cover";
-		cover.tocUrl   = cover.cacheUrl + "/api/toc/thumbnail";
-		cover.pdfUrl   = cover.cacheUrl + "/api/toc/pdf";
+		cover.coverUrl = cacheUrl + "/api/cover";
+		cover.tocUrl   = cacheUrl + "/api/toc/thumbnail";
+		cover.pdfUrl   = cacheUrl + "/api/toc/pdf";
 	}
 
 	/**
@@ -364,6 +324,7 @@
 	cover.defaults = {
 		normal: new CoverSizePrototype( 63, 80, "themes/bootstrap3/images/noCover.jpg" ),
 		thumbnail: new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" )
+		//icon: new CoverSizePrototype( *, *, "" )
 	};
 
 	// Set covers cache URL
@@ -384,9 +345,6 @@
 	// Here are some extensions to jQuery self
 	$.fn.cpkCover = cover;
 
-	// ========================================================================
-	// CPK.covers
-
 	/**
 	 * Controller for covers.
 	 * @constructor
@@ -398,6 +356,7 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function init() {
+			// TODO We should separate those covers which actions need Ajax -> "one request for covers per page"
 			$( "[data-cover='true']" ).cpkCover();
 
 			return Promise.resolve( true );
