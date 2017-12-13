@@ -21,7 +21,7 @@
                 <? else: ?>
                     <img class="recordcover col-md-12" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
                 <? endif; ?>
-                <div data-action="displayCoverWithoutLinks" data-advert="<?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true"></div>
+                <div data-action="displayCoverWithoutLinks" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>
                 <? /* Display qrcode if appropriate: */ ?>
               <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
               <? if($QRCode): ?>
@@ -58,7 +58,7 @@
 
             <? else: ?>
               <p class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
-              <div data-action="displaySummary" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true"></div>
+              <div data-action="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>
 
           <? endif; ?>
 

@@ -1,76 +1,71 @@
   <div class="col-md-4 widget">
-    <div class='header'>
-      <? if ($this->widget->getShowAllRecordsLink()): $filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('inspiration:"'.$this->widget->getName().'"')); ?>
-        <a href='/Search/Results?lookFor0[]=&type0[]=AllFields&bool0[]=AND&join=AND&searchTypeTemplate=basic&page=1&keepEnabledFilters=true&limit=<?=$this->layout()->limit?>&sort=<?=$this->layout()->sort?>&filter=<?=$filter?>' title='<?=$this->translate('Show all')?>' style='color: #000;'>
+    <div class="header">
+      <?php if ($this->widget->getShowAllRecordsLink()): $filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('inspiration:"'.$this->widget->getName().'"')); ?>
+        <a href="/Search/Results?lookFor0[]=&amp;type0[]=AllFields&amp;bool0[]=AND&amp;join=AND&amp;searchTypeTemplate=basic&amp;page=1&amp;keepEnabledFilters=true&amp;limit=<?=$this->layout()->limit?>&amp;sort=<?=$this->layout()->sort?>&amp;filter=<?=$filter?>" title="<?=$this->translate('Show all')?>" style="color: #000;">
           <h2><?=$this->translate($this->widget->getName())?></h2>
         </a>
-      <? else: ?>
+      <?php else:?>
         <h2><?=$this->translate($this->widget->getName())?></h2>
-      <? endif; ?>
-
+      <?php endif?>
     </div>
     <div class="list-group">
-      <? foreach ($this->widget->getContents() as $item): $id = $this->record($item->getRecordDriver())->getRelevantRecord($item->getValue()); ?>
-      <a href="/Record/<?=$id?>" class="list-group-item clearfix"">
-        <div class='row'>
-          <? if ($this->widget->getShowCover()): ?>
-              <?
-              $recordId =  preg_replace("/\./", "", $id);
-              $recordId =  preg_replace("/:/", "", $recordId);
-              $formats = $item->getRecordDriver()->getFormats();
-              ?>
-              <div class="col-xs-3 col-sm-2 col-md-3  cover_<?=$recordId?>" id="<?=$recordId?>">
+      <?php foreach ($this->widget->getContents() as $item):
+          $id = $this->record($item->getRecordDriver())->getRelevantRecord($item->getValue());
 
-                    <? if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
-                        <? if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                        <div data-action="displayAuthorityThumbnailCoverWithoutLinks" data-advert="<?=json_encode($item->getRecordDriver()->getPersonalName())?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
-                        <? else: ?>
-                        <div data-action="displayThumbnailWithoutLinks" data-advert="<?=json_encode($item->getRecordDriver()->getTitle())?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
-                        <? endif; ?>
-                    <? endif;?>
+      ?><a href="/Record/<?=$id?>" class="list-group-item clearfix">
+        <div class="row">
+          <?php if ($this->widget->getShowCover()):
+          $recordId =  preg_replace("/\./", "", $id);
+          $recordId =  preg_replace("/:/", "", $recordId);
+          $formats  = $item->getRecordDriver()->getFormats();
 
-                    <? if (! empty($formats)): ?>
-                        <div class="iconlabel"><i style='font-size: 300%; color: #CCCCCC;' class="pr-format-<?=$this->record($item->getRecordDriver())->getFormatClass($formats[0])?>"></i></div>
-                    <? elseif ($summThumb = $this->record($item->getRecordDriver())->getThumbnail('small')): ?>
-                        <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
-                    <? else: ?>
-                        <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
-                    <? endif; ?>
-
-              </div>
-              <div class="col-xs-9 col-sm-10 col-md-9 content">
-          <? else: ?>
-              <div class="col-xs-12 content">
-          <? endif; ?>
-            <h4 class="list-group-item-heading">
-              <? if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                <?= $item->getRecordDriver()->getPersonalName() ?>
-              <? else: ?>
-                <?= $item->getRecordDriver()->getTitle() ?>
-              <? endif; ?>
-            </h4>
-            <p class="list-group-item-text">
-              <? if ($this->widget->getDescription() == 'author'): ?>
-                <?= $item->getRecordDriver()->getDeduplicatedAuthors()['main'] ?>
-              <? elseif ($this->widget->getDescription() == 'description'): ?>
-                <?= ($this->language == 'cs') ? $item->getDescriptionCs() : $item->getDescriptionEn() ?>
-              <? endif; ?>
-            </p>
+          ?><div class="col-xs-3 col-sm-2 col-md-3  cover_<?=$recordId?>" id="<?=$recordId?>">
+            <?php if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
+                <?php if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
+                <div data-action="displayAuthorityThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($item->getRecordDriver()->getPersonalName(), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                <?php else: ?>
+                <div data-action="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars($item->getRecordDriver()->getTitle(), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                <?php endif; ?>
+            <?php endif?>
+            <?php if (! empty($formats)): ?>
+                <div class="iconlabel"><i style="font-size: 300%; color: #CCCCCC;" class="pr-format-<?=$this->record($item->getRecordDriver())->getFormatClass($formats[0])?>"></i></div>
+            <?php elseif ($summThumb = $this->record($item->getRecordDriver())->getThumbnail('small')): ?>
+                <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
+            <?php else:?>
+                <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
+            <?php endif?>
+          </div>
+          <div class="col-xs-9 col-sm-10 col-md-9 content">
+          <?php else:?>
+            <div class="col-xs-12 content">
+          <?php endif?>
+              <h4 class="list-group-item-heading">
+                <?php if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
+                  <?= $item->getRecordDriver()->getPersonalName() ?>
+                <?php else:?>
+                  <?= $item->getRecordDriver()->getTitle() ?>
+                <?php endif?>
+              </h4>
+              <p class="list-group-item-text">
+                <?php if ($this->widget->getDescription() == 'author'): ?>
+                  <?= $item->getRecordDriver()->getDeduplicatedAuthors()['main'] ?>
+                <?php elseif ($this->widget->getDescription() == 'description'): ?>
+                  <?= ($this->language == 'cs') ? $item->getDescriptionCs() : $item->getDescriptionEn() ?>
+                <?php endif?>
+              </p>
           </div>
         </div>
       </a>
-      <? endforeach; ?>
-      <? if ($this->widget->getShowAllRecordsLink()): $filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('inspiration:"'.$this->widget->getName().'"')); ?>
-      <a href='/Search/Results?lookFor0[]=&type0[]=AllFields&bool0[]=AND&join=AND&searchTypeTemplate=basic&page=1&keepEnabledFilters=true&limit=<?=$this->layout()->limit?>&sort=<?=$this->layout()->sort?>&filter=<?=$filter?>' class="list-group-item clearfix" title='<?=$this->translate('Show all')?>'>
-        <div class='row more-info'>
-          <div class='col-xs-10'>
-            <?=$this->translate('Show all')?>
-          </div>
-          <div class='col-xs-2' style='text-align: right;'>
-            <i class="pr-interface-arrowright"></i>
-          </div>
+      <?php endforeach?>
+      <?php if ($this->widget->getShowAllRecordsLink()):
+          $filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('inspiration:"'.$this->widget->getName().'"'));
+
+      ?><a href="/Search/Results?lookFor0[]=&amp;type0[]=AllFields&amp;bool0[]=AND&amp;join=AND&amp;searchTypeTemplate=basic&amp;page=1&amp;keepEnabledFilters=true&amp;limit=<?=$this->layout()->limit?>&amp;sort=<?=$this->layout()->sort?>&amp;filter=<?=$filter?>" class="list-group-item clearfix" title="<?=$this->translate('Show all')?>">
+        <div class="row more-info">
+          <div class="col-xs-10"><?=$this->translate('Show all')?></div>
+          <div class="col-xs-2" style="text-align: right;"><i class="pr-interface-arrowright"></i></div>
         </div>
       </a>
-      <? endif; ?>
+      <?php endif?>
     </div>
   </div>

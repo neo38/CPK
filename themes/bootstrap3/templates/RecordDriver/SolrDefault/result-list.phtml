@@ -172,9 +172,9 @@
 
                     <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
                     <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-                    <div data-action="displayAuthorityCover" data-advert="<?=json_encode($lookfor)?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                    <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                     <? else: ?>
-                    <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=json_encode($lookfor)?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                    <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                     <? endif; ?>
                     <? endif;?>
                     <? if (! empty($formats)): ?>
@@ -317,9 +317,8 @@
           <? endforeach; ?>
         <? endif; ?>
       <? else: ?>
-          <div data-action="displaySummaryShort" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+          <div data-action="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
           <span class="summ_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
-
       <? endif; ?>
 
       <? if(!$this->driver->isCollection()): ?>

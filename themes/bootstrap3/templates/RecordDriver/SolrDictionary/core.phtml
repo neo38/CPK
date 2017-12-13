@@ -19,7 +19,7 @@
             <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
         <? endif; ?>
 
-        <div data-action="displayAuthorityCover" data-advert="<?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>" data-bibinfo="<?=json_encode($bibinfo)?>" data-cover="true"></div>
+        <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>
         <? /* Display qrcode if appropriate: */ ?>
       <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
       <? if($QRCode): ?>
