@@ -15,7 +15,7 @@
 	var self = this;
 
 	/**
-	 * @param {string} action Requested cover action.
+	 * @param {string} action (Optional.) Requested cover action.
 	 * @param {string} profile (Optional.) Size profile.
 	 * @param {Object} options (Optional.) Custom options (overrides default options).
 	 * @return {jQuery}
@@ -23,6 +23,8 @@
 	 */
 	function cover( action, profile, options ) {
 
+		// VŠECHNY PARAMETRY MUSÍ BÝT V `data` ATRIBUTECH!
+		//
 		// V zásadě by to tady mělo být tak, že musí být nastavena
 		// pouze `action` - všechno ostatní má defaultní hodnoty.
 		// V proměnné `action` pak musí být uveden název akce, který
@@ -38,6 +40,9 @@
 		// jQuery( "*" ).cover( "displayThumbnail", "normal", { noImg: "some.png" } );
 		// jQuery( "*" ).cover( "displayThumbnail", { noImg: "some.png" } );
 
+		/**
+		 * @type {string[]}
+		 */
 		var availableActions  = [ "fetchImage", "fetchImageWithoutLinks",
 		                          "displayThumbnail", "displayThumbnailWithoutLinks",
 		                          "displayCover", "displayCoverWithoutLinks",
@@ -47,6 +52,7 @@
 		                          "displaySummary", "displaySummaryShort" ],
 		    availableProfiles = [ "normal", "small" ];
 
+		// Check if requested action is supported
 		if ( availableActions.indexOf( action ) === -1 ) {
 			if ( CPK.verbose === true ) {
 				console.error( "Unknown action type provided!", action );
@@ -147,6 +153,42 @@
 
 		return queryPart;
 	}
+
+	// ========================================================================
+	// CPK.covers
+
+	/**
+	 * Controller for covers.
+	 * @constructor
+	 * @todo Finish this!!!
+	 */
+	function CoversController() {
+
+		/**
+		 * Initializes the controller.
+		 * @returns {Promise<boolean>}
+		 */
+		function init() {
+			// TODO Finish this!!!
+
+			return Promise.resolve( true );
+		}
+
+		// Public API
+		var Controller = Object.create( null );
+
+		Controller.initialize = init;
+
+		return Controller;
+	}
+
+	/**
+	 * @type {CoversController}
+	 */
+	CPK.covers = new CoversController();
+
+	// ========================================================================
+	// Public API for $.fn.cover
 
 	// Set covers cache URL
 	setCoversCacheUrl( "https://cache.obalkyknih.cz" );

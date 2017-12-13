@@ -67,6 +67,7 @@
  * @property {CpkStorage} storage
  * @property {SolrDefaultToolbar} toolbar
  * @property {boolean} verbose
+ * @property {CoversController} covers
  * @constructor
  */
 function Cpk() {
@@ -262,10 +263,14 @@ jQuery(function onDocumentReady() {
 			return Promise.resolve( false );
 		}
 
+// TODO <img src="noImg.png" data-cover="true" ...>!!!
+//      Elementy jsou rozpoznávány dle [data-cover="true"] ...
+
 		/**
 		 * @type {array} modules Array with modules to init
 		 */
 		var modules = [
+			CPK.covers.initialize,
 			CPK.login.initialize,
 			CPK.notifications.initialize,
 			CPK.history.initialize,

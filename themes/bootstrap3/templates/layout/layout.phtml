@@ -106,8 +106,8 @@
             $this->headScript()->appendFile('vendor/es6-promise.min.js');
         }
 
-        $cacheUrl = $this->ObalkyKnih()->getCacheUrl();
-        $this->headScript()->appendScript("obalky.setCacheUrl(\"{$cacheUrl}\");");
+        //$cacheUrl = $this->ObalkyKnih()->getCacheUrl();
+        //$this->headScript()->appendScript("obalky.setCacheUrl(\"{$cacheUrl}\");");
 
         // Deal with cart stuff:
         $cart = $this->cart();
