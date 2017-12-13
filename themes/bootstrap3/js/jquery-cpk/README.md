@@ -24,9 +24,8 @@ The rest of code is defined as modules which are mapping functionality we need -
 Here is a list of provided [jQuery][2] plugins:
 
 - ~~`$.fn.switchAddRemoveFavoriteLinkLabel`~~ (__deprecated__) - ...
-- `$.fn.cpkCover` - small plugin that handles covers of the books. Now should be possible write something like this `$( "img.obalka" ).cover()` to get covers of all books rendered on the page.
-- `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements. It also handles favorites and covers functionality... Simply - it encapsulates given DOM with all functionality that we require from single record  (e.g. book, author etc.).
-
+- `$.fn.cpkCover` - small plugin that handles covers of the books.
+- `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements.
 
 #### Books covers
 
@@ -81,6 +80,8 @@ __Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and 
 __TBD__ Inside `jQuery.cpkCover` is used `BibInfoPrototype` and `CoverPrototype` object.
 
 ### Search Records
+
+Another our addon to [jQuery][2] is `$.fn.cpkRecord` plugin - it encapsulates given DOM with all functionality that we require from single record (e.g. book, author etc.).
 
 __TBD__ ... `$.fn.cpkRecord`
 
