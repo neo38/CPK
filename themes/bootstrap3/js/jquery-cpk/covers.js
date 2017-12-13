@@ -15,30 +15,80 @@
 	var self = this;
 
 	/**
+	 * Prototype object for single cover (as is parsed from target <div> element).
+	 * @property {string} action
+	 * @property {string} advert
+	 * @property {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @property {HTMLElement} target
+	 * @property {string} record
+	 * @constructor
+	 */
+	function CoverPrototype() {
+		var action, advert, bibInfo, target, record;
+
+		/**
+		 * @private Parses given <div> element which represents single cover.
+		 * @param {HTMLElement} elm
+		 */
+		function parseCoverFromElement( elm ) {
+
+			// Just to be sure that we are processing correct element
+			if ( ! elm.hasAttribute( "data-action" ) || ! elm.hasAttribute( "data-cover" ) ) {
+				throw new Error( "Unable to parse Cover from given element!" );
+			}
+
+			target  = elm;
+			action  = elm.getAttribute( "data-action" );
+			advert  = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
+			bibInfo = elm.hasAttribute( "data-bibinfo" ) ? JSON.parse( elm.getAttribute( "data-bibinfo" ) ) : Object.create( null );
+			record  = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-advert" ) : "";
+		}
+
+		// Public API
+		var Cover = Object.create( null );
+
+		Object.defineProperty( Cover, "action", { get: function() { return action; } } );
+		Object.defineProperty( Cover, "advert", { get: function() { return advert; } } );
+		Object.defineProperty( Cover, "bibInfo", { get: function() { return bibInfo; } } );
+		Object.defineProperty( Cover, "target", { get: function() { return target; } } );
+		Object.defineProperty( Cover, "record", { get: function() { return record; } } );
+
+		Cover.parseFromElement = parseCoverFromElement;
+
+		return Cover;
+	}
+
+	/**
+	 * @param {number} width
+	 * @param {number} height
+	 * @param {string} noImg
+	 * @property {number} width
+	 * @property {number} height
+	 * @property {string} noImg
+	 * @constructor
+	 */
+	function CoverSizePrototype( width, height, noImg ) {
+		var w   = width,
+			h   = height,
+			img = noImg;
+
+		var CoverSize = Object.create( null );
+
+		Object.defineProperty( CoverSize, "width", { get: function() { return w; } } );
+		Object.defineProperty( CoverSize, "height", { get: function() { return h; } } );
+		Object.defineProperty( CoverSize, "noImg", { get: function() { return img; } } );
+
+		return CoverSize;
+	}
+
+	/**
+	 * Function that extends `jQuery.fn`.
 	 * @param {string} action (Optional.) Requested cover action.
 	 * @param {string} profile (Optional.) Size profile.
 	 * @param {Object} options (Optional.) Custom options (overrides default options).
 	 * @return {jQuery}
-	 * @todo Make `action` parameter optional -> set default action in `$.fn.cpkCovers.defaults`
 	 */
 	function cover( action, profile, options ) {
-
-		// VŠECHNY PARAMETRY MUSÍ BÝT V `data` ATRIBUTECH!
-		//
-		// V zásadě by to tady mělo být tak, že musí být nastavena
-		// pouze `action` - všechno ostatní má defaultní hodnoty.
-		// V proměnné `action` pak musí být uveden název akce, který
-		// odpovídá názvu metody objektu `$.fn.cover`.
-		//
-		// Všechna data, které jsou potřebná k získání obálky knihy,
-		// jsou uložena v data atributech u cílového elementu.
-		//
-		// Tzn. tyto volání jsou platná (a v tomto případě i stejná):
-		//
-		// jQuery( "*" ).cover( "displayThumbnail" );
-		// jQuery( "*" ).cover( "displayThumbnail", "normal" );
-		// jQuery( "*" ).cover( "displayThumbnail", "normal", { noImg: "some.png" } );
-		// jQuery( "*" ).cover( "displayThumbnail", { noImg: "some.png" } );
 
 		/**
 		 * @type {string[]}
@@ -52,6 +102,20 @@
 		                          "displaySummary", "displaySummaryShort" ],
 		    availableProfiles = [ "normal", "small" ];
 
+		// Normalize given parameters
+		if ( action === undefined && profile === undefined && options === undefined ) {
+			action  = "fetchImage";
+			profile = "normal";
+			options = Object.create( null );
+		} else if ( typeof action === "object" && profile === undefined && options === undefined ) {
+			options = action;
+			action  = "fetchImage";
+			profile = "normal";
+		} else if ( typeof action === "string" && typeof profile === "object" && options === undefined ) {
+			options = profile;
+			profile = "normal";
+		}
+
 		// Check if requested action is supported
 		if ( availableActions.indexOf( action ) === -1 ) {
 			if ( CPK.verbose === true ) {
@@ -61,26 +125,22 @@
 			return self;
 		}
 
-		// Check if only options are passed
-		if ( typeof profile === "object" && typeof options === "undefined" ) {
-			options = profile;
-			profile = "normal";
-		}
-
 		// Ensure the profile is correct
 		if ( availableProfiles.indexOf( profile ) === -1 ) {
 			profile = "normal";
 		}
 
-		var opts = $.extend( {}, $.fn.cpkCover.defaults, options[ profile ] ),
-			requests = [],
-			responses = [];
+		/**
+		 * @var {{ normal: CoverSizePrototype, thumbnail: CoverSizePrototype}} opts
+		 */
+		var opts = $.extend( {}, $.fn.cpkCover.defaults, options[ profile ] );
 
 		/**
 		 * @param {number} idx
 		 * @param {HTMLElement} elm
 		 */
 		function prepareRequest( idx, elm ) {
+			console.log( "cover", "prepareRequest", idx, elm );
 			//...
 		}
 
@@ -89,6 +149,7 @@
 		 * @param {HTMLElement} elm
 		 */
 		function makeRequest( idx, elm ) {
+			console.log( "cover", "makeRequest", idx, elm );
 			//...
 		}
 
@@ -97,10 +158,12 @@
 		 * @param {HTMLElement} elm
 		 */
 		function useRequest( idx, elm ) {
+			console.log( "cover", "useRequest", idx, elm );
 			//...
 		}
 
-		self
+		// Start processing elements in chain
+		$( self )
 			// Collect info about all covers we need
 			.each( prepareRequest )
 			// Make request for needed covers
@@ -112,18 +175,10 @@
 		return self;
 	}
 
-	// Default options
+	// Default plugin options
 	cover.defaults = {
-		normal: {
-			width: 63,
-			height: 80,
-			noImg: "themes/bootstrap3/images/noCover.jpg"
-		},
-		thumbnail: {
-			width: 27,
-			height: 36,
-			noImg: "themes/bootstrap3/images/noCover.jpg"
-		}
+		normal: new CoverSizePrototype( 63, 80, "themes/bootstrap3/images/noCover.jpg" ),
+		thumbnail: new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" )
 	};
 
 	/**
@@ -169,7 +224,7 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function init() {
-			// TODO Finish this!!!
+			$( "[data-cover='true']" ).cpkCover();
 
 			return Promise.resolve( true );
 		}
