@@ -34,7 +34,6 @@ Another important module (and probably the most used one) is __covers service__ 
 Originally there was code like this in `PHTML` files:
 
 ```php
-<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
     <script type="text/javascript">
 $(document).ready(function() {
@@ -51,7 +50,6 @@ $(document).ready(function() {
 Now it should be like this:
 
 ```php
-<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
     <div data-action="displayThumbnail" data-recordId="<?php echo $recordId?>" 
          data-bibinfo="<?php echo htmlspecialchars($bibinfo, ENT_QUOTES)?>" 
