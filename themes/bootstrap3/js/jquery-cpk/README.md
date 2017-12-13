@@ -24,9 +24,8 @@ The rest of code is defined as modules which are mapping functionality we need -
 Here is a list of provided [jQuery][2] plugins:
 
 - ~~`$.fn.switchAddRemoveFavoriteLinkLabel`~~ (__deprecated__) - ...
-- `$.fn.cpkCover` - small plugin that handles covers of the books. Now should be possible write something like this `$( "img.obalka" ).cover()` to get covers of all books rendered on the page.
-- `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements. It also handles favorites and covers functionality... Simply - it encapsulates given DOM with all functionality that we require from single record  (e.g. book, author etc.).
-
+- `$.fn.cpkCover` - small plugin that handles covers of the books.
+- `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements.
 
 #### Books covers
 
@@ -35,9 +34,7 @@ Another important module (and probably the most used one) is __covers service__ 
 Originally there was code like this in `PHTML` files:
 
 ```php
-<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
-    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
     <script type="text/javascript">
 $(document).ready(function() {
     obalky.display_thumbnail(
@@ -47,46 +44,42 @@ $(document).ready(function() {
     );
 });
     </script>
-    <?php endif?>
 </div>
 ```
 
 Now it should be like this:
 
 ```php
-<?php $recordId = preg_replace("/[\.:]/", "", $recordId)?>
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
-    <?php if ( ! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-    <div id="cover_inner_<?php echo $recordId?>" 
-         data-bibinfo="<?php echo json_encode($bibinfo)?>" 
-         data-advert="<?php echo json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>"></div>
-    <?php endif?>
+    <div data-action="displayThumbnail" data-recordId="<?php echo $recordId?>" 
+         data-bibinfo="<?php echo htmlspecialchars($bibinfo, ENT_QUOTES)?>" 
+         data-advert="<?php echo htmlspecialchars($this->record($resource)->getObalkyKnihAdvert('checkedout'), ENT_QUOTES)?>"></div>
 </div>
 ```
 
-Service self is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( ACTION[, PROFILE[, OPTIONS] ] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
+Service self is implemented as a [jQuery][2] plugin and is accessible via `$.fn.cpkCover` function which has pretty simple usage: `$.fn.cpkCover( [ACTION[, PROFILE[, OPTIONS]]] )`. The most used action is `fetchImage` so if you want to get a cover image of _normal_ size use code like this:
 
 ```javascript
-jQuery( document.getElementById( "targetElement" ) ).cpkCover( "fetchImage" );
+jQuery( document.getElementById( "targetElement" ) ).cpkCover();
 ```
 
-Where `targetElement` should be ID of empty `<div>` element where will be rendered either proper cover or substitute image.
+Where `targetElement` should be ID of empty `<div>` element witch proper _data-*_ attributes where will be rendered cover image (or substitute image).
 
 For multiple covers on one page (like search records is command similar) do something like this:
 
 ```javascript
-jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCover( "fetchImage" );
+jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCover();
 ```
 
-Where `.result-cover-cont` should be class of empty `<div>` elements inside the element with ID `results-list`.
+Where `.result-cover-cont` should be class of empty `<div>` elements witch proper _data-*_ attributes inside the element with ID `results-list`.
 
-__TBD__ Function `jQuery.cpkCover` can be also used as _Deferred_.
+__Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
 
-__TBD__ Inside `jQuery.cpkCover` is used `BibInfo` object.
-
-__TBD__ There is also `CPK.covers.CoversController` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
+__TBD__ Inside `jQuery.cpkCover` is used `BibInfoPrototype` and `CoverPrototype` object.
 
 ### Search Records
+
+Another our addon to [jQuery][2] is `$.fn.cpkRecord` plugin - it encapsulates given DOM with all functionality that we require from single record (e.g. book, author etc.).
 
 __TBD__ ... `$.fn.cpkRecord`
 
@@ -164,6 +157,10 @@ you should use
 ```javascript
 jQuery( elm ).cpkHidden( "show" ); // Or `$.fn.cpkHidden( [hide,show,toggle] )
 ```
+
+### `CPK.covers`
+
+Is an instance of `CoversController` and is used in [common.js][5] to initialize all covers that are in rendered HTML code.
 
 #### `CPK.login`
 
