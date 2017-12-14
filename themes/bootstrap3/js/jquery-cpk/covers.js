@@ -114,7 +114,7 @@
 			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cvr ); break;
 			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
 			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
-			case "displayAuthorityCoverWithoutLinks": displayAuthorityCoverWithoutLinks( cvr ); break;
+			case "displayAuthorityThumbnailCoverWithoutLinks": displayAuthorityThumbnailCoverWithoutLinks( cvr ); break;
 			case "displayAuthorityResults": displayAuthorityResults( cvr ); break;
 			case "displaySummary": displaySummary( cvr ); break;
 			case "displaySummaryShort": displaySummaryShort( cvr ); break;
@@ -400,7 +400,7 @@
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayAuthorityCoverWithoutLinks( cover ) {
+	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
 
 		/**
 		 * @param {Object} data
@@ -581,6 +581,53 @@
 			 * - `displayAuthorityResults`
 			 * - `displaySummary` a `displaySummaryShort`
 			 */
+
+			/**
+			 * @type {{normal: HTMLElement[], authorityCover: HTMLElement[], authorityResults: HTMLElement[], summary: HTMLElement[], summaryShort: HTMLElement[]}} covers
+			 */
+			var covers = {
+				normal: [],
+				authorityCover: [],
+				authorityResults: [],
+				summary: [],
+				summaryShort: []
+			};
+
+			$( "[data-cover='true']" ).each( function( idx, elm ) {
+				var action = $( elm ).data( "action" );
+				console.log( action );
+				switch( action ) {
+					case "fetchImage":
+					case "fetchImageWithoutLinks":
+					case "displayThumbnail":
+					case "displayThumbnailWithoutLinks":
+					case "displayCover":
+					case "displayCoverWithoutLinks":
+					case "displayThumbnailCoverWithoutLinks":
+						covers.normal.push( elm );
+						break;
+
+					case "displayAuthorityCover":
+					case "displayAuthorityThumbnailCoverWithoutLinks":
+						covers.authorityCover.push( elm );
+						break;
+
+					case "displayAuthorityResults":
+						covers.authorityResults.push( elm );
+						break;
+
+					case "displaySummary":
+						covers.summary.push( elm );
+						break;
+
+					case "displaySummaryShort":
+						covers.summaryShort.push( elm );
+						break;
+				}
+			});
+
+			console.log( "Splitted coveres: ", covers );
+
 
 			$( "[data-cover='true']" ).cpkCover();
 
