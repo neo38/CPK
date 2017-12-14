@@ -75,8 +75,6 @@ Where `.result-cover-cont` should be class of empty `<div>` elements witch prope
 
 __Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
 
-__TBD__ Inside `jQuery.cpkCover` is used `BibInfoPrototype` and `CoverPrototype` object.
-
 ### Search Records
 
 Another our addon to [jQuery][2] is `$.fn.cpkRecord` plugin - it encapsulates given DOM with all functionality that we require from single record (e.g. book, author etc.).

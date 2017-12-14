@@ -318,7 +318,7 @@
         <? endif; ?>
       <? else: ?>
           <div data-action="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
-          <span class="summ_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
+          <span id="short_summary_<?=$recordId?>" class="summ_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
       <? endif; ?>
 
       <? if(!$this->driver->isCollection()): ?>

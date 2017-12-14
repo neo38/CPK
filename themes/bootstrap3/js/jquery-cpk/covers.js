@@ -13,22 +13,22 @@
 	 * Prototype object for single cover (as is parsed from target <div> element).
 	 * @property {string} action
 	 * @property {string} advert
-	 * @property {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
 	 * @property {HTMLElement} target
 	 * @property {string} record
 	 * @constructor
 	 */
 	function CoverPrototype() {
-		var action, advert, bibInfo, target, record;
+		var act, adv, bi, elm, rec;
 
 		// Public API
 		var Cover = Object.create( null );
 
-		Object.defineProperty( Cover, "action", { get: function() { return action; }, set: function( v ) { action = v; } } );
-		Object.defineProperty( Cover, "advert", { get: function() { return advert; }, set: function( v ) { advert = v; } } );
-		Object.defineProperty( Cover, "bibInfo", { get: function() { return bibInfo; }, set: function( v ) { bibInfo = v; } } );
-		Object.defineProperty( Cover, "target", { get: function() { return target; }, set: function( v ) { target = v; } } );
-		Object.defineProperty( Cover, "record", { get: function() { return record; }, set: function( v ) { record = v; } } );
+		Object.defineProperty( Cover, "action", { get: function() { return act; }, set: function( v ) { act = v; } } );
+		Object.defineProperty( Cover, "advert", { get: function() { return adv; }, set: function( v ) { adv = v; } } );
+		Object.defineProperty( Cover, "bibInfo", { get: function() { return bi; }, set: function( v ) { bi = v; } } );
+		Object.defineProperty( Cover, "target", { get: function() { return elm; }, set: function( v ) { elm = v; } } );
+		Object.defineProperty( Cover, "record", { get: function() { return rec; }, set: function( v ) { rec = v; } } );
 
 		return Cover;
 	}
@@ -46,10 +46,16 @@
 			throw new Error( "Unable to parse Cover from given element!" );
 		}
 
-		cover.target  = elm;
+		var bi = Object.create( null );
+
+		if ( elm.hasAttribute( "data-bibinfo" ) ) {
+			bi = JSON.parse( elm.getAttribute( "data-bibinfo" ) );
+		}
+
+		cover.target  = elm.parentElement;
 		cover.action  = elm.getAttribute( "data-action" );
 		cover.advert  = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
-		cover.bibInfo = elm.hasAttribute( "data-bibinfo" ) ? JSON.parse( elm.getAttribute( "data-bibinfo" ) ) : Object.create( null );
+		cover.bibInfo = bi;
 		cover.record  = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
 
 		return cover;
@@ -94,6 +100,47 @@
 	}
 
 	/**
+	 * @private Processes elements that represent covers.
+	 * @param {number} idx
+	 * @param {HTMLElement} elm
+	 */
+	function processCover( idx, elm ) {
+		var cvr = CoverPrototype.parseFromElement( elm );
+
+		switch( cvr.action ) {
+			case "fetchImage": fetchImage( cvr, "thumbnail" ); break;
+			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cvr, "thumbnail" ); break;
+			case "displayThumbnail": displayThumbnail( cvr ); break;
+			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cvr ); break;
+			case "displayCover": displayCover( cvr ); break;
+			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cvr ); break;
+			case "displayThumbnailCover": displayThumbnailCover( cvr ); break;
+			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
+			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
+			case "displayAuthorityCoverWithoutLinks": displayAuthorityCoverWithoutLinks( cvr ); break;
+			case "displayAuthorityResults": displayAuthorityResults( cvr ); break;
+			case "displaySummary": displaySummary( cvr ); break;
+			case "displaySummaryShort": displaySummaryShort( cvr ); break;
+		}
+	}
+
+	/**
+	 * @private Returns URL for the cover's image.
+	 * @param {string} baseUrl
+	 * @param {Object} bibInfo
+	 * @param {string} type
+	 * @param {string} query
+	 * @returns {string}
+	 */
+	function getImageUrl( baseUrl, bibInfo, type, query ) {
+		var url = baseUrl +
+			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
+			"&type=" + type + "&keywords=" + encodeURIComponent( query );
+		console.log( "getImageUrl", baseUrl, bibInfo, type, query, url );
+		return url;
+	}
+
+	/**
 	 * @private Creates image element.
 	 * @param {string} src
 	 * @param {string} alt
@@ -105,8 +152,11 @@
 
 		img.setAttribute( "src", src );
 		img.setAttribute( "alt", cover.coverText );
-		img.style.height = size.height;
-		img.style.width  = size.width;
+
+		if ( size !== undefined ) {
+			img.style.height = size.height.toString();
+			img.style.width  = size.width.toString();
+		}
 
 		return img;
 	}
@@ -128,41 +178,25 @@
 	}
 
 	/**
-	 * @private Processes elements that represent covers.
-	 * @param {number} idx
-	 * @param {HTMLElement} elm
+	 * @private Creates div element.
+	 * @param {string} cls
+	 * @param {HTMLAnchorElement|HTMLImageElement} elm
+	 * @returns {HTMLDivElement}
 	 */
-	function processCover( idx, elm ) {
-		var cover = CoverPrototype.parseFromElement( elm );
-		
-		switch( cover.action ) {
-			case "fetchImage": fetchImage( cover ); break;
-			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cover ); break;
-			case "displayThumbnail": displayThumbnail( cover ); break;
-			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cover ); break;
-			case "displayCover": displayCover( cover ); break;
-			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cover ); break;
-			case "displayThumbnailCover": displayThumbnailCover( cover ); break;
-			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cover ); break;
-			case "displayAuthorityCover": displayAuthorityCover( cover ); break;
-			case "displayAuthorityCoverWithoutLinks": displayAuthorityCoverWithoutLinks( cover ); break;
-			case "displayAuthorityResults": displayAuthorityResults( cover ); break;
-			case "displaySummary": displaySummary( cover ); break;
-			case "displaySummaryShort": displaySummaryShort( cover ); break;
-		}
+	function createDiv( cls, elm ) {
+		var div = document.createElement( "div" );
+
+		div.classList.add( cls );
+		div.appendChild( elm );
+
+		return div;
 	}
 
 	/**
-	 * @private Returns URL for the cover's image.
-	 * @param {Object} bibInfo
-	 * @param {string} type
-	 * @param {string} query
-	 * @returns {string}
+	 * @param {HTMLImageElement} img
 	 */
-	function getImageUrl( baseUrl, bibInfo, type, query ) {
-		return baseUrl +
-			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
-			"&type=" + type + "&keywords=" + encodeURIComponent( query )
+	function isImageLoaded( img ) {
+		return ( img.height > 1 && img.width > 1 );
 	}
 
 	/**
@@ -171,31 +205,23 @@
 	 * @param {string} type (Optional.)
 	 */
 	function fetchImage( cover, type ) {
-		var img   = new Image(),
-		    query = "";
+		var img   = new Image();
 
 		if ( type === undefined ) {
 			type = "thumbnail";
 		}
 
-		img.onload = function onLoadImage( event ) {
-			console.log( event );
-			if ( CPK.verbose === true ) {
-				console.log( "fetchImage", "resolveImage", cover, type );
+		img.onload = function onLoadImage() {
+			if ( isImageLoaded( img ) ) {
+				var size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
+				    imgElm = createImage( img.src, $.fn.cpkCover.coverText, size ),
+				    aElm   = createAnchor( $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ), imgElm );
+
+				$( cover.target ).empty().append( aElm );
 			}
-
-			var href   = cover.getCoverTargetUrl( cover.bibInfo ),
-				size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
-				imgElm = createImage( img.src, $.fn.cpkCover.coverText, size ),
-				aElm   = createAnchor( href, imgElm );
-
-			cover.target.appendChild( aElm );
 		};
 
-		var url = getImageUrl( cover.coverUrl, cover.bibInfo, type, query );
-		console.log( url );
-
-		img.src = url;
+		img.src = getImageUrl( $.fn.cpkCover.coverUrl, cover.bibInfo, type, cover.advert );
 	}
 
 	/**
@@ -204,25 +230,22 @@
 	 * @param {string} type (Optional.)
 	 */
 	function fetchImageWithoutLinks( cover, type ) {
-		var img   = new Image(),
-			query = "";
+		var img   = new Image();
 
 		if ( type === undefined ) {
 			type = "thumbnail";
 		}
 
-		img.onload = function onLoadImage( event ) {
-			console.log( event );
-			var size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
-				imgElm = createImage( img.src, $.fn.cpkCover.coverText, size );
+		img.onload = function onLoadImage() {
+			if ( isImageLoaded( img ) ) {
+				var size = (type === "thumbnail") ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
+				    imgElm = createImage( img.src, $.fn.cpkCover.coverText, size );
 
-			cover.target.appendChild( imgElm );
+				$( cover.target ).empty().append( imgElm );
+			}
 		};
 
-		var url = getImageUrl( cover.coverUrl, cover.bibInfo, type, query );
-		console.log( url );
-
-		img.src = url;
+		img.src = getImageUrl( $.fn.cpkCover.coverUrl, cover.bibInfo, type, cover.advert );
 	}
 
 	/**
@@ -241,34 +264,38 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo Resolve `query`!
 	 */
 	function displayCover( cover ) {
 		var imgCover = new Image(),
-			imgToc   = new Image(),
-		    query    = "";
+		    imgToc   = new Image();
+
+		$( cover.target ).empty();
 
 		// Firstly we need to load cover
-		imgCover.onload = function onLoadCover( event ) {
-			console.log( event );
-			/*if (obalky.imageIsLoaded(img)) {
-				var href = obalky.coverTargetUrl(bibinfo);
-				$(element).html("<div class='cover_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></a></div>");
-			}*/
+		imgCover.onload = function onLoadCover() {
+			if ( isImageLoaded( imgCover ) ) {
+				var imgElm = createImage( imgCover.src, $.fn.cpkCover.coverText, $.fn.cpkCover.defaults.medium ),
+				    anchorElm = createAnchor( $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ), imgElm ),
+				    divElm = createDiv( "cover_thumbnail", anchorElm );
+
+				$( cover.target ).prepend( divElm );
+			}
 		};
 
-		imgCover.src = getImageUrl( cover.coverUrl, cover.bibInfo, "medium", query );
+		imgCover.src = getImageUrl( $.fn.cpkCover.coverUrl, cover.bibInfo, "medium", cover.advert );
 
 		// Secondly we need to load TOC
-		imgToc.onload = function onLoadToc( event ) {
-			console.log( event );
-			/*if (obalky.imageIsLoaded(img)) {
-				var href = obalky.coverTargetUrl(bibinfo);
-				$(element).html("<div class='cover_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></a></div>");
-			}*/
+		imgToc.onload = function onLoadToc() {
+			if ( isImageLoaded( imgToc ) ) {
+				var imgElm = createImage( imgToc.src, $.fn.cpkCover.tocText, $.fn.cpkCover.defaults.medium ),
+				    anchorElm = createAnchor( $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ), imgElm ),
+				    divElm = createDiv( "cover_thumbnail", anchorElm );
+
+				$( cover.target ).append( divElm );
+			}
 		};
 
-		imgToc.src = getImageUrl( cover.tocUrl, cover.bibInfo, "medium", query );
+		imgToc.src = getImageUrl( $.fn.cpkCover.tocUrl, cover.bibInfo, "medium", cover.advert );
 	}
 
 	/**
@@ -276,66 +303,212 @@
 	 */
 	function displayCoverWithoutLinks( cover ) {
 		var imgCover = new Image(),
-			imgToc   = new Image(),
-			query    = "";
+		    imgToc   = new Image();
+
+		$( cover.target ).empty();
 
 		// Firstly we need to load cover
-		imgCover.onload = function onLoadCover( event ) {
-			console.log( event );
-			/*if (obalky.imageIsLoaded(img)) {
-				var href = obalky.coverTargetUrl(bibinfo);
-				$(element).html("<div class='cover_thumbnail'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");
-			}*/
+		imgCover.onload = function onLoadCover() {
+			if ( isImageLoaded( imgCover ) ) {
+				var imgElm = createImage( imgCover.src, $.fn.cpkCover.coverText, $.fn.cpkCover.defaults.medium ),
+				    divElm = createDiv( "cover_thumbnail", imgElm );
+
+				$( cover.target ).prepend( divElm );
+			}
 		};
 
-		imgCover.src = getImageUrl( cover.coverUrl, cover.bibInfo, "medium", query );
+		imgCover.src = getImageUrl( $.fn.cpkCover.coverUrl, cover.bibInfo, "medium", cover.advert );
 
 		// Secondly we need to load TOC
-		imgToc.onload = function onLoadToc( event ) {
-			console.log( event );
-			/*if (obalky.imageIsLoaded(img)) {
-				var href = obalky.coverTargetUrl(bibinfo);
-				$(element).html("<div class='cover_thumbnail'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");
-			}*/
+		imgToc.onload = function onLoadToc() {
+			if ( isImageLoaded( imgToc ) ) {
+				var imgElm = createImage( imgToc.src, $.fn.cpkCover.tocText, $.fn.cpkCover.defaults.medium ),
+				    divElm = createDiv( "cover_thumbnail", imgElm );
+
+				$( cover.target ).prepend( divElm );
+			}
 		};
 
-		imgToc.src = getImageUrl( cover.tocUrl, cover.bibInfo, "medium", query );
+		imgToc.src = getImageUrl( $.fn.cpkCover.tocUrl, cover.bibInfo, "medium", cover.advert );
+
+		/**
+		 * @private Creates info part (Source).
+		 * @type {HTMLDivElement | HTMLDivElement}
+		 */
+		function createInfoPart() {
+			var infoDivElm = document.createElement( "div" ),
+			    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
+			    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
+			    infoAnchorElm = document.createElement( "a" );
+
+			infoDivElm.style.paddingLeft = "0px";
+			//infoDivElm.style.width = "170px";
+			infoDivElm.style.textAlign = "center";
+			infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
+
+			infoAnchorElm.setAttribute( "href", $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ) );
+			infoAnchorElm.setAttribute( "target", "_blank" );
+			infoAnchorElm.classList.add( "title" );
+
+			infoAnchorElm.appendChild( document.createTextNode( "Obálky knih" ) );
+			infoDivElm.appendChild( infoText );
+			infoDivElm.appendChild( infoTextSep );
+			infoDivElm.appendChild( infoAnchorElm );
+
+			$( cover.target ).append( infoDivElm );
+		}
+
+		setTimeout( createInfoPart(), 100 );
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayThumbnailCover( cover ) { console.log( "XXX displayThumbnailCover", cover ); }
+	function displayThumbnailCover( cover ) {
+		if ( CPK.verbose === true ) {
+			console.log( "displayThumbnailCover", cover );
+		}
+
+		// XXX Finisth this!!!
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayThumbnailCoverWithoutLinks( cover ) { console.log( "XXX displayThumbnailCoverWithoutLinks", cover ); }
+	function displayThumbnailCoverWithoutLinks( cover ) {
+		var img = new Image();
+
+		img.onload = function onLoadImage() {
+			if ( isImageLoaded( img ) ) {
+				var imgElm = createImage( img.src, $.fn.cpkCover.coverText, undefined ),
+				    divElm = createDiv( "cover_thumbnail", imgElm );
+
+				$( cover.target ).empty().append( divElm );
+			}
+		};
+
+		img.src = ( typeof cover.bibInfo.cover_medium_url !== "string" )
+			? getImageUrl( $.fn.cpkCover.coverUrl, cover.bibInfo, "medium", cover.advert )
+			: cover.bibInfo.cover_medium_url;
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayAuthorityCover( cover ) { console.log( "XXX displayAuthorityCover", cover ); }
+	function displayAuthorityCover( cover ) {
+		var auth_id = cover.bibInfo.auth_id;
+
+		/**
+		 * @param {Object} data
+		 */
+		function resolveData( data ) {
+			var img = new Image();
+
+			img.onload = function onImageLoad() {
+				if ( isImageLoaded( img ) ) {
+					var imgElm = createImage( img.src, $.fn.cpkCover.coverText, undefined ),
+					    anchorElm = createAnchor( "http://www.obalkyknih.cz/view_auth?auth_id=" + auth_id, imgElm ),
+					    divElm = createDiv( "cover_thumbnail", anchorElm );
+
+					$( cover.target ).empty().append( divElm );
+				}
+			};
+
+			img.src = data.data;
+		}
+
+		$.getJSON( "/AJAX/JSON?method=getObalkyKnihAuthorityID", { id: auth_id }, resolveData );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayAuthorityCoverWithoutLinks( cover ) { console.log( "XXX displayAuthorityCoverWithoutLinks", cover ); }
+	function displayAuthorityCoverWithoutLinks( cover ) {
+
+		/**
+		 * @param {Object} data
+		 */
+		function resolveData( data ) {
+			var img = new Image();
+
+			img.onload = function onLoadImage() {
+				if ( isImageLoaded( img ) ) {
+					var imgElm = createImage( img.src, $.fn.cpkCover.coverText, undefined ),
+					    divElm = createDiv( "cover_thumbnail", imgElm );
+
+					imgElm.style.width = "65px";
+
+					$( cover.target ).empty().append( divElm );
+				}
+			};
+
+			img.src = data.data;
+		}
+
+		$.getJSON( "/AJAX/JSON?method=getObalkyKnihAuthorityID", { id: cover.bibInfo.auth_id }, resolveData );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo We should resolve also failure of the request!
 	 */
-	function displayAuthorityResults( cover ) { console.log( "XXX displayAuthorityResults", cover ); }
+	function displayAuthorityResults( cover ) {
+
+		/**
+		 * @param {Object} data
+		 */
+		function resolveData( data ) {
+			var img = new Image();
+
+			img.onload = function onLoadImage() {
+				if ( isImageLoaded( img ) ) {
+					var imgElm = createImage( img.src, $.fn.cpkCover.coverText, undefined ),
+					    divElm = createDiv( "cover_thumbnail", imgElm );
+
+					imgElm.style.width = "100px";
+
+					$( cover.target ).empty().append( divElm );
+				}
+			};
+
+			img.src = data.data;
+		}
+
+		$.getJSON( "/AJAX/JSON?method=getObalkyKnihAuthorityID", { id: cover.bibInfo.auth_id }, resolveData );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo We should resolve also failure of the request!
 	 */
-	function displaySummary( cover ) { console.log( "XXX displaySummary", cover ); }
+	function displaySummary( cover ) {
+
+		/**
+		 * @param {Object} data
+		 */
+		function resolveData( data ) {
+			$( document.getElementById( "short_summary_" + cover.record ) ).html( data.data );
+		}
+
+		$.getJSON( "/AJAX/JSON?method=getSummaryObalkyKnih", { bibinfo: cover.bibInfo }, resolveData );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo We should resolve also failure of the request!
 	 */
-	function displaySummaryShort( cover ) { console.log( "XXX displaySummaryShort", cover ); }
+	function displaySummaryShort( cover ) {
+
+		/**
+		 * @param {Object} data
+		 */
+		function resolveData( data ) {
+			$( document.getElementById( "short_summary_" + cover.record ) ).html( data.data );
+
+		}
+
+		$.getJSON( "/AJAX/JSON?method=getSummaryShortObalkyKnih", { bibinfo: cover.bibInfo }, resolveData );
+	}
 
 	/**
 	 * Sets cache URL for covers service.
@@ -363,13 +536,19 @@
 	 * @returns {string}
 	 */
 	function queryPart( bibInfo ) {
-		var queryPart = "",
-			sep       = "";
+		var query = "",
+		    sep   = "";
 
-		$.each( bibInfo, function( name, value ) {
-			queryPart += sep + name + "=" + encodeURIComponent( value );
+		/**
+		 * @param {string} name
+		 * @param {string} value
+		 */
+		function createQuery( name, value ) {
+			query += sep + name + "=" + encodeURIComponent( value );
 			sep = "&";
-		} );
+		}
+
+		$.each( bibInfo, createQuery );
 
 		return queryPart;
 	}
@@ -377,7 +556,8 @@
 	// Default plugin options
 	cover.defaults = {
 		normal: new CoverSizePrototype( 63, 80, "themes/bootstrap3/images/noCover.jpg" ),
-		thumbnail: new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" )
+		thumbnail: new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" ),
+		medium: new CoverSizePrototype( 218, 262, "themes/bootstrap3/images/noCover.jpg" )
 		//icon: new CoverSizePrototype( *, *, "" )
 	};
 
@@ -410,7 +590,18 @@
 		 * @returns {Promise<boolean>}
 		 */
 		function init() {
-			// TODO We should separate those covers which actions need Ajax -> "one request for covers per page"
+
+			// TODO Rozdělit obálky, dle typu akce a sjednotit XHR requesty!
+			//
+			// Tady musíme rozdělit získané `CoverPrototype`s tak, aby akce, které vyžadují Ajax,
+			// byly spuštěny zvlášť a hlavně, aby byl výsledkem jen jeden (či max. dva requesty).
+			//
+			// Akce, které používají Ajax jsou:
+			//
+			// - `displayAuthorityCover` a `displayAuthorityCoverWithoutLinks`
+			// - `displayAuthorityResults`
+			// - `displaySummary` a `displaySummaryShort`
+
 			$( "[data-cover='true']" ).cpkCover();
 
 			return Promise.resolve( true );
