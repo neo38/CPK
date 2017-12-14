@@ -5,9 +5,7 @@
  */
 
 (function( $ ) {
-	if ( CPK.verbose === true ) {
-		console.log( "jquery-cpk/covers.js" );
-	}
+	"use strict";
 
 	/**
 	 * Prototype object for single cover (as is parsed from target <div> element).
@@ -114,7 +112,6 @@
 			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cvr ); break;
 			case "displayCover": displayCover( cvr ); break;
 			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cvr ); break;
-			case "displayThumbnailCover": displayThumbnailCover( cvr ); break;
 			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
 			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
 			case "displayAuthorityCoverWithoutLinks": displayAuthorityCoverWithoutLinks( cvr ); break;
@@ -133,11 +130,9 @@
 	 * @returns {string}
 	 */
 	function getImageUrl( baseUrl, bibInfo, type, query ) {
-		var url = baseUrl +
+		return baseUrl +
 			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
 			"&type=" + type + "&keywords=" + encodeURIComponent( query );
-		console.log( "getImageUrl", baseUrl, bibInfo, type, query, url );
-		return url;
 	}
 
 	/**
@@ -364,17 +359,6 @@
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayThumbnailCover( cover ) {
-		if ( CPK.verbose === true ) {
-			console.log( "displayThumbnailCover", cover );
-		}
-
-		// XXX Finisth this!!!
-	}
-
-	/**
-	 * @param {CoverPrototype} cover
-	 */
 	function displayThumbnailCoverWithoutLinks( cover ) {
 		var img = new Image();
 
@@ -591,16 +575,19 @@
 		 */
 		function init() {
 
-			// TODO Rozdělit obálky, dle typu akce a sjednotit XHR requesty!
-			//
-			// Tady musíme rozdělit získané `CoverPrototype`s tak, aby akce, které vyžadují Ajax,
-			// byly spuštěny zvlášť a hlavně, aby byl výsledkem jen jeden (či max. dva requesty).
-			//
-			// Akce, které používají Ajax jsou:
-			//
-			// - `displayAuthorityCover` a `displayAuthorityCoverWithoutLinks`
-			// - `displayAuthorityResults`
-			// - `displaySummary` a `displaySummaryShort`
+			/**
+			 * TODO Rozdělit obálky, dle typu akce a sjednotit XHR requesty!
+			 *
+			 * Tady musíme rozdělit získané `CoverPrototype`s tak, aby akce,
+			 * které vyžadují Ajax, byly spuštěny zvlášť a hlavně, aby byl
+			 * výsledkem jen jeden XHR request (či max. dva).
+			 *
+			 * Akce, které používají Ajax jsou:
+			 *
+			 * - `displayAuthorityCover` a `displayAuthorityCoverWithoutLinks`
+			 * - `displayAuthorityResults`
+			 * - `displaySummary` a `displaySummaryShort`
+			 */
 
 			$( "[data-cover='true']" ).cpkCover();
 
