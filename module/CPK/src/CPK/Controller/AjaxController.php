@@ -2049,43 +2049,25 @@ class AjaxController extends AjaxControllerBase
     // =======================================================================
 
     /**
-     * @param array $searchArray
+     * @param array $search
      * @return mixed|null
      */
-    private function getMultipleSummaryObalkyKnih($searchArray)
+    private function getMultipleSummaryObalkyKnih( $search )
     {
-        $searchJson = json_encode($searchArray);
+        $searchJson  = json_encode( $search );
+        $cacheUrl    = !isset( $this->getConfig()->ObalkyKnih->cacheUrl )
+            ? 'https://cache.obalkyknih.cz'
+            : $this->getConfig()->ObalkyKnih->cacheUrl;
 
-        $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-            ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
         $apiBooksUrl = $cacheUrl . '/api/books';
-        $client = new \Zend\Http\Client($apiBooksUrl);
-        $client->setParameterGet([ 'multi' => '[' . $searchJson . ']' ]);
 
-        try {
-            $response = $client->send();
-        } catch (\Exception $ex) {
-            return null; // TODO what to do when server is not responding
-        }
+        $client = new \Zend\Http\Client( $apiBooksUrl );
+        $client->setParameterGet( [ 'multi' => '[' . $searchJson . ']' ] );
 
-        $responseBody = $response->getBody();
-        $response = json_decode($responseBody, true);
+        $response = $client->send();
+        $response = json_decode( $response->getBody(), true );
 
         return $response;
-        /*if (isset($phpResponse[0]['annotation'])) {
-
-            if ($phpResponse[0]['annotation']['html'] == null)
-                return null;
-
-            $anothtml = $phpResponse[0]['annotation']['html'];
-            //obalky knih sends annotation html escaped, we have convert it to string, to be able to escape it
-            $anot = htmlspecialchars_decode($anothtml);
-
-            $source = $phpResponse[0]['annotation']['source'];
-
-            return $anot . " - " . $source;
-        }
-        return null;*/
     }
 
     /**
@@ -2094,10 +2076,14 @@ class AjaxController extends AjaxControllerBase
      */
     public function getMultipleSummariesObalkyKnihAjax()
     {
-        $multi = $this->params()->fromQuery( 'multi' );
-        $data = $this->getMultipleSummaryObalkyKnih($multi);
+        try {
+            $multi = $this->params()->fromQuery( 'multi' );
+            $data  = $this->getMultipleSummaryObalkyKnih( $multi );
 
-        return $this->output($data, self::STATUS_OK);
+            return $this->output( $data, self::STATUS_OK );
+        } catch ( \Exception $e ) {
+            return $this->prepareAjaxError( $e );
+        }
     }
 
     /**
@@ -2106,10 +2092,31 @@ class AjaxController extends AjaxControllerBase
      */
     public function getMultipleSummariesShortObalkyKnihAjax()
     {
-        $multi = $this->params()->fromQuery( 'multi' );
-        $data = $this->getMultipleSummaryObalkyKnih($multi);
+        try {
+            $multi = $this->params()->fromQuery( 'multi' );
+            $data  = $this->getMultipleSummaryObalkyKnih( $multi );
 
-        return $this->output($data, self::STATUS_OK);
+            return $this->output( $data, self::STATUS_OK );
+        } catch ( \Exception $e ) {
+            return $this->prepareAjaxError( $e );
+        }
+    }
+
+    /**
+     * @param \Exception $e
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    private function prepareAjaxError( $e ) {
+        $data          = new \stdClass();
+        // TODO Some of these properties should be visible just in development mode!!!
+        $data->code    = $e->getCode();
+        $data->file    = $e->getFile();
+        $data->line    = $e->getLine();
+        $data->trace   = $e->getTrace();
+        $data->message = $e->getMessage();
+
+        return $this->output( $data, self::STATUS_ERROR );
     }
 
     // =======================================================================
