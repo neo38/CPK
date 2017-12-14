@@ -300,7 +300,29 @@
 		var imgCover = new Image(),
 		    imgToc   = new Image();
 
+		// Empty target element
 		$( cover.target ).empty();
+
+		// Load info text (about the source)
+		var infoDivElm = document.createElement( "div" ),
+		    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
+		    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
+		    infoAnchorElm = document.createElement( "a" );
+
+		infoDivElm.style.paddingLeft = "0px";
+		infoDivElm.style.textAlign = "center";
+		infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
+
+		infoAnchorElm.setAttribute( "href", $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ) );
+		infoAnchorElm.setAttribute( "target", "_blank" );
+		infoAnchorElm.classList.add( "title" );
+
+		infoAnchorElm.appendChild( document.createTextNode( "Obálky knih" ) );
+		infoDivElm.appendChild( infoText );
+		infoDivElm.appendChild( infoTextSep );
+		infoDivElm.appendChild( infoAnchorElm );
+
+		$( cover.target ).append( infoDivElm );
 
 		// Firstly we need to load cover
 		imgCover.onload = function onLoadCover() {
@@ -320,40 +342,11 @@
 				var imgElm = createImage( imgToc.src, $.fn.cpkCover.tocText, $.fn.cpkCover.defaults.medium ),
 				    divElm = createDiv( "cover_thumbnail", imgElm );
 
-				$( cover.target ).prepend( divElm );
+				$( divElm ).insertBefore( infoDivElm );
 			}
 		};
 
 		imgToc.src = getImageUrl( $.fn.cpkCover.tocUrl, cover.bibInfo, "medium", cover.advert );
-
-		/**
-		 * @private Creates info part (Source).
-		 * @type {HTMLDivElement | HTMLDivElement}
-		 */
-		function createInfoPart() {
-			var infoDivElm = document.createElement( "div" ),
-			    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
-			    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
-			    infoAnchorElm = document.createElement( "a" );
-
-			infoDivElm.style.paddingLeft = "0px";
-			//infoDivElm.style.width = "170px";
-			infoDivElm.style.textAlign = "center";
-			infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
-
-			infoAnchorElm.setAttribute( "href", $.fn.cpkCover.getCoverTargetUrl( cover.bibInfo ) );
-			infoAnchorElm.setAttribute( "target", "_blank" );
-			infoAnchorElm.classList.add( "title" );
-
-			infoAnchorElm.appendChild( document.createTextNode( "Obálky knih" ) );
-			infoDivElm.appendChild( infoText );
-			infoDivElm.appendChild( infoTextSep );
-			infoDivElm.appendChild( infoAnchorElm );
-
-			$( cover.target ).append( infoDivElm );
-		}
-
-		setTimeout( createInfoPart(), 100 );
 	}
 
 	/**
@@ -471,7 +464,7 @@
 		 * @param {Object} data
 		 */
 		function resolveData( data ) {
-			$( document.getElementById( "short_summary_" + cover.record ) ).html( data.data );
+			$( document.getElementById( "summary_" + cover.record ) ).html( data.data );
 		}
 
 		$.getJSON( "/AJAX/JSON?method=getSummaryObalkyKnih", { bibinfo: cover.bibInfo }, resolveData );
