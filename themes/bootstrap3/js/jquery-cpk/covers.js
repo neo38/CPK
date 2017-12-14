@@ -159,8 +159,8 @@
 	 * @param {string} query
 	 * @returns {string}
 	 */
-	function getImageUrl( bibInfo, type, query ) {
-		return cover.coverUrl +
+	function getImageUrl( baseUrl, bibInfo, type, query ) {
+		return baseUrl +
 			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
 			"&type=" + type + "&keywords=" + encodeURIComponent( query )
 	}
@@ -178,7 +178,8 @@
 			type = "thumbnail";
 		}
 
-		img.onload = function() {
+		img.onload = function onLoadImage( event ) {
+			console.log( event );
 			if ( CPK.verbose === true ) {
 				console.log( "fetchImage", "resolveImage", cover, type );
 			}
@@ -191,7 +192,7 @@
 			cover.target.appendChild( aElm );
 		};
 
-		var url = getImageUrl( cover.bibInfo, type, query );
+		var url = getImageUrl( cover.coverUrl, cover.bibInfo, type, query );
 		console.log( url );
 
 		img.src = url;
@@ -210,7 +211,7 @@
 			type = "thumbnail";
 		}
 
-		img.onload = function( event ) {
+		img.onload = function onLoadImage( event ) {
 			console.log( event );
 			var size   = ( type === "thumbnail" ) ? $.fn.cpkCover.defaults.thumbnail : $.fn.cpkCover.defaults.normal,
 				imgElm = createImage( img.src, $.fn.cpkCover.coverText, size );
@@ -218,7 +219,7 @@
 			cover.target.appendChild( imgElm );
 		};
 
-		var url = getImageUrl( cover.bibInfo, type, query );
+		var url = getImageUrl( cover.coverUrl, cover.bibInfo, type, query );
 		console.log( url );
 
 		img.src = url;
@@ -240,13 +241,66 @@
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo Resolve `query`!
 	 */
-	function displayCover( cover ) { console.log( "XXX displayCover", cover ); }
+	function displayCover( cover ) {
+		var imgCover = new Image(),
+			imgToc   = new Image(),
+		    query    = "";
+
+		// Firstly we need to load cover
+		imgCover.onload = function onLoadCover( event ) {
+			console.log( event );
+			/*if (obalky.imageIsLoaded(img)) {
+				var href = obalky.coverTargetUrl(bibinfo);
+				$(element).html("<div class='cover_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></a></div>");
+			}*/
+		};
+
+		imgCover.src = getImageUrl( cover.coverUrl, cover.bibInfo, "medium", query );
+
+		// Secondly we need to load TOC
+		imgToc.onload = function onLoadToc( event ) {
+			console.log( event );
+			/*if (obalky.imageIsLoaded(img)) {
+				var href = obalky.coverTargetUrl(bibinfo);
+				$(element).html("<div class='cover_thumbnail'><a href='" + href + "' class='title'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></a></div>");
+			}*/
+		};
+
+		imgToc.src = getImageUrl( cover.tocUrl, cover.bibInfo, "medium", query );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayCoverWithoutLinks( cover ) { console.log( "XXX displayCoverWithoutLinks", cover ); }
+	function displayCoverWithoutLinks( cover ) {
+		var imgCover = new Image(),
+			imgToc   = new Image(),
+			query    = "";
+
+		// Firstly we need to load cover
+		imgCover.onload = function onLoadCover( event ) {
+			console.log( event );
+			/*if (obalky.imageIsLoaded(img)) {
+				var href = obalky.coverTargetUrl(bibinfo);
+				$(element).html("<div class='cover_thumbnail'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");
+			}*/
+		};
+
+		imgCover.src = getImageUrl( cover.coverUrl, cover.bibInfo, "medium", query );
+
+		// Secondly we need to load TOC
+		imgToc.onload = function onLoadToc( event ) {
+			console.log( event );
+			/*if (obalky.imageIsLoaded(img)) {
+				var href = obalky.coverTargetUrl(bibinfo);
+				$(element).html("<div class='cover_thumbnail'><img align='left' src='" + img.src + "' alt='" + obalky.coverText + "'></img></div>");
+			}*/
+		};
+
+		imgToc.src = getImageUrl( cover.tocUrl, cover.bibInfo, "medium", query );
+	}
 
 	/**
 	 * @param {CoverPrototype} cover
