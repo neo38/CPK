@@ -88,6 +88,10 @@ There are several new [view helpers][26] so now in PHTML view scripts should be 
 ) ?>
 ```
 
+The [cover][32] view helper supports all methods as `$.fn.cpkCover`: 
+
+__Note:__ Only methods with asterisk needs XHR requests.
+
 Previous declaration (using `<div>` with `data-*` attributes) should be used only for methods which uses _Ajax_ to get required data (see output that produces the new [cover][32] view helper).
 
 Here are listed methods that needs XHR requests:
@@ -97,15 +101,6 @@ Here are listed methods that needs XHR requests:
 - `displayAuthorityResults` ([source][29])
 - `displaySummary` ([source][28])
 - `displaySummaryShort` ([source][27])
-
-So for these you should still use code like this:
-
-```php
-<div data-action="displayAuthorityCover" 
-     data-advert="<?=htmlspecialchars( $this->record( $this->driver )->getObalkyKnihAdvert( "record" ), ENT_QUOTES )?>"
-     data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
-     data-cover="true"/>
-```
 
 __Note:__ New view helper is declared in file [cover.php][32].
 
