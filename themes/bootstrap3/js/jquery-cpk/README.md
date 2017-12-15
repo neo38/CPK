@@ -170,9 +170,10 @@ Usage of `CPK.storage` is easy:
 
 ~~This object contains some widely used methods:~~
 
-- ~~`CPK.global.showDOM( Element elm )` - removes _hidden_ attribute~~
-- ~~`CPK.global.hideDOM( Element elm )` - adds _hidden_ attribute~~
-- ~~`CPK.global.toggleDOM( Element elm )` - toggles _hidden_ attribute~~
+- ~~`CPK.global.showDOM( Element elm )` - removes _hidden_ attribute.~~
+- ~~`CPK.global.hideDOM( Element elm )` - adds _hidden_ attribute.~~
+- ~~`CPK.global.toggleDOM( Element elm )` - toggles _hidden_ attribute.~~
+- `CPK.global.isUser()` - returns `TRUE` is any user is logged in.
 
 Also holds `GlobalController` which serves global modal dialog (via `viewModal` GET parameter).
 

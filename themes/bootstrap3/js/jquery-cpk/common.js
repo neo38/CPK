@@ -151,6 +151,14 @@ function Cpk() {
 		},
 
 		/**
+		 * Checks if is there user logged in.
+		 * @returns {boolean}
+		 */
+		isUser: function isUserLoggedIn() {
+			return document.body.classList.contains( "isUser" )
+		},
+
+		/**
 		 * @type {GlobalController} controller
 		 */
 		controller: undefined

@@ -1,4 +1,4 @@
-/*global checkSaveStatuses, deparam, extractClassParams, getListUrlFromHTML, htmlEncode, Lightbox, syn_get_widget, userIsLoggedIn, VuFind */
+/*global checkSaveStatuses, deparam, extractClassParams, getListUrlFromHTML, htmlEncode, Lightbox, syn_get_widget, CPK, VuFind */
 
 /**
  * Functions and event handlers specific to record pages.
@@ -233,7 +233,7 @@ function ajaxLoadTab($newTab, tabid, setHash) {
 }
 
 function refreshTagList(target, loggedin) {
-  loggedin = !!loggedin || userIsLoggedIn;
+  loggedin = !!loggedin || CPK.global.isUser();
   if (typeof target === 'undefined') {
     target = document;
   }
