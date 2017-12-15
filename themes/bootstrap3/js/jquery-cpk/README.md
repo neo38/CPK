@@ -27,7 +27,7 @@ Here is a list of provided [jQuery][2] plugins:
 - `$.fn.cpkCover` - small plugin that handles covers of the books.
 - `$.fn.cpkRecord` - allows to create `CpkRecord` object from the DOM elements.
 
-#### Books covers
+#### Book covers
 
 Another important module (and probably the most used one) is __covers service__ implemented in file [covers.js][24]. Is a more efficient and usable version of original module `obalky` (see file [obalkyknih.js][25]).
 
@@ -52,8 +52,8 @@ Now it should be like this:
 ```php
 <div id="cover_<?php echo $recordId?>" class="coverThumbnail">
     <div data-action="displayThumbnail" data-recordId="<?php echo $recordId?>" 
-         data-bibinfo="<?php echo htmlspecialchars($bibinfo, ENT_QUOTES)?>" 
-         data-advert="<?php echo htmlspecialchars($this->record($resource)->getObalkyKnihAdvert('checkedout'), ENT_QUOTES)?>"></div>
+         data-bibinfo="<?php echo htmlspecialchars( $bibinfo, ENT_QUOTES )?>" 
+         data-advert="<?php echo htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>"/>
 </div>
 ```
 
@@ -74,6 +74,35 @@ jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCove
 Where `.result-cover-cont` should be class of empty `<div>` elements witch proper _data-*_ attributes inside the element with ID `results-list`.
 
 __Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
+
+#### Update
+
+There are several new [view helpers][26] so now in PHTML view scripts should be used code like this:
+
+```php
+<?php echo $this->cover(
+    "displayThumbnail",
+    $recordId,
+    $bibinfo,
+    $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' )
+) ?>
+```
+
+The [cover][32] view helper supports all methods as `$.fn.cpkCover`: 
+
+__Note:__ Only methods with asterisk needs XHR requests.
+
+Previous declaration (using `<div>` with `data-*` attributes) should be used only for methods which uses _Ajax_ to get required data (see output that produces the new [cover][32] view helper).
+
+Here are listed methods that needs XHR requests:
+
+- `displayAuthorityCover` ([source][31])
+- `displayAuthorityThumbnailCoverWithoutLinks` ([source][30])
+- `displayAuthorityResults` ([source][29])
+- `displaySummary` ([source][28])
+- `displaySummaryShort` ([source][27])
+
+__Note:__ New view helper is declared in file [cover.php][32].
 
 ### Search Records
 
@@ -282,3 +311,10 @@ This way of initializing code has these benefits (some of them will be visible a
 [23]:https://getbootstrap.com/
 [24]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js
 [25]:https://github.com/moravianlibrary/CPK/blob/master/themes/bootstrap3/js/obalkyknih.js
+[26]:https://vufind.org/wiki/development:plugins:view_helpers
+[27]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L477
+[28]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L461
+[29]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L432
+[30]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L403
+[31]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L375
+[32]:https://github.com/moravianlibrary/CPK/blob/bug-776b/module/CPK/src/CPK/View/Helper/CPK/Cover.php
