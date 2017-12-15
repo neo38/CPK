@@ -2071,6 +2071,7 @@ class AjaxController extends AjaxControllerBase
     }
 
     /**
+     * Same as {@see getSummaryObalkyKnihAjax} but for multiple items per once.
      * @return \Zend\Http\Response
      * @throws \Exception
      */
@@ -2087,6 +2088,7 @@ class AjaxController extends AjaxControllerBase
     }
 
     /**
+     * Same as {@see getSummaryShortObalkyKnihAjax} but for multiple items per once.
      * @return \Zend\Http\Response
      * @throws \Exception
      */
