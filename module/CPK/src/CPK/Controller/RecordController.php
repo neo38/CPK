@@ -235,8 +235,8 @@ class RecordController extends RecordControllerBase
      * @return array
      */
     protected function getDataForMetaTags() {
-        $cacheUrl = !isset($this->mainConfig->ObalkyKnih->cacheUrl)
-            ? 'https://cache.obalkyknih.cz' : $this->mainConfig->ObalkyKnih->cacheUrl;
+        $cacheUrl = !isset($this->getConfig('config')->ObalkyKnih->cacheUrl)
+            ? 'https://cache.obalkyknih.cz' : $this->getConfig('config')->ObalkyKnih->cacheUrl;
         $coverUrl = '/api/cover';
         $type = 'medium';
         $sigla = '';
