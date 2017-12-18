@@ -28,6 +28,7 @@
 namespace CPK\Controller;
 
 use VuFind\Controller\AjaxController as AjaxControllerBase;
+use Zend\Http\Client\Adapter\Exception\TimeoutException as TimeoutException;
 
 /**
  * This controller handles global AJAX functionality
@@ -1921,48 +1922,57 @@ class AjaxController extends AjaxControllerBase
         return $childrenIds;
     }
 
+    /**
+     * Handles AJAX request for authority's record from obalkyknih.cz.
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
     public function getObalkyKnihAuthorityIDAjax()
     {
         $id = $this->params()->fromQuery('id');
-        $obalky = $this->getAuthorityFromObalkyKnih($id);
-        $coverUrl = empty($obalky[0]['cover_medium_url']) ? '' : $obalky[0]['cover_medium_url'];
-        $coverUrl = str_replace('http://', 'https://', $coverUrl);
-        return $this->output($coverUrl, self::STATUS_OK);
+        $cover = $this->getAuthorityFromObalkyKnih($id);
 
-    }
+        if (count($cover) >= 1) {
+            if (isset($cover[0]['cover_medium_url'])) {
+                if (!empty($cover[0]['cover_medium_url'])) {
+                    $coverUrl = str_replace('http://', 'https://', $cover[0]['cover_medium_url']);
 
-    private function getAuthorityFromObalkyKnih($id)
-    {
-        if (! isset($this->obalky)) {
-
-            $auth_id = $id;
-
-            if (! empty($auth_id)) {
-                try {
-                    $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-                        ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
-                    $metaUrl = $cacheUrl . "/api/auth/meta";
-                    $client = new \Zend\Http\Client($metaUrl);
-                    $client->setParameterGet(array(
-                        'auth_id' => $auth_id
-                    ));
-
-                    $response = $client->send();
-                    $responseBody = $response->getBody();
-                    $phpResponse = json_decode($responseBody, true);
-                    $this->obalky = empty($phpResponse) ? null : $phpResponse;
+                    return $this->output($coverUrl, self::STATUS_OK);
                 }
-                catch (TimeoutException $e) {
-                    $this->obalky = null;
-                }
-            }
-            else {
-                $this->obalky = null;
             }
         }
-        return $this->obalky;
+
+        return $this->output(null, self::STATUS_NOT_OK);
+
     }
 
+    /**
+     * @param string $id
+     * @return array
+     */
+    private function getAuthorityFromObalkyKnih($id)
+    {
+        if (empty($id)) {
+            return [];
+        }
+
+        try {
+            $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
+                    ? 'https://cache.obalkyknih.cz'
+                    : $this->getConfig()->ObalkyKnih->cacheUrl;
+            $metaUrl = $cacheUrl . '/api/auth/meta';
+            $client = new \Zend\Http\Client($metaUrl);
+            $client->setParameterGet(['auth_id' => $id]);
+
+            $response = $client->send();
+            $responseBody = $response->getBody();
+            $phpResponse = json_decode($responseBody, true);
+
+            return empty($phpResponse) ? [] : $phpResponse;
+        } catch (TimeoutException $e) {
+            return [];
+        }
+    }
 
     /**
      * Get an array of summary strings for the record.
@@ -2052,7 +2062,7 @@ class AjaxController extends AjaxControllerBase
      * @param array $search
      * @return mixed|null
      */
-    private function getMultipleSummaryObalkyKnih( $search )
+    private function getMultipleSummaries( $search )
     {
         $searchJson  = json_encode( $search );
         $cacheUrl    = !isset( $this->getConfig()->ObalkyKnih->cacheUrl )
@@ -2062,7 +2072,7 @@ class AjaxController extends AjaxControllerBase
         $apiBooksUrl = $cacheUrl . '/api/books';
 
         $client = new \Zend\Http\Client( $apiBooksUrl );
-        $client->setParameterGet( [ 'multi' => '[' . $searchJson . ']' ] );
+        $client->setParameterGet([ 'multi' => $searchJson ]);
 
         $response = $client->send();
         $response = json_decode( $response->getBody(), true );
@@ -2075,11 +2085,11 @@ class AjaxController extends AjaxControllerBase
      * @return \Zend\Http\Response
      * @throws \Exception
      */
-    public function getMultipleSummariesObalkyKnihAjax()
+    public function getMultipleSummariesAjax()
     {
         try {
             $multi = $this->params()->fromQuery( 'multi' );
-            $data  = $this->getMultipleSummaryObalkyKnih( $multi );
+            $data  = $this->getMultipleSummaries( $multi );
 
             return $this->output( $data, self::STATUS_OK );
         } catch ( \Exception $e ) {
@@ -2092,11 +2102,11 @@ class AjaxController extends AjaxControllerBase
      * @return \Zend\Http\Response
      * @throws \Exception
      */
-    public function getMultipleSummariesShortObalkyKnihAjax()
+    public function getMultipleSummariesShortAjax()
     {
         try {
             $multi = $this->params()->fromQuery( 'multi' );
-            $data  = $this->getMultipleSummaryObalkyKnih( $multi );
+            $data  = $this->getMultipleSummaries( $multi );
 
             return $this->output( $data, self::STATUS_OK );
         } catch ( \Exception $e ) {
@@ -2120,6 +2130,8 @@ class AjaxController extends AjaxControllerBase
 
         return $this->output( $data, self::STATUS_ERROR );
     }
+
+
 
     // =======================================================================
 
