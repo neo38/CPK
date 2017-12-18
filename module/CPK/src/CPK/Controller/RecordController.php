@@ -27,6 +27,7 @@
  */
 namespace CPK\Controller;
 
+use CPK\View\Helper\CPK\ObalkyKnih;
 use VuFind\Controller\RecordController as RecordControllerBase,
     VuFind\Controller\HoldsTrait as HoldsTraitBase,
     Zend\Mail\Address,
@@ -236,23 +237,26 @@ class RecordController extends RecordControllerBase
      * @return array
      */
     protected function getDataForMetaTags() {
-        $obalkyUrl = 'https://cache.obalkyknih.cz/api/cover';
+        $cacheUrl = !isset($this->mainConfig->ObalkyKnih->cacheUrl)
+            ? 'https://cache.obalkyknih.cz' : $this->mainConfig->ObalkyKnih->cacheUrl;
+        $coverUrl = '/api/cover';
+        $type = 'medium';
         $sigla = '';
         if (isset($this->config->ObalkyKnih->sigla)) {
             $sigla = $this->config->ObalkyKnih->sigla;
         }
 
-        $bibinfo = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
+        $multi = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
         $keyword = rawurlencode(sprintf('advert%s record', $sigla));
-        $ImgSrc = sprintf('%s?multi=%s&type=medium&keywords=%s',$obalkyUrl, $bibinfo, $keyword);
+        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s', $cacheUrl, $coverUrl, $multi, $type, $keyword);
 
-        $Title = $this->driver->getTitle();
-        $Author = $this->driver->getDeduplicatedAuthors()['main'];
+        $title = $this->driver->getTitle();
+        $author = $this->driver->getDeduplicatedAuthors()['main'];
 
         return Array(
-            'ImgSrc' => $ImgSrc,
-            'Title' => $Title,
-            'Author' => $Author,
+            'imgSrc' => $imgSrc,
+            'title' => $title,
+            'author' => $author,
         );
     }
 
