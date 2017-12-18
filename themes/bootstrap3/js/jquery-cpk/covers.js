@@ -583,19 +583,17 @@
 			 */
 
 			/**
-			 * @type {{normal: HTMLElement[], authorityCover: HTMLElement[], authorityResults: HTMLElement[], summary: HTMLElement[], summaryShort: HTMLElement[]}} covers
+			 * @type {{normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
 			 */
 			var covers = {
 				normal: [],
-				authorityCover: [],
-				authorityResults: [],
-				summary: [],
-				summaryShort: []
+				authority: [],
+				summary: []
 			};
 
 			$( "[data-cover='true']" ).each( function( idx, elm ) {
 				var action = $( elm ).data( "action" );
-				console.log( action );
+
 				switch( action ) {
 					case "fetchImage":
 					case "fetchImageWithoutLinks":
@@ -604,32 +602,72 @@
 					case "displayCover":
 					case "displayCoverWithoutLinks":
 					case "displayThumbnailCoverWithoutLinks":
-						covers.normal.push( elm );
-						break;
+						// Note: API obalekknih.cz neumožňuje dotaz na více autorit najednou...
+						//covers.normal.push( elm );
+						//break;
 
 					case "displayAuthorityCover":
 					case "displayAuthorityThumbnailCoverWithoutLinks":
-						covers.authorityCover.push( elm );
-						break;
+						//covers.normal.push( elm );
+						//break;
 
 					case "displayAuthorityResults":
-						covers.authorityResults.push( elm );
-						break;
-
 					case "displaySummary":
-						covers.summary.push( elm );
-						break;
-
 					case "displaySummaryShort":
-						covers.summaryShort.push( elm );
+						covers.summary.push( elm );
 						break;
 				}
 			});
 
 			console.log( "Splitted coveres: ", covers );
 
+			// Here are actions without XHR
+			$( covers.normal ).cpkCover();
 
-			$( "[data-cover='true']" ).cpkCover();
+			// Authority-related actions
+			//setTimeout(function() { $( covers.authority ).cpkCover(); });
+
+			// Summary-related actions
+			//setTimeout(function() { $( covers.summary ).cpkCover(); });
+			var bibInfo = [];
+
+			covers.summary.forEach(function( elm ) {
+				bibInfo.push(( CoverPrototype.parseFromElement( elm ) ).bibInfo);
+			});
+			console.log( bibInfo );
+
+			/**
+			 * @param {{data: array, status: string}} data
+			 */
+			function resolveData( data ) {
+				if ( ! data || data.status === undefined ) {
+					return;
+				}
+
+				if ( data.status !== "OK" ) {
+					if ( CPK.verbose === true ) {
+						console.log( data );
+					}
+
+					return;
+				}
+
+				if ( data.length <= 0 ) {
+					if ( CPK.verbose === true ) {
+						console.log( "No data for multiple summaries returned." );
+					}
+
+					return;
+				}
+
+				data.data.forEach(function( metadata ) {
+					//...
+				});
+
+				console.log( data );
+			}
+
+			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveData );
 
 			return Promise.resolve( true );
 		}
