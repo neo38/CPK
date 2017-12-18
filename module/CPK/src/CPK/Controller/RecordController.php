@@ -218,6 +218,8 @@ class RecordController extends RecordControllerBase
             $this->layout()->sort = $searchesConfig->General->default_sort;
         }
 
+        $this->layout()->metaRecord = $this->getDataForMetaTags();
+
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
 
@@ -226,6 +228,32 @@ class RecordController extends RecordControllerBase
 
     protected function base64url_decode($data) {
         return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+    }
+
+    /**
+     * Returns data for facebook meta tags
+     *
+     * @return array
+     */
+    protected function getDataForMetaTags() {
+        $obalkyUrl = 'https://cache.obalkyknih.cz/api/cover';
+        $sigla = '';
+        if (isset($this->config->ObalkyKnih->sigla)) {
+            $sigla = $this->config->ObalkyKnih->sigla;
+        }
+
+        $bibinfo = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
+        $keyword = rawurlencode(sprintf('advert%s record', $sigla));
+        $ImgSrc = sprintf('%s?multi=%s&type=medium&keywords=%s',$obalkyUrl, $bibinfo, $keyword);
+
+        $Title = $this->driver->getTitle();
+        $Author = $this->driver->getDeduplicatedAuthors()['main'];
+
+        return Array(
+            'ImgSrc' => $ImgSrc,
+            'Title' => $Title,
+            'Author' => $Author,
+        );
     }
 
     /**
@@ -353,6 +381,7 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
      * Email action - Allows the email form to appear.
      *
      * @return \Zend\View\Model\ViewModel
+     * @throws \Exception
      */
     public function emailAction()
     {
@@ -415,7 +444,8 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
      * init() method since we don't want to perform an expensive search twice
      * when homeAction() forwards to another method.
      *
-     * @return AbstractRecordDriver
+     * @return \VuFind\RecordDriver\AbstractBase
+     * @throws \Exception
      */
     protected function loadEdsRecord()
     {
@@ -442,6 +472,8 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
      * ProcessSave -- store the results of the Save action.
      *
      * @return mixed
+     * @throws \VuFind\Exception\ListPermission
+     * @throws \VuFind\Exception\LoginRequired
      */
     protected function processSave()
     {
