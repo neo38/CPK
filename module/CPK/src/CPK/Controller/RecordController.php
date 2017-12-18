@@ -27,10 +27,8 @@
  */
 namespace CPK\Controller;
 
-use CPK\View\Helper\CPK\ObalkyKnih;
 use VuFind\Controller\RecordController as RecordControllerBase,
     VuFind\Controller\HoldsTrait as HoldsTraitBase,
-    Zend\Mail\Address,
     CPK\RecordDriver\SolrAuthority,
     VuFind\Exception\RecordMissing as RecordMissingException;
 
