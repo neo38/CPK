@@ -257,18 +257,9 @@ jQuery(function onDocumentReady() {
 		 * @return {Promise<boolean>}
 		 */
 		function initJob( job ) {
-			return Promise.resolve( job.call() ).then( catchInitJob );
-		}
-
-		/**
-		 * @returns {Promise<boolean>}
-		 */
-		function catchInitJob( error ) {
-			if ( CPK.verbose === true ) {
-				console.error( error );
-			}
-
-			return Promise.resolve( false );
+			return Promise
+				.resolve( job.call() )
+				.then(function catchInitJob() { return Promise.resolve( true ); });
 		}
 
 		/**

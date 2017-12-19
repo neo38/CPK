@@ -1,17 +1,13 @@
-<?
-    // Get source of the record to print it to h3 header
-    $id = $this->driver->getUniqueID();
-    $source = explode(".", $id)[0];
+<?php
+// Get source of the record to print it to h3 header
+$id      = $this->driver->getUniqueID();
+$source  = explode(".", $id)[0];
+$QRCode  = $this->record($this->driver)->getQRCode("core");
+$cover   = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
+$preview = $this->record($this->driver)->getPreviews();
+
 ?>
-
-<? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
-
-<? endif; ?>
-
-        <div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
-          <? $QRCode = $this->record($this->driver)->getQRCode("core");
-             $cover = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
-             $preview = $this->record($this->driver)->getPreviews(); ?>
+        <div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product" data-action="fetchRecordMetadata" data-hasCover="<?= $cover ? 'true' : 'false'?>" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$id?>" data-cover="true">
           <? if ($QRCode || $cover || $preview): ?>
           <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
             <div class="row text-center cover" id="cover">
@@ -21,7 +17,7 @@
                 <? else: ?>
                     <img class="recordcover col-md-12" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
                 <? endif; ?>
-                <div data-action="displayCoverWithoutLinks" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>
+                <!--<div data-action="displayCoverWithoutLinks" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>-->
                 <? /* Display qrcode if appropriate: */ ?>
               <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
               <? if($QRCode): ?>
@@ -58,7 +54,7 @@
 
             <? else: ?>
               <p id="summary_<?=$recordId?>" class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
-              <div data-action="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>
+              <!--<div data-action="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true"></div>-->
 
           <? endif; ?>
 

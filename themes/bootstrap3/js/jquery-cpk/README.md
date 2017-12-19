@@ -90,11 +90,9 @@ There are several new [view helpers][26] so now in PHTML view scripts should be 
 ) ?>
 ```
 
-The [cover][32] view helper supports all methods as `$.fn.cpkCover`: 
+The [cover][32] view helper supports all methods as `$.fn.cpkCover`.
 
-__Note:__ Only methods with asterisk needs XHR requests.
-
-Previous declaration (using `<div>` with `data-*` attributes) should be used only for methods which uses _Ajax_ to get required data (see output that produces the new [cover][32] view helper).
+~~Previous declaration (using `<div>` with `data-*` attributes) should be used only for methods which uses _Ajax_ to get required data (see output that produces the new [cover][32] view helper).~~
 
 Here are listed methods that needs XHR requests:
 
@@ -103,12 +101,13 @@ Here are listed methods that needs XHR requests:
 - `displayAuthorityResults` ([source][29])
 - `displaySummary` ([source][28])
 - `displaySummaryShort` ([source][27])
+- `fetchRecordMetadata` ([source][33])
 
-__Note:__ New view helper is declared in file [cover.php][32].
+Where the last method `fetchRecordMetadata` is a new one and replaces redundant XHR calls in these PHTML files: [core.phtml][34] and [result-list.phtml][35].
 
 ### Search Records
 
-Another our addon to [jQuery][2] is `$.fn.cpkRecord` plugin - it encapsulates given DOM with all functionality that we require from single record (e.g. book, author etc.).
+Another our addition to [jQuery][2] is `$.fn.cpkRecord` plugin - it encapsulates given DOM with all functionality that we require from single record (e.g. book, author etc.).
 
 __TBD__ ... `$.fn.cpkRecord`
 
@@ -321,3 +320,6 @@ This way of initializing code has these benefits (some of them will be visible a
 [30]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L403
 [31]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L375
 [32]:https://github.com/moravianlibrary/CPK/blob/bug-776b/module/CPK/src/CPK/View/Helper/CPK/Cover.php
+[33]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/js/jquery-cpk/covers.js#L395
+[34]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/RecordDriver/SolrDefault/core.phtml
+[35]:https://github.com/moravianlibrary/CPK/blob/bug-776b/themes/bootstrap3/templates/RecordDriver/SolrDefault/result-list.phtml

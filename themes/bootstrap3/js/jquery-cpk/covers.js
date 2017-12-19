@@ -2,6 +2,12 @@
  * Covers for books.
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
+ *
+ * @todo Add cache using {@see CPK.localStorage}.
+ * @todo Use {@see jQuery.Deferred} instead of plain {@see Promise}.
+ * @todo Add custom jQuery selectors (select them directly by action's name).
+ * @todo Try to minify this (if it works well).
+ * @todo Add tests!
  */
 
 (function( $ ) {
@@ -125,20 +131,24 @@
 	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
 	 * @property {HTMLElement} target
 	 * @property {string} record
+	 * @property {boolean} isAuthority
+	 * @property {boolean} hasCover
 	 * @constructor
 	 */
 	function CoverPrototype() {
-		var act, adv, bi, elm, rec;
+		var act, adv, bi, elm, rec, isAuth, hasCvr;
 
 		// Public API
 		var Cover = Object.create( null );
 
 		Object.defineProperties( Cover, {
-			"action" : { get: function() { return act; }, set: function( v ) { act = v; } },
-			"advert" : { get: function() { return adv; }, set: function( v ) { adv = v; } },
-			"bibInfo": { get: function() { return bi; }, set: function( v ) { bi = v; } },
-			"target" : { get: function() { return elm; }, set: function( v ) { elm = v; } },
-			"record" : { get: function() { return rec; }, set: function( v ) { rec = v; } }
+			"action"      : { get: function() { return act; }, set: function( v ) { act = v; } },
+			"advert"      : { get: function() { return adv; }, set: function( v ) { adv = v; } },
+			"bibInfo"     : { get: function() { return bi; }, set: function( v ) { bi = v; } },
+			"target"      : { get: function() { return elm; }, set: function( v ) { elm = v; } },
+			"record"      : { get: function() { return rec; }, set: function( v ) { rec = v; } },
+			"isAuthority" : { get: function() { return isAuth; }, set: function( v ) { isAuth = v; } },
+			"hasCover"    : { get: function() { return hasCvr; }, set: function( v ) { hasCvr = v; } }
 		} );
 
 		return Cover;
@@ -160,14 +170,21 @@
 		var bi = Object.create( null );
 
 		if ( elm.hasAttribute( "data-bibinfo" ) ) {
-			bi = JSON.parse( elm.getAttribute( "data-bibinfo" ) );
+			try {
+				bi = JSON.parse( elm.getAttribute( "data-bibinfo" ) );
+			} catch( e ) {
+				throw new Error( "Unable to parse BibInfo from given element!" );
+			}
 		}
 
-		cover.target  = elm.parentElement;
-		cover.action  = elm.getAttribute( "data-action" );
-		cover.advert  = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
-		cover.bibInfo = bi;
-		cover.record  = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
+		// Collect data
+		cover.target      = elm.parentElement;
+		cover.action      = elm.getAttribute( "data-action" );
+		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
+		cover.bibInfo     = bi;
+		cover.record      = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
+		cover.hasCover    = elm.hasAttribute( "data-hasCover" ) ? elm.getAttribute( "data-hasCover" ) === "true" : false;
+		cover.isAuthority = elm.hasAttribute( "data-isAuthority" ) ? elm.getAttribute( "data-isAuthority" ) === "true" : false;
 
 		return cover;
 	};
@@ -233,6 +250,7 @@
 			case "displayAuthorityResults": displayAuthorityResults( cvr ); break;
 			case "displaySummary": displaySummary( cvr ); break;
 			case "displaySummaryShort": displaySummaryShort( cvr ); break;
+			case "fetchRecordMetadata": fetchRecordMetadata( cvr ); break;
 		}
 	}
 
@@ -261,7 +279,7 @@
 		var img = document.createElement( "img" );
 
 		img.setAttribute( "src", src );
-		img.setAttribute( "alt", cover.coverText );
+		img.setAttribute( "alt", $.fn.cpkCover.coverText );
 
 		if ( size !== undefined ) {
 			img.style.height = size.height.toString();
@@ -528,7 +546,7 @@
 					var imgElm = createImage( img.src, $.fn.cpkCover.coverText, undefined ),
 					    divElm = createDiv( "cover_thumbnail", imgElm );
 
-					imgElm.style.width = "65px";
+					imgElm.style.width = "65px";// TODO This should not be here...
 
 					$( cover.target ).empty().append( divElm );
 				}
@@ -600,6 +618,14 @@
 		}
 
 		$.getJSON( "/AJAX/JSON?method=getSummaryShortObalkyKnih", { bibinfo: cover.bibInfo }, resolveData );
+	}
+
+	/**
+	 * @param {CoverPrototype} cover
+	 * @todo We should resolve also failure of the request!
+	 */
+	function fetchRecordMetadata( cover ) {
+		console.log( "cover->fetchRecordMetadata", cover );
 	}
 
 	/**
@@ -676,6 +702,17 @@
 	// Public API for jQuery
 
 	// Here are some extensions to jQuery self
+
+	/**
+	 * @property {{medium: CoverSizePrototype, normal: CoverSizePrototype, thumbnail: CoverSizePrototype}} defaults
+	 * @property {string} coverUrl
+	 * @property {string} tocUrl
+	 * @property {string} pdfUrl
+	 * @property {string} linkUrl
+	 * @property {string} coverText
+	 * @property {string} tocText
+	 * @type {cover}
+	 */
 	$.fn.cpkCover = cover;
 
 	/**
@@ -697,80 +734,115 @@
 			 */
 
 			/**
-			 * Finds all elements where is reuired action of jquery-cpk/covers module.
-			 * @returns {Promise<{ normal: array, authority: array, summary: array }>}
+			 * @type {{metadata: HTMLElement[], normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
 			 */
-			function getRecords() {
+			var covers = {
+				metadata: [],
+				normal: [],
+				authority: [],
+				summary: []
+			};
 
-				/**
-				 * @type {{normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
-				 */
-				var covers = {
-					normal: [],
-					authority: [],
-					summary: []
-				};
+			// Finds all elements where is required action of jquery-cpk/covers module.
+			$( "[data-cover='true']" ).each( function( idx, elm ) {
+				var action = $( elm ).data( "action" );
 
-				$( "[data-cover='true']" ).each( function( idx, elm ) {
-					var action = $( elm ).data( "action" );
+				switch( action ) {
+					case "fetchImage":
+					case "fetchImageWithoutLinks":
+					case "displayThumbnail":
+					case "displayThumbnailWithoutLinks":
+					case "displayCover":
+					case "displayCoverWithoutLinks":
+					case "displayThumbnailCoverWithoutLinks":
+						covers.normal.push( elm );
+						break;
 
-					switch( action ) {
-						case "fetchImage":
-						case "fetchImageWithoutLinks":
-						case "displayThumbnail":
-						case "displayThumbnailWithoutLinks":
-						case "displayCover":
-						case "displayCoverWithoutLinks":
-						case "displayThumbnailCoverWithoutLinks":
-							covers.normal.push( elm );
-							break;
+					case "fetchRecordMetadata":
+						/**
+						 * This action replaces redundant XHR calls (actions
+						 * "displayCoverWithoutLinks" and "displaySummary")
+						 * in these PHTML files:
+						 *
+						 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/core.phtml`
+						 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/result-list.phtml`
+						 */
+						covers.metadata.push( elm );
+						break;
 
-						case "displayAuthorityCover":
-						case "displayAuthorityThumbnailCoverWithoutLinks":
-						case "displayAuthorityResults":
-							covers.authority.push( elm );
-							break;
+					case "displayAuthorityCover":
+					case "displayAuthorityThumbnailCoverWithoutLinks":
+					case "displayAuthorityResults":
+						covers.authority.push( elm );
+						break;
 
-						case "displaySummary":
-						case "displaySummaryShort":
-							covers.summary.push( elm );
-							break;
-					}
-				});
+					case "displaySummary":
+					case "displaySummaryShort":
+						covers.summary.push( elm );
+						break;
+				}
+			});
 
-				return Promise.resolve( covers );
-			}
+			console.log( covers );
 
 			/**
 			 * @private Resolves "normal" cover action (without XHR request).
-			 * @param {{ normal: array, authority: array, summary: array}} covers
-			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 * @returns {Promise}
 			 */
-			function resolveNormalActions( covers ) {
+			function resolveNormalActions() {
+				console.log( "CoversController", "init", "resolveNormalActions", covers.normal );
+				var deferred = $.Deferred();
+
 				$( covers.normal ).cpkCover();
 
-				return Promise.resolve( covers );
+				//return deferred.promise();
+				return deferred.resolve( true );
 			}
 
 			/**
 			 * @private Resolves cover action for the named authority.
-			 * @param {{ normal: array, authority: array, summary: array}} covers
-			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 * @returns {Promise}
 			 */
-			function resolveAuthorityActions( covers ) {
-				// TODO Try to get multiple authorities data by their IDs separated by comma.
-				$( covers.authority ).cpkCover();
+			function resolveAuthorityActions() {
+				console.log( "CoversController", "init", "resolveAuthorityActions", covers.authority );
+				var deferred = $.Deferred(),
+				    auths = [];
 
-				return Promise.resolve( covers );
+				/**
+				 * @param {HTMLElement} elm
+				 */
+				function collectAuthorities( elm ) {
+					auths.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo.auth_id );
+				}
+
+				covers.authority.forEach( collectAuthorities );
+				console.log( auths );
+
+				// TODO Try to get multiple authorities data by their IDs separated by comma.
+				//$( covers.authority ).cpkCover();
+				// TODO Make XHR request!
+
+				return deferred.promise();
 			}
 
 			/**
 			 * @private Resolves cover action for summaries.
-			 * @param {{ normal: array, authority: array, summary: array}} covers
-			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 * @returns {Promise}
 			 */
-			function resolveSummaryActions( covers ) {
-				var bibInfo = [];
+			function resolveSummaryActions() {
+				console.log( "CoversController", "init", "resolveSummaryActions", covers.summary );
+				var deferred = $.Deferred(),
+				    bibInfo = [];
+
+				/**
+				 * @param {HTMLElement} elm
+				 */
+				function collectSummaries( elm ) {
+					bibInfo.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo );
+				}
+
+				covers.summary.forEach( collectSummaries );
+				console.log( bibInfo );
 
 				/**
 				 * @param {Object} metadata
@@ -785,52 +857,94 @@
 					// TODO We need to use cover and annotation!
 					//...
 					console.log( meta );
+
+					deferred.resolve( true );
 				}
 
-				//...
+				// Perform XHR request for all summaries
+				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
+					.fail(function resolveSummaryActionsXhrFail() {
+						deferred.reject( "XHR request 'getMultipleSummaries' failed!" );
+					});
 
-				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveRecords );
-
-				return Promise.resolve( covers );
+				return deferred.promise();
 			}
 
 			/**
-			 * @private Finalizes initializations of {@see CoversController}.
-			 * @param {{ normal: array, authority: array, summary: array}} covers
-			 * @returns {Promise<boolean>}
+			 * @private Resolves cover action for records (cover+summary).
+			 * @returns {Promise}
 			 */
-			function finalizeCoversInit( covers ) {
-				var errMsg = "Wrong `covers` object passed.";
+			function resolveMetadataActions() {
+				console.log( "CoversController", "init", "resolveMetadataActions", covers.metadata );
+				var deferred = $.Deferred(),
+				    bibInfo = [];
 
-				if ( !! covers ) {
-					if ( CPK.verbose === true ) {
-						console.log( errMsg, covers );
+				/**
+				 * @param {HTMLElement} elm
+				 */
+				function collectSummaries( elm ) {
+					bibInfo.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo );
+				}
+
+				covers.metadata.forEach( collectSummaries );
+				console.log( bibInfo );
+
+				/**
+				 * @param {Object} metadata
+				 */
+				function resolveMetadata( metadata ) {
+					if ( ! ( !! metadata ) ) {
+						return;
 					}
 
-					return Promise.resolve( false );
+					var meta = BookMetadataPrototype.parseFromObject( metadata );
+
+					// TODO We need to use cover and annotation!
+					//...
+					console.log( meta );
+
+					deferred.resolve( true );
 				}
 
-				if (
-					covers.hasOwnProperty( "normal" )
-					&& covers.hasOwnProperty( "authority" )
-					&& covers.hasOwnProperty( "summary" )
-				) {
-					return Promise.resolve( true );
-				} else if ( CPK.verbose === true ) {
-					console.log( errMsg, covers );
-				}
+				// Perform XHR request for all metadata
+				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
+					.fail(function resolveMetadataActionsXhrFail() {
+						deferred.reject( "XHR request 'resolveMetadataActions' failed!" );
+					});
 
-				return Promise.resolve( false );
+				return deferred.promise();
 			}
 
-			return Promise
-				.resolve( getRecords )
-				// TODO Make these parallel:
-				.then( resolveNormalActions )
-				.then( resolveAuthorityActions )
-				.then( resolveSummaryActions )
-				// TODO ... !!!
-				.then( finalizeCoversInit );
+			// https://www.html5rocks.com/en/tutorials/async/deferred/
+
+			// Execute all promises at once
+			var promises = $.when(
+				resolveNormalActions(),
+				resolveAuthorityActions(),
+				resolveSummaryActions(),
+				resolveMetadataActions()
+			);
+
+			/**
+			 * @private Resolves all promises.
+			 * @param {boolean} first Result of the first promise.
+			 * @param {boolean} second Result of the second promise.
+			 * @param {boolean} third Result of the third promise.
+			 * @param {boolean} fourth Result of the fourth promise.
+			 */
+			function resolvePromises( first, second, third, fourth ) {
+				if ( CPK.verbose === true ) {
+					console.log( "CoversController", "init", "resolvePromises", first, second, third, fourth );
+				}
+			}
+
+			// Resolve all promises.
+			promises.done( resolvePromises );
+
+			/**
+			 * @todo This should be done via deferreds not by Promise but we need remade {@see common.js} firstly.
+			 */
+			return Promise.resolve( true );
 		}
 
 		// Public API
