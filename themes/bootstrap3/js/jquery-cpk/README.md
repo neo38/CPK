@@ -73,6 +73,8 @@ jQuery( ".result-cover-cont", document.getElementById( "result-list" ) ).cpkCove
 
 Where `.result-cover-cont` should be class of empty `<div>` elements witch proper _data-*_ attributes inside the element with ID `results-list`.
 
+__Note:__ `$.fn.cpkCover` contains also some prototype objects: `BookMetadataPrototype`, `CoverPrototype` and `CoverSizePrototype`.
+
 __Note:__ There is also `CPK.covers` which is initialized in [common.js][5] and is used to init covers placed in rendered HTML.
 
 #### Update

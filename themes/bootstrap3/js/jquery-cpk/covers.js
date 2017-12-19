@@ -8,6 +8,117 @@
 	"use strict";
 
 	/**
+	 * Prototype object for single book's metadata (see documentation for ObalkyKnih.cz API)
+	 * @property {string} _id
+	 * @property {{source: string, html: string}} annotation
+	 * @property {string} backlink_url
+	 * @property {string} bib_title
+	 * @property {string} bib_year
+	 * @property {{isbn: string, nbn: string}} bibinfo
+	 * @property {string} book_id
+	 * @property {string} cover_icon_url
+	 * @property {string} cover_medium_url
+	 * @property {string} cover_preview510_url
+	 * @property {string} cover_thumbnail_url
+	 * @property {string} csn_iso_690
+	 * @property {string} csn_iso_690_source
+	 * @property {string} ean
+	 * @property {array} ean_other
+	 * @property {number} flag_bare_record
+	 * @property {string} nbn
+	 * @property {string} oclc
+	 * @property {string} orig_height
+	 * @property {string} orig_width
+	 * @property {number} part_root
+	 * @property {number} rating_count
+	 * @property {number} rating_sum
+	 * @property {array} reviews
+	 * @property {string} succ_cover_count
+	 * @property {string} succ_toc_count
+	 * @constructor
+	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
+	 */
+	function BookMetadataPrototype() {
+		var _id, annot, burl, bibTitle, bibYear, bibInfo, bookId, cvrIconUrl,
+		    cvrMediumUrl, cvrPreviewUrl, cvrThumbUrl, csn, csnSrc, ean, eanOther,
+		    flag, nbn, oclc, origHeight, origWidth, root, ratCnt, ratSum, revs,
+		    sucCvrCnt, sucTocCnt;
+
+		// Public API
+		var Meta = Object.create( null );
+
+		Object.defineProperties( Meta, {
+			"_id": { get: function() { return _id; }, set: function( v ) { _id = v; } },
+			"annotation": { get: function() { return annot; }, set: function( v ) { annot = v; } },
+			"backlink_url": { get: function() { return burl; }, set: function( v ) { burl = v; } },
+			"bib_title": { get: function() { return bibTitle; }, set: function( v ) { bibTitle = v; } },
+			"bib_year": { get: function() { return bibYear; }, set: function( v ) { bibYear = v; } },
+			"bibinfo": { get: function() { return bibInfo; }, set: function( v ) { bibInfo = v; } },
+			"book_id": { get: function() { return bookId; }, set: function( v ) { bookId = v; } },
+			"cover_icon_url": { get: function() { return cvrIconUrl; }, set: function( v ) { cvrIconUrl = v; } },
+			"cover_medium_url": { get: function() { return cvrMediumUrl; }, set: function( v ) { cvrMediumUrl = v; } },
+			"cover_preview510_url": { get: function() { return cvrPreviewUrl; }, set: function( v ) { cvrPreviewUrl = v; } },
+			"cover_thumbnail_url": { get: function() { return cvrThumbUrl; }, set: function( v ) { cvrThumbUrl = v; } },
+			"csn_iso_690": { get: function() { return csn; }, set: function( v ) { csn = v; } },
+			"csn_iso_690_source": { get: function() { return csnSrc; }, set: function( v ) { csnSrc = v; } },
+			"ean": { get: function() { return ean; }, set: function( v ) { ean = v; } },
+			"ean_other": { get: function() { return eanOther; }, set: function( v ) { eanOther = v; } },
+			"flag_bare_record": { get: function() { return flag; }, set: function( v ) { flag = v; } },
+			"nbn": { get: function() { return nbn; }, set: function( v ) { nbn = v; } },
+			"oclc": { get: function() { return oclc; }, set: function( v ) { oclc = v; } },
+			"orig_height": { get: function() { return origHeight; }, set: function( v ) { origHeight = v; } },
+			"orig_width": { get: function() { return origWidth; }, set: function( v ) { origWidth = v; } },
+			"part_root": { get: function() { return root; }, set: function( v ) { root = v; } },
+			"rating_count": { get: function() { return ratCnt; }, set: function( v ) { ratCnt = v; } },
+			"rating_sum": { get: function() { return ratSum; }, set: function( v ) { ratSum = v; } },
+			"reviews": { get: function() { return revs; }, set: function( v ) { revs = v; } },
+			"succ_cover_count": { get: function() { return sucCvrCnt; }, set: function( v ) { sucCvrCnt = v; } },
+			"succ_toc_count": { get: function() { return sucTocCnt; }, set: function( v ) { sucTocCnt = v; } }
+		});
+
+		return Meta;
+	}
+
+	/**
+	 * Creates instance of {@see BookMetadataPrototype} from given data object.
+	 * @param {Object} metadata
+	 * @returns {BookMetadataPrototype}
+	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
+	 */
+	BookMetadataPrototype.parseFromObject = function parseMetadataFromObject( metadata ) {
+		var ret = new BookMetadataPrototype();
+
+		ret._id = metadata.hasOwnProperty( "_id" ) ? "" : metadata._id;
+		ret.annotation = metadata.hasOwnProperty( "annotation" ) ? {} : metadata.annotation;
+		ret.backlink_url = metadata.hasOwnProperty( "backlink_url" ) ? "" : metadata.backlink_url;
+		ret.bib_title = metadata.hasOwnProperty( "bib_title" ) ? "" : metadata.bib_title;
+		ret.bib_year = metadata.hasOwnProperty( "bib_year" ) ? "" : metadata.bib_year;
+		ret.bibinfo = metadata.hasOwnProperty( "bibinfo" ) ? {} : metadata.bibinfo;
+		ret.book_id = metadata.hasOwnProperty( "book_id" ) ? "" : metadata.book_id;
+		ret.cover_icon_url = metadata.hasOwnProperty( "cover_icon_url" ) ? "" : metadata.cover_icon_url;
+		ret.cover_medium_url = metadata.hasOwnProperty( "cover_medium_url" ) ? "" : metadata.cover_medium_url;
+		ret.cover_preview510_url = metadata.hasOwnProperty( "cover_preview510_url" ) ? "" : metadata.cover_preview510_url;
+		ret.cover_thumbnail_url = metadata.hasOwnProperty( "cover_thumbnail_url" ) ? "" : metadata.cover_thumbnail_url;
+		ret.csn_iso_690 = metadata.hasOwnProperty( "csn_iso_690" ) ? "" : metadata.csn_iso_690;
+		ret.csn_iso_690_source = metadata.hasOwnProperty( "csn_iso_690_source" ) ? "" : metadata.csn_iso_690_source;
+		ret.ean = metadata.hasOwnProperty( "ean" ) ? "" : metadata.ean;
+		ret.ean_other = metadata.hasOwnProperty( "ean_other" ) ? [] : metadata.ean_other;
+		ret.flag_bare_record = metadata.hasOwnProperty( "flag_bar_record" ) ? 0 : metadata.flag_bare_record;
+		ret.nbn = metadata.hasOwnProperty( "nbn" ) ? "" : metadata.nbn;
+		ret.oclc = metadata.hasOwnProperty( "oclc" ) ? "" : metadata.oclc;
+		ret.orig_height = metadata.hasOwnProperty( "orig_height" ) ? "" : metadata.orig_height;
+		ret.orig_width = metadata.hasOwnProperty( "orig_width" ) ? "" : metadata.orig_width;
+		ret.part_root = metadata.hasOwnProperty( "part_root" ) ? 0 : metadata.part_root;
+		ret.rating_count = metadata.hasOwnProperty( "rating_count" ) ? 0 : metadata.rating_count;
+		ret.rating_sum = metadata.hasOwnProperty( "rating_sum" ) ? 0 : metadata.rating_sum;
+		ret.reviews = metadata.hasOwnProperty( "reviews" ) ? [] : metadata.reviews;
+		ret.succ_cover_count = metadata.hasOwnProperty( "succ_cover_count" ) ? "0" : metadata.succ_cover_count;
+		ret.succ_toc_count = metadata.hasOwnProperty( "succ_toc_count" ) ? "0" : metadata.succ_toc_count;
+
+		return ret;
+	};
+
+	/**
 	 * Prototype object for single cover (as is parsed from target <div> element).
 	 * @property {string} action
 	 * @property {string} advert
@@ -22,11 +133,13 @@
 		// Public API
 		var Cover = Object.create( null );
 
-		Object.defineProperty( Cover, "action", { get: function() { return act; }, set: function( v ) { act = v; } } );
-		Object.defineProperty( Cover, "advert", { get: function() { return adv; }, set: function( v ) { adv = v; } } );
-		Object.defineProperty( Cover, "bibInfo", { get: function() { return bi; }, set: function( v ) { bi = v; } } );
-		Object.defineProperty( Cover, "target", { get: function() { return elm; }, set: function( v ) { elm = v; } } );
-		Object.defineProperty( Cover, "record", { get: function() { return rec; }, set: function( v ) { rec = v; } } );
+		Object.defineProperties( Cover, {
+			"action" : { get: function() { return act; }, set: function( v ) { act = v; } },
+			"advert" : { get: function() { return adv; }, set: function( v ) { adv = v; } },
+			"bibInfo": { get: function() { return bi; }, set: function( v ) { bi = v; } },
+			"target" : { get: function() { return elm; }, set: function( v ) { elm = v; } },
+			"record" : { get: function() { return rec; }, set: function( v ) { rec = v; } }
+		} );
 
 		return Cover;
 	}
@@ -75,13 +188,15 @@
 			img = noImg;
 
 		// Public API
-		var CoverSize = Object.create( null );
+		var Size = Object.create( null );
 
-		Object.defineProperty( CoverSize, "width", { get: function() { return w; } } );
-		Object.defineProperty( CoverSize, "height", { get: function() { return h; } } );
-		Object.defineProperty( CoverSize, "noImg", { get: function() { return img; } } );
+		Object.defineProperties( Size, {
+			"width": { get: function() { return w; } },
+			"height": { get: function() { return h; } },
+			"noImg": { get: function() { return img; } }
+		} );
 
-		return CoverSize;
+		return Size;
 	}
 
 	/**
@@ -488,17 +603,6 @@
 	}
 
 	/**
-	 * Sets cache URL for covers service.
-	 * @param {string} cacheUrl
-	 */
-	function setCoversCacheUrl( cacheUrl ) {
-		cover.cacheUrl = cacheUrl;
-		cover.coverUrl = cacheUrl + "/api/cover";
-		cover.tocUrl   = cacheUrl + "/api/toc/thumbnail";
-		cover.pdfUrl   = cacheUrl + "/api/toc/pdf";
-	}
-
-	/**
 	 * Returns correct URL for the cover with given bibInfo.
 	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
 	 * @returns {string}
@@ -531,25 +635,43 @@
 	}
 
 	// Default plugin options
-	cover.defaults = {
-		normal: new CoverSizePrototype( 63, 80, "themes/bootstrap3/images/noCover.jpg" ),
-		thumbnail: new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" ),
-		medium: new CoverSizePrototype( 218, 262, "themes/bootstrap3/images/noCover.jpg" )
-		//icon: new CoverSizePrototype( *, *, "" )
-	};
 
 	// Set covers cache URL
-	setCoversCacheUrl( "https://cache.obalkyknih.cz" );
+	var defaults = Object.create( null ),
+	    cacheUrl = "https://cache.obalkyknih.cz";
+
+	// Defaults
+	// TODO See ObalkyKnih.cz API for see all available sizes
+	Object.defineProperties( defaults, {
+		//"icon" : ...
+		"medium"   : { get: function() { return new CoverSizePrototype( 218, 262, "themes/bootstrap3/images/noCover.jpg" ); } } ,
+		"normal"   : { get: function() { return new CoverSizePrototype( 63, 80, "themes/bootstrap3/images/noCover.jpg" ); } },
+		"thumbnail": { get: function() { return new CoverSizePrototype( 27, 36, "themes/bootstrap3/images/noCover.jpg" ); } }
+	});
 
 	// Other properties
-	cover.linkUrl   = "https://www.obalkyknih.cz/view";
-	cover.coverText = "cover";
-	cover.tocText   = "table of content";
+	Object.defineProperty( cover, "cacheUrl", {
+		get: function() { return cacheUrl; },
+		set: function( v ) { cacheUrl = v; }
+	});
+	Object.defineProperties( cover, {
+		"defaults"  : { get: function() { return defaults; } },
+		"coverUrl"  : { get: function() { return cover.cacheUrl + "/api/cover"; } },
+		"tocUrl"    : { get: function() { return cover.cacheUrl + "/api/toc/thumbnail"; } },
+		"pdfUrl"    : { get: function() { return cover.cacheUrl + "/api/toc/pdf"; } },
+		"linkUrl"   : { get: function() { return "https://www.obalkyknih.cz/view"; } },
+		"coverText" : { get: function() { return VuFind.translate( "Cover for the item" ); } },
+		"tocText"   : { get: function() { return VuFind.translate( "Table of contents" ); } }
+	});
 
 	// Some methods
-	cover.setCacheUrl       = setCoversCacheUrl;
 	cover.getCoverTargetUrl = coverTargetUrl;
 	cover.queryPart         = queryPart;
+
+	// Allow access to our prototype objects
+	cover.BookMetadataPrototype = BookMetadataPrototype;
+	cover.CoverPrototype        = CoverPrototype;
+	cover.CoverSizePrototype    = CoverSizePrototype;
 
 	// Public API for jQuery
 
@@ -569,107 +691,146 @@
 		function init() {
 
 			/**
-			 * TODO Rozdělit obálky, dle typu akce a sjednotit XHR requesty!
-			 *
-			 * Tady musíme rozdělit získané `CoverPrototype`s tak, aby akce,
-			 * které vyžadují Ajax, byly spuštěny zvlášť a hlavně, aby byl
-			 * výsledkem jen jeden XHR request (či max. dva).
-			 *
-			 * Akce, které používají Ajax jsou:
-			 *
-			 * - `displayAuthorityCover` a `displayAuthorityCoverWithoutLinks`
-			 * - `displayAuthorityResults`
-			 * - `displaySummary` a `displaySummaryShort`
+			 * We are splitting found cover-requiring elements because we want to reduce
+			 * amount of XHR calls (hopefully in future ObalkyKnih API will
+			 * implement multiple values also on Named Authorities.
 			 */
 
 			/**
-			 * @type {{normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
+			 * Finds all elements where is reuired action of jquery-cpk/covers module.
+			 * @returns {Promise<{ normal: array, authority: array, summary: array }>}
 			 */
-			var covers = {
-				normal: [],
-				authority: [],
-				summary: []
-			};
+			function getRecords() {
 
-			$( "[data-cover='true']" ).each( function( idx, elm ) {
-				var action = $( elm ).data( "action" );
+				/**
+				 * @type {{normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
+				 */
+				var covers = {
+					normal: [],
+					authority: [],
+					summary: []
+				};
 
-				switch( action ) {
-					case "fetchImage":
-					case "fetchImageWithoutLinks":
-					case "displayThumbnail":
-					case "displayThumbnailWithoutLinks":
-					case "displayCover":
-					case "displayCoverWithoutLinks":
-					case "displayThumbnailCoverWithoutLinks":
-						// Note: API obalekknih.cz neumožňuje dotaz na více autorit najednou...
-						//covers.normal.push( elm );
-						//break;
+				$( "[data-cover='true']" ).each( function( idx, elm ) {
+					var action = $( elm ).data( "action" );
 
-					case "displayAuthorityCover":
-					case "displayAuthorityThumbnailCoverWithoutLinks":
-						//covers.normal.push( elm );
-						//break;
+					switch( action ) {
+						case "fetchImage":
+						case "fetchImageWithoutLinks":
+						case "displayThumbnail":
+						case "displayThumbnailWithoutLinks":
+						case "displayCover":
+						case "displayCoverWithoutLinks":
+						case "displayThumbnailCoverWithoutLinks":
+							covers.normal.push( elm );
+							break;
 
-					case "displayAuthorityResults":
-					case "displaySummary":
-					case "displaySummaryShort":
-						covers.summary.push( elm );
-						break;
-				}
-			});
+						case "displayAuthorityCover":
+						case "displayAuthorityThumbnailCoverWithoutLinks":
+						case "displayAuthorityResults":
+							covers.authority.push( elm );
+							break;
 
-			console.log( "Splitted coveres: ", covers );
-
-			// Here are actions without XHR
-			$( covers.normal ).cpkCover();
-
-			// Authority-related actions
-			//setTimeout(function() { $( covers.authority ).cpkCover(); });
-
-			// Summary-related actions
-			//setTimeout(function() { $( covers.summary ).cpkCover(); });
-			var bibInfo = [];
-
-			covers.summary.forEach(function( elm ) {
-				bibInfo.push(( CoverPrototype.parseFromElement( elm ) ).bibInfo);
-			});
-			console.log( bibInfo );
-
-			/**
-			 * @param {{data: array, status: string}} data
-			 */
-			function resolveData( data ) {
-				if ( ! data || data.status === undefined ) {
-					return;
-				}
-
-				if ( data.status !== "OK" ) {
-					if ( CPK.verbose === true ) {
-						console.log( data );
+						case "displaySummary":
+						case "displaySummaryShort":
+							covers.summary.push( elm );
+							break;
 					}
-
-					return;
-				}
-
-				if ( data.length <= 0 ) {
-					if ( CPK.verbose === true ) {
-						console.log( "No data for multiple summaries returned." );
-					}
-
-					return;
-				}
-
-				data.data.forEach(function( metadata ) {
-					//...
 				});
 
-				console.log( data );
+				return Promise.resolve( covers );
 			}
 
-			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveData );
+			/**
+			 * @private Resolves "normal" cover action (without XHR request).
+			 * @param {{ normal: array, authority: array, summary: array}} covers
+			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 */
+			function resolveNormalActions( covers ) {
+				$( covers.normal ).cpkCover();
 
-			return Promise.resolve( true );
+				return Promise.resolve( covers );
+			}
+
+			/**
+			 * @private Resolves cover action for the named authority.
+			 * @param {{ normal: array, authority: array, summary: array}} covers
+			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 */
+			function resolveAuthorityActions( covers ) {
+				// TODO Try to get multiple authorities data by their IDs separated by comma.
+				$( covers.authority ).cpkCover();
+
+				return Promise.resolve( covers );
+			}
+
+			/**
+			 * @private Resolves cover action for summaries.
+			 * @param {{ normal: array, authority: array, summary: array}} covers
+			 * @returns {Promise<{ normal: array, authority: array, summary: array}>}
+			 */
+			function resolveSummaryActions( covers ) {
+				var bibInfo = [];
+
+				/**
+				 * @param {Object} metadata
+				 */
+				function resolveMetadata( metadata ) {
+					if ( ! ( !! metadata ) ) {
+						return;
+					}
+
+					var meta = BookMetadataPrototype.parseFromObject( metadata );
+
+					// TODO We need to use cover and annotation!
+					//...
+					console.log( meta );
+				}
+
+				//...
+
+				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveRecords );
+
+				return Promise.resolve( covers );
+			}
+
+			/**
+			 * @private Finalizes initializations of {@see CoversController}.
+			 * @param {{ normal: array, authority: array, summary: array}} covers
+			 * @returns {Promise<boolean>}
+			 */
+			function finalizeCoversInit( covers ) {
+				var errMsg = "Wrong `covers` object passed.";
+
+				if ( !! covers ) {
+					if ( CPK.verbose === true ) {
+						console.log( errMsg, covers );
+					}
+
+					return Promise.resolve( false );
+				}
+
+				if (
+					covers.hasOwnProperty( "normal" )
+					&& covers.hasOwnProperty( "authority" )
+					&& covers.hasOwnProperty( "summary" )
+				) {
+					return Promise.resolve( true );
+				} else if ( CPK.verbose === true ) {
+					console.log( errMsg, covers );
+				}
+
+				return Promise.resolve( false );
+			}
+
+			return Promise
+				.resolve( getRecords )
+				// TODO Make these parallel:
+				.then( resolveNormalActions )
+				.then( resolveAuthorityActions )
+				.then( resolveSummaryActions )
+				// TODO ... !!!
+				.then( finalizeCoversInit );
 		}
 
 		// Public API

@@ -96,18 +96,16 @@
             'date_newest' => 'date_newest',
             'date_oldest' => 'date_oldest',
             'sort_relevance' => 'sort_relevance',
-            // data-ng-app translations ..
-            'you_have_unsaved_favorites' => 'you_have_unsaved_favorites'
+            // jquery-cpk/favorites.js
+            'you_have_unsaved_favorites' => 'you_have_unsaved_favorites',
+            // jquery-cpk/covers.js
+            'Cover for the item' => 'Cover for the item',
+            'Table of contents' => 'Table of contents'
           )
         );
 
         // Fix some IE issues
-        if (USES_IE) {
-            $this->headScript()->appendFile('vendor/es6-promise.min.js');
-        }
-
-        //$cacheUrl = $this->ObalkyKnih()->getCacheUrl();
-        //$this->headScript()->appendScript("obalky.setCacheUrl(\"{$cacheUrl}\");");
+        $this->headScript()->appendFile('vendor/es6-promise.min.js', 'text/javascript', ['conditional' => 'if IE']);
 
         // Deal with cart stuff:
         $cart = $this->cart();
