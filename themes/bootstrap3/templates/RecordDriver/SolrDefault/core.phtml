@@ -1,16 +1,19 @@
 <?php
 // Get source of the record to print it to h3 header
-$id      = $this->driver->getUniqueID();
-$source  = explode(".", $id)[0];
-$QRCode  = $this->record($this->driver)->getQRCode("core");
-$cover   = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
-$preview = $this->record($this->driver)->getPreviews();
+$id       = $this->driver->getUniqueID();
+$source   = explode(".", $id)[0];
+$QRCode   = $this->record($this->driver)->getQRCode("core");
+$cover    = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
+$preview  = $this->record($this->driver)->getPreviews();
+$recordId = preg_replace("/\./", "", $id);
+$recordId = preg_replace("/:/", "", $recordId);
+$bibinfo  = $this->record($this->driver)->getObalkyKnihJSONV3();
 
 ?>
-        <div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product" data-action="fetchRecordMetadata" data-hasCover="<?= $cover ? 'true' : 'false'?>" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$id?>" data-cover="true">
+        <div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product" data-action="fetchRecordMetadata" data-hasCover="<?= $cover ? 'true' : 'false'?>" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>" data-cover="true">
           <? if ($QRCode || $cover || $preview): ?>
           <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
-            <div class="row text-center cover" id="cover">
+            <div class="row text-center cover" id=""cover_<?=$recordId?>">
                 <? $formats = $this->driver->getFormats(); ?>
                 <? if (! empty($formats)): ?>
                     <div class="iconlabel col-md-12"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>

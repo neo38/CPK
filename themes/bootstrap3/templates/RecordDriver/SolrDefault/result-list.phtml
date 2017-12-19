@@ -153,13 +153,14 @@
   $recordsInLibraries = $prependedLibraries + $foundRecords;
 
   $firstRecordInInstitutions = reset($recordsInLibraries);
+
+  $recordId = preg_replace("/\./", "", $recordId);
+  $recordId = preg_replace("/:/", "", $recordId);
+  $bibinfo  = $this->record($this->driver)->getObalkyKnihJSONV3();
 ?>
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12" data-action="fetchRecordMetadata" data-isAuthority="<?=($this->driver instanceof CPK\RecordDriver\SolrAuthority) ? 'true' : 'false'?>" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>" data-cover="true">
     <div class="white-box clearfix">
     <div class="row">
-        <? $recordId =  preg_replace("/\./", "", $recordId)?>
-        <? $recordId =  preg_replace("/:/", "", $recordId)?>
-        <? $bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()?>
         <? if (!($this->driver instanceof CPK\RecordDriver\SolrLibrary)): ?>
         <div class="col-sm-2 col-xs-3 left">
 
@@ -168,7 +169,7 @@
             <? else: ?>
             <a href='/Record/<?=$firstRecordInInstitutions['id']?>?referer=<?=$this->referer?>' title='<?=htmlspecialchars($this->driver->getTitle())?>' tabindex='-1' style='cursor: pointer;'>
             <? endif;?>
-            	<div class="coverThumbnail cover_<?=$recordId?>">
+            	<div class="coverThumbnail cover_<?=$recordId?>" id="cover_<?=$recordId?>">
 
                     <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
                     <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>

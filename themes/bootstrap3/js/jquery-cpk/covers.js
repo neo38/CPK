@@ -178,7 +178,6 @@
 		}
 
 		// Collect data
-		cover.target      = elm.parentElement;
 		cover.action      = elm.getAttribute( "data-action" );
 		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
 		cover.bibInfo     = bi;
@@ -734,13 +733,12 @@
 			 */
 
 			/**
-			 * @type {{metadata: HTMLElement[], normal: HTMLElement[], authority: HTMLElement[], summary: HTMLElement[]}} covers
+			 * @type {{authority: CoverPrototype[], metadata: CoverPrototype[], normal: HTMLElement[]}} covers
 			 */
 			var covers = {
-				metadata: [],
-				normal: [],
 				authority: [],
-				summary: []
+				metadata: [],
+				normal: []
 			};
 
 			// Finds all elements where is required action of jquery-cpk/covers module.
@@ -758,27 +756,25 @@
 						covers.normal.push( elm );
 						break;
 
-					case "fetchRecordMetadata":
-						/**
-						 * This action replaces redundant XHR calls (actions
-						 * "displayCoverWithoutLinks" and "displaySummary")
-						 * in these PHTML files:
-						 *
-						 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/core.phtml`
-						 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/result-list.phtml`
-						 */
-						covers.metadata.push( elm );
-						break;
-
 					case "displayAuthorityCover":
 					case "displayAuthorityThumbnailCoverWithoutLinks":
 					case "displayAuthorityResults":
-						covers.authority.push( elm );
+						covers.authority.push( CoverPrototype.parseFromElement( elm ) );
 						break;
 
+					/**
+					 * This action replaces redundant XHR calls (actions
+					 * "displayCoverWithoutLinks" and "displaySummary")
+					 * in these PHTML files:
+					 *
+					 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/core.phtml`
+					 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/result-list.phtml`
+					 */
+					case "fetchRecordMetadata":
+					// These exists before:
 					case "displaySummary":
 					case "displaySummaryShort":
-						covers.summary.push( elm );
+						covers.metadata.push( CoverPrototype.parseFromElement( elm ) );
 						break;
 				}
 			});
@@ -806,17 +802,17 @@
 			function resolveAuthorityActions() {
 				console.log( "CoversController", "init", "resolveAuthorityActions", covers.authority );
 				var deferred = $.Deferred(),
-				    auths = [];
+				    auth_ids = [];
 
 				/**
-				 * @param {HTMLElement} elm
+				 * @param {CoverPrototype} cover
 				 */
-				function collectAuthorities( elm ) {
-					auths.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo.auth_id );
+				function collectAuthorities( cover ) {
+					auth_ids.push( cover.bibInfo.auth_id );
 				}
 
 				covers.authority.forEach( collectAuthorities );
-				console.log( auths );
+				console.log( auth_ids );
 
 				// TODO Try to get multiple authorities data by their IDs separated by comma.
 				//$( covers.authority ).cpkCover();
@@ -826,82 +822,81 @@
 			}
 
 			/**
-			 * @private Resolves cover action for summaries.
-			 * @returns {Promise}
-			 */
-			function resolveSummaryActions() {
-				console.log( "CoversController", "init", "resolveSummaryActions", covers.summary );
-				var deferred = $.Deferred(),
-				    bibInfo = [];
-
-				/**
-				 * @param {HTMLElement} elm
-				 */
-				function collectSummaries( elm ) {
-					bibInfo.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo );
-				}
-
-				covers.summary.forEach( collectSummaries );
-				console.log( bibInfo );
-
-				/**
-				 * @param {Object} metadata
-				 */
-				function resolveMetadata( metadata ) {
-					if ( ! ( !! metadata ) ) {
-						return;
-					}
-
-					var meta = BookMetadataPrototype.parseFromObject( metadata );
-
-					// TODO We need to use cover and annotation!
-					//...
-					console.log( meta );
-
-					deferred.resolve( true );
-				}
-
-				// Perform XHR request for all summaries
-				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
-					.fail(function resolveSummaryActionsXhrFail() {
-						deferred.reject( "XHR request 'getMultipleSummaries' failed!" );
-					});
-
-				return deferred.promise();
-			}
-
-			/**
 			 * @private Resolves cover action for records (cover+summary).
 			 * @returns {Promise}
+			 * @todo Merge with {@see resolveSummaryActions}.
 			 */
 			function resolveMetadataActions() {
 				console.log( "CoversController", "init", "resolveMetadataActions", covers.metadata );
-				var deferred = $.Deferred(),
-				    bibInfo = [];
+				var deferred  = $.Deferred(),
+				    bibInfo   = [];
 
 				/**
-				 * @param {HTMLElement} elm
+				 * @param {CoverPrototype} cover
 				 */
-				function collectSummaries( elm ) {
-					bibInfo.push( ( CoverPrototype.parseFromElement( elm ) ).bibInfo );
+				function collectSummaries( cover ) {
+					console.log( cover );
+					bibInfo.push( cover.bibInfo );
 				}
 
 				covers.metadata.forEach( collectSummaries );
-				console.log( bibInfo );
 
 				/**
 				 * @param {Object} metadata
 				 */
 				function resolveMetadata( metadata ) {
+					console.log( "CoversController", "init", "resolveMetadataActions", "resolveMetadata", metadata );
+
 					if ( ! ( !! metadata ) ) {
 						return;
 					}
 
-					var meta = BookMetadataPrototype.parseFromObject( metadata );
+					/**
+					 * @param {{ isbn: string, nbn: string }} aBibInfo
+					 */
+					function findCover( aBibInfo ) {
+						return covers.metadata.filter(function( c ) {
+							return ( aBibInfo.isbn === c.bibInfo.isbn && bibInfo.nbn === c.bibInfo.nbn );
+						});
+					}
+
+					var meta          = [],
+					    currentCovers = [];
+
+					$.each( metadata.data, function parseMetaFromObject( i, d ) {
+						var md = BookMetadataPrototype.parseFromObject( d );
+
+						meta.push( md );
+						currentCovers.push( findCover( md.bibinfo ) );
+					});
+
+					console.log( meta, currentCovers );
+					/*
+					var currentCover = findCover( meta.bibinfo );
+					console.log( currentCover );
+					var recordId     = currentCover.record,
+					    coverElm     = document.getElementById( "cover_" + recordId ),
+					    summaryElm   = document.getElementById( "summary_" + recordId ),
+					    shortSumElm  = document.getElementById( "short_summary_" + recordId );
 
 					// TODO We need to use cover and annotation!
+
+					try {
+						// TODO Create image for the cover...
+						console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recordId, coverElm );
+					} catch( e ) {}
+
+					try {
+						// TODO Create summary...
+						console.warn( "XXX Finish creating of summary!", meta, currentCover, recordId, summaryElm );
+					} catch( e ) {}
+
+					try {
+						// TODO Create short summary....
+						console.warn( "XXX Finish creating of short summary!", meta, currentCover, recordId, shortSumElm );
+					} catch( e ) {}
+*/
 					//...
-					console.log( meta );
 
 					deferred.resolve( true );
 				}
@@ -921,7 +916,6 @@
 			var promises = $.when(
 				resolveNormalActions(),
 				resolveAuthorityActions(),
-				resolveSummaryActions(),
 				resolveMetadataActions()
 			);
 
@@ -930,11 +924,10 @@
 			 * @param {boolean} first Result of the first promise.
 			 * @param {boolean} second Result of the second promise.
 			 * @param {boolean} third Result of the third promise.
-			 * @param {boolean} fourth Result of the fourth promise.
 			 */
-			function resolvePromises( first, second, third, fourth ) {
+			function resolvePromises( first, second, third ) {
 				if ( CPK.verbose === true ) {
-					console.log( "CoversController", "init", "resolvePromises", first, second, third, fourth );
+					console.log( "CoversController", "init", "resolvePromises", first, second, third );
 				}
 			}
 
