@@ -171,13 +171,11 @@
             	<div class="coverThumbnail cover_<?=$recordId?>">
 
                     <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
-                        <script type="text/javascript">
                         <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-                        obalky.display_authority_results(".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($lookfor)?>);
+                        <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                         <? else: ?>
-                        obalky.display_thumbnail_cover_without_links(".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($lookfor)?>);
+                        <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                         <? endif; ?>
-                        </script>
                     <? endif;?>
                     <? if (! empty($formats)): ?>
                         <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>
@@ -319,12 +317,8 @@
           <? endforeach; ?>
         <? endif; ?>
       <? else: ?>
-          <script type="text/javascript">
-              obalky.display_summary_short(".summ_<?=$recordId?>", <?=$bibinfo?>);
-          </script>
-
-          <span class="summ_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
-
+          <div data-action="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+          <span id="short_summary_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
       <? endif; ?>
 
       <? if(!$this->driver->isCollection()): ?>

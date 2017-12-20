@@ -77,7 +77,8 @@ function updateTransactions(response) {
 	    if (obalkyLocal.hasOwnProperty(id)) {
 		var obalka = obalkyLocal[id];
 
-		obalky.fetchImage(id, obalka.bibInfo, obalka.advert, 'icon');
+		console.log( id, "fetchImage", obalka.bibInfo, obalka.advert, "icon" );
+		jQuery( id ).obalkyknihcz( "fetchImage", obalka.bibInfo, obalka.advert, "icon" );
 	    }
 	}
     }

@@ -1,0 +1,28 @@
+{
+    "bitwise": true,
+    "curly": true,
+    "eqeqeq": true,
+    "forin": true,
+    "newcap": true,
+    "noarg": true,
+    "nocomma": true,
+    "noempty": true,
+    "nonew": true,
+    "undef": true,
+    "esversion": 5,
+    "latedef": false,
+    "unused": true,
+    "maxparams": 5,
+    "maxdepth": true,
+    "maxlen": 120,
+    "maxerr": 50,
+    "strict": true,
+    "browser": true,
+    "devel": true,
+    "jquery": true,
+    "qunit": true,
+    "onevar": true,
+    "globals": {
+        "CPK": true
+    }
+}

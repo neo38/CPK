@@ -1,20 +1,23 @@
-<?
-  $recordId = $this->driver->getUniqueID();
-  $backLink = $this->serverUrl($this->recordLink()->getUrl($this->driver));
-  $formats = $this->driver->getFormats();
-  // Set up some convenience variables:
-  $id = $this->driver->getUniqueId();
-  $source = $this->driver->getResourceSource();
-  if (isset($this->list) && is_object($this->list)) {
+<?php
+$recordId = $this->driver->getUniqueID();
+$backLink = $this->serverUrl($this->recordLink()->getUrl($this->driver));
+$formats = $this->driver->getFormats();
+// Set up some convenience variables:
+$id = $this->driver->getUniqueId();
+$source = $this->driver->getResourceSource();
+
+if (isset($this->list) && is_object($this->list)) {
     $list_id = $this->list->id;
     $user_id = $this->list->user_id;
-  } else {
+} else {
     $list_id = null;
     $user_id = $this->user ? $this->user->id : null;
-  }
+}
+
+$recordId =  preg_replace("/\./", "", $recordId);
+$recordId =  preg_replace("/:/", "", $recordId);
+$advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
 ?>
-<? $recordId =  preg_replace("/\./", "", $recordId)?>
-<? $recordId =  preg_replace("/:/", "", $recordId)?>
 <div class="row well result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?>">
   <div class="col-xs-2 left">
 
@@ -22,11 +25,7 @@
     <input type="hidden" value="<?=$id ?>" class="hiddenId"/>
     <div id="cover_<?=$recordId?>" class="coverThumbnail">
       <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
-        <script type="text/javascript">
-          $(document).ready(function() {
-            obalky.display_thumbnail_cover_without_links("#cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($this->record($this->driver)->getObalkyKnihAdvert('record'))?>);
-          });
-        </script>
+      <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
       <? endif;?>
       <? if (! empty($formats)): ?>
         <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>

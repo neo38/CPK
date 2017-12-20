@@ -209,7 +209,7 @@
 		    if (covers.hasOwnProperty(id)) {
 			var cover = covers[id];
 
-			obalky.fetchImage(id, cover.bibInfo, cover.advert, 'icon');
+			jQuery( id ).obalkyknihcz( "fetchImage", cover.bibInfo, cover.advert, "icon" );
 		    }
 		}
 	    }

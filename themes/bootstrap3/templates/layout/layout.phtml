@@ -113,7 +113,7 @@
         }
 
         $cacheUrl = $this->ObalkyKnih()->getCacheUrl();
-        $this->headScript()->appendScript("obalky.setCacheUrl(\"{$cacheUrl}\");");
+        $this->headScript()->appendScript('jQuery.fn.obalkyknihcz.cacheUrl = "' . $cacheUrl . '";');
 
         // Deal with cart stuff:
         $cart = $this->cart();

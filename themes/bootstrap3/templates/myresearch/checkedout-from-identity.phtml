@@ -20,11 +20,7 @@ foreach ($libraryIdentity['transactions'] as $resource):
       <? $recordId =  preg_replace("/[\.:]/", "", $recordId)?>
       <div id="cover_<?=$recordId?>" class="coverThumbnail">
         <? if (! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-          <script type="text/javascript">
-            $(document).ready(function() {
-              obalky.display_thumbnail("#cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($this->record($resource)->getObalkyKnihAdvert('checkedout'))?>);
-            });
-          </script>
+        <div data-action="displayThumbnail" data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
         <? endif;?>
       </div>
     </div>

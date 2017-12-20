@@ -20,16 +20,13 @@
               $formats = $item->getRecordDriver()->getFormats();
               ?>
               <div class="col-xs-3 col-sm-2 col-md-3  cover_<?=$recordId?>" id="<?=$recordId?>">
-
-                    <? if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
-                        <script type="text/javascript">
-                            <? if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                              obalky.display_authority_thumbnail_cover_without_links(".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($item->getRecordDriver()->getPersonalName())?>);
-                            <? else: ?>
-                              obalky.display_thumbnail_without_links(".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($item->getRecordDriver()->getTitle())?>);
-                            <? endif; ?>
-                        </script>
-                    <? endif;?>
+                <?php if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
+                  <?php if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
+                  <div data-action="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getPersonalName(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                  <?php else: ?>
+                  <div data-action="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getTitle(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                  <?php endif; ?>
+                <? endif;?>
 
                     <? if (! empty($formats)): ?>
                         <div class="iconlabel"><i style='font-size: 300%; color: #CCCCCC;' class="pr-format-<?=$this->record($item->getRecordDriver())->getFormatClass($formats[0])?>"></i></div>
