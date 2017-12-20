@@ -158,7 +158,7 @@
   $recordId = preg_replace("/:/", "", $recordId);
   $bibinfo  = $this->record($this->driver)->getObalkyKnihJSONV3();
 ?>
-<div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12" data-action="fetchRecordMetadata" data-isAuthority="<?=($this->driver instanceof CPK\RecordDriver\SolrAuthority) ? 'true' : 'false'?>" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>" data-cover="true">
+<div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12">
     <div class="white-box clearfix">
     <div class="row">
         <? if (!($this->driver instanceof CPK\RecordDriver\SolrLibrary)): ?>
@@ -173,9 +173,9 @@
 
                     <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
                     <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-                    <!--<div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>-->
+                    <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                     <? else: ?>
-                    <!--<div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>-->
+                    <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                     <? endif; ?>
                     <? endif;?>
                     <? if (! empty($formats)): ?>
@@ -318,7 +318,7 @@
           <? endforeach; ?>
         <? endif; ?>
       <? else: ?>
-          <!--<div data-action="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>-->
+          <div data-action="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
           <span id="short_summary_<?=$recordId?>" class="summ_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
       <? endif; ?>
 

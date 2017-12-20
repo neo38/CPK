@@ -10,7 +10,7 @@
  * @todo Add tests!
  */
 
-(function( $ ) {
+(function( $, document ) {
 	"use strict";
 
 	/**
@@ -158,6 +158,7 @@
 	 * Parses {@see CoverPrototype} from data attributes of the given element.
 	 * @param {HTMLElement} elm
 	 * @returns {CoverPrototype}
+	 * @throws Throws errors whenever parsing of element or bibInfo failed.
 	 */
 	CoverPrototype.parseFromElement = function parseCoverFromElement( elm ) {
 		var cover = new CoverPrototype();
@@ -178,6 +179,7 @@
 		}
 
 		// Collect data
+		cover.target      = elm.parentElement;
 		cover.action      = elm.getAttribute( "data-action" );
 		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
 		cover.bibInfo     = bi;
@@ -249,7 +251,6 @@
 			case "displayAuthorityResults": displayAuthorityResults( cvr ); break;
 			case "displaySummary": displaySummary( cvr ); break;
 			case "displaySummaryShort": displaySummaryShort( cvr ); break;
-			case "fetchRecordMetadata": fetchRecordMetadata( cvr ); break;
 		}
 	}
 
@@ -620,14 +621,6 @@
 	}
 
 	/**
-	 * @param {CoverPrototype} cover
-	 * @todo We should resolve also failure of the request!
-	 */
-	function fetchRecordMetadata( cover ) {
-		console.log( "cover->fetchRecordMetadata", cover );
-	}
-
-	/**
 	 * Returns correct URL for the cover with given bibInfo.
 	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
 	 * @returns {string}
@@ -733,12 +726,12 @@
 			 */
 
 			/**
-			 * @type {{authority: CoverPrototype[], metadata: CoverPrototype[], normal: HTMLElement[]}} covers
+			 * @type {{authority: CoverPrototype[], normal: HTMLElement[], summary: CoverPrototype[]}} covers
 			 */
 			var covers = {
 				authority: [],
-				metadata: [],
-				normal: []
+				normal   : [],
+				summary  : []
 			};
 
 			// Finds all elements where is required action of jquery-cpk/covers module.
@@ -762,57 +755,53 @@
 						covers.authority.push( CoverPrototype.parseFromElement( elm ) );
 						break;
 
-					/**
-					 * This action replaces redundant XHR calls (actions
-					 * "displayCoverWithoutLinks" and "displaySummary")
-					 * in these PHTML files:
-					 *
-					 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/core.phtml`
-					 * - `themes/bootstrap3/templates/RecordDriver/SolrDefault/result-list.phtml`
-					 */
-					case "fetchRecordMetadata":
-					// These exists before:
 					case "displaySummary":
 					case "displaySummaryShort":
-						covers.metadata.push( CoverPrototype.parseFromElement( elm ) );
+						covers.summary.push( CoverPrototype.parseFromElement( elm ) );
 						break;
 				}
 			});
 
 			console.log( covers );
 
-			/**
-			 * @private Resolves "normal" cover action (without XHR request).
-			 * @returns {Promise}
-			 */
-			function resolveNormalActions() {
-				console.log( "CoversController", "init", "resolveNormalActions", covers.normal );
-				var deferred = $.Deferred();
-
-				$( covers.normal ).cpkCover();
-
-				//return deferred.promise();
-				return deferred.resolve( true );
-			}
+			// Normal actions are executed immediately
+			$( covers.normal ).cpkCover();
 
 			/**
 			 * @private Resolves cover action for the named authority.
 			 * @returns {Promise}
 			 */
 			function resolveAuthorityActions() {
-				console.log( "CoversController", "init", "resolveAuthorityActions", covers.authority );
 				var deferred = $.Deferred(),
 				    auth_ids = [];
 
-				/**
-				 * @param {CoverPrototype} cover
-				 */
-				function collectAuthorities( cover ) {
-					auth_ids.push( cover.bibInfo.auth_id );
-				}
+				// Collect ID of authorities
+				covers.authority.forEach(function( c ) { auth_ids.push( c.bibInfo.auth_id ); });
 
-				covers.authority.forEach( collectAuthorities );
+				auth_ids = auth_ids.join( "," );
 				console.log( auth_ids );
+
+				$.getJSON( "/AJAX/JSON?method=getMultipleAuthorityCovers", { id: auth_ids }, function( data ) {
+
+					console.log( data );
+
+					if ( !data || data.data === undefined || data.status !== "OK" ) {
+						if ( CPK.verbose === true ) {
+							console.log( "Failed XHR request for covers of the authorities.", data );
+						}
+
+						deferred.resolve( false );
+					}
+
+
+					/*data.data.forEach(function( d ) {
+						console.log( d );
+					});*/
+
+					console.log( "x2" );
+
+					deferred.resolve( true );
+				});
 
 				// TODO Try to get multiple authorities data by their IDs separated by comma.
 				//$( covers.authority ).cpkCover();
@@ -824,28 +813,20 @@
 			/**
 			 * @private Resolves cover action for records (cover+summary).
 			 * @returns {Promise}
-			 * @todo Merge with {@see resolveSummaryActions}.
 			 */
-			function resolveMetadataActions() {
-				console.log( "CoversController", "init", "resolveMetadataActions", covers.metadata );
+			function resolveSummaryActions() {
+				console.log( "CoversController", "init", "resolveSummaryActions", covers.summary );
 				var deferred  = $.Deferred(),
 				    bibInfo   = [];
 
-				/**
-				 * @param {CoverPrototype} cover
-				 */
-				function collectSummaries( cover ) {
-					console.log( cover );
-					bibInfo.push( cover.bibInfo );
-				}
-
-				covers.metadata.forEach( collectSummaries );
+				// Collects all bibInfos
+				covers.summary.forEach(function( c ) { bibInfo.push( c.bibInfo ); });
 
 				/**
 				 * @param {Object} metadata
 				 */
 				function resolveMetadata( metadata ) {
-					console.log( "CoversController", "init", "resolveMetadataActions", "resolveMetadata", metadata );
+					console.log( "CoversController", "init", "resolveSummaryActions", "resolveMetadata", metadata );
 
 					if ( ! ( !! metadata ) ) {
 						return;
@@ -855,7 +836,7 @@
 					 * @param {{ isbn: string, nbn: string }} aBibInfo
 					 */
 					function findCover( aBibInfo ) {
-						return covers.metadata.filter(function( c ) {
+						return covers.summary.filter(function( c ) {
 							return ( aBibInfo.isbn === c.bibInfo.isbn && bibInfo.nbn === c.bibInfo.nbn );
 						});
 					}
@@ -904,7 +885,7 @@
 				// Perform XHR request for all metadata
 				$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
 					.fail(function resolveMetadataActionsXhrFail() {
-						deferred.reject( "XHR request 'resolveMetadataActions' failed!" );
+						deferred.reject( "XHR request 'resolveSummaryActions' failed!" );
 					});
 
 				return deferred.promise();
@@ -914,20 +895,18 @@
 
 			// Execute all promises at once
 			var promises = $.when(
-				resolveNormalActions(),
 				resolveAuthorityActions(),
-				resolveMetadataActions()
+				resolveSummaryActions()
 			);
 
 			/**
 			 * @private Resolves all promises.
 			 * @param {boolean} first Result of the first promise.
 			 * @param {boolean} second Result of the second promise.
-			 * @param {boolean} third Result of the third promise.
 			 */
-			function resolvePromises( first, second, third ) {
+			function resolvePromises( first, second ) {
 				if ( CPK.verbose === true ) {
-					console.log( "CoversController", "init", "resolvePromises", first, second, third );
+					console.log( "CoversController", "init", "resolvePromises", first, second );
 				}
 			}
 
@@ -958,4 +937,4 @@
 	// Return context to allow chaining
 	return this;
 
-}( jQuery ));
+}( jQuery, document ));

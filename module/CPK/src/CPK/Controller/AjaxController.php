@@ -1923,6 +1923,17 @@ class AjaxController extends AjaxControllerBase
     }
 
     /**
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function getMultipleAuthorityCoversAjax() {
+        $ids = $this->params()->fromQuery('id');
+        $covers = $this->getAuthorityFromObalkyKnih($ids);
+
+        return $this->output($covers, self::STATUS_OK);
+    }
+
+    /**
      * Handles AJAX request for authority's record from obalkyknih.cz.
      * @return \Zend\Http\Response
      * @throws \Exception
@@ -1942,8 +1953,17 @@ class AjaxController extends AjaxControllerBase
             }
         }
 
-        return $this->output(null, self::STATUS_NOT_OK);
+        return $this->output(null, self::STATUS_OK);
 
+    }
+
+    /**
+     * @return string
+     */
+    private function getObalkyKnihCacheUrl() {
+        return !isset($this->getConfig()->ObalkyKnih->cacheUrl)
+            ? 'https://cache.obalkyknih.cz'
+            : $this->getConfig()->ObalkyKnih->cacheUrl;
     }
 
     /**
@@ -1957,9 +1977,7 @@ class AjaxController extends AjaxControllerBase
         }
 
         try {
-            $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-                    ? 'https://cache.obalkyknih.cz'
-                    : $this->getConfig()->ObalkyKnih->cacheUrl;
+            $cacheUrl = $this->getObalkyKnihCacheUrl();
             $metaUrl = $cacheUrl . '/api/auth/meta';
             $client = new \Zend\Http\Client($metaUrl);
             $client->setParameterGet(['auth_id' => $id]);
@@ -1983,8 +2001,7 @@ class AjaxController extends AjaxControllerBase
     {
         $isbnJson = json_encode($isbnArray);
 
-        $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-            ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
+        $cacheUrl = $this->getObalkyKnihCacheUrl();
         $apiBooksUrl = $cacheUrl . "/api/books";
         $client = new \Zend\Http\Client($apiBooksUrl);
         $client->setParameterGet(array(
@@ -2065,10 +2082,7 @@ class AjaxController extends AjaxControllerBase
     private function getMultipleSummaries( $search )
     {
         $searchJson  = json_encode( $search );
-        $cacheUrl    = !isset( $this->getConfig()->ObalkyKnih->cacheUrl )
-            ? 'https://cache.obalkyknih.cz'
-            : $this->getConfig()->ObalkyKnih->cacheUrl;
-
+        $cacheUrl    = $this->getObalkyKnihCacheUrl();
         $apiBooksUrl = $cacheUrl . '/api/books';
 
         $client = new \Zend\Http\Client( $apiBooksUrl );

@@ -101,9 +101,9 @@ Here are listed methods that needs XHR requests:
 - `displayAuthorityResults` ([source][29])
 - `displaySummary` ([source][28])
 - `displaySummaryShort` ([source][27])
-- `fetchRecordMetadata` ([source][33])
+- ~~`fetchRecordMetadata` ([source][33])~~
 
-Where the last method `fetchRecordMetadata` is a new one and replaces redundant XHR calls in these PHTML files: [core.phtml][34] and [result-list.phtml][35].
+~~Where the last method `fetchRecordMetadata` is a new one and replaces redundant XHR calls in these PHTML files: [core.phtml][34] and [result-list.phtml][35].~~
 
 ### Search Records
 
