@@ -3,13 +3,15 @@
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo Add cache using {@see CPK.localStorage}.
+ * @todo Add cache using {@see CPK.localStorage} -> set a limit (20 MB?) but there is plenty of space.
  * @todo Add selection filter to group some actions to reduce count of Ajax requests.
  * @todo Add custom jQuery selectors (select them directly by action's name).
  * @todo Check https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified and absorb it!
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
  * @todo Check if all strings for `VuFind.translate` are really registered!
+ * @todo Append just class according to size type to the image - do not use "width" or "height" attributes!!!
+ * @todo [PHP] We need ZF view helpers to render all.
  */
 
 (function( $, document ) {
@@ -159,21 +161,16 @@
 	 * @throws Throws errors whenever parsing of element or bibInfo failed.
 	 */
 	CoverPrototype.parseFromElement = function parseCoverFromElement( elm ) {
-		var cover = new CoverPrototype();
+		var cover = new CoverPrototype(),
+		    bi = Object.create( null );
 
 		// Just to be sure that we are processing correct element
 		if ( ! elm.hasAttribute( "data-obalkyknihcz" ) ) {
 			throw new Error( "Unable to parse Cover from given element!" );
 		}
 
-		var bi = Object.create( null );
-
 		if ( elm.hasAttribute( "data-bibinfo" ) ) {
-			try {
-				bi = JSON.parse( elm.getAttribute( "data-bibinfo" ) );
-			} catch( e ) {
-				throw new Error( "Unable to parse BibInfo from given element!" );
-			}
+			bi = JSON.parse( elm.getAttribute( "data-bibinfo" ) );
 		}
 
 		// Collect data
@@ -187,33 +184,6 @@
 	};
 
 	/**
-	 * Simple prototype object that defines size for covers.
-	 * @param {number} width
-	 * @param {number} height
-	 * @param {string} noImg
-	 * @property {number} width
-	 * @property {number} height
-	 * @property {string} noImg
-	 * @constructor
-	 */
-	function CoverSizePrototype( width, height, noImg ) {
-		var w   = width,
-			h   = height,
-			img = noImg;
-
-		// Public API
-		var Size = Object.create( null );
-
-		Object.defineProperties( Size, {
-			"width": { get: function() { return w; } },
-			"height": { get: function() { return h; } },
-			"noImg": { get: function() { return img; } }
-		} );
-
-		return Size;
-	}
-
-	/**
 	 * @private Processes elements that represent covers.
 	 * @param {CoverPrototype} cvr
 	 * @param {string} extra (Optional.)
@@ -222,13 +192,20 @@
 		extra = extra === undefined ? "icon" : extra;
 
 		switch( cvr.action ) {
+
+			// These actions don't perform Ajax (and is better to render
+			// them through PHP using ZF view helpers if possible).
 			case "fetchImage": fetchImage( cvr, extra ); break;
 			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cvr, extra ); break;
 			case "displayThumbnail": displayThumbnail( cvr ); break;
 			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cvr ); break;
+
+			// These actions perform Ajax but grouping is not possible
 			case "displayCover": displayCover( cvr ); break;
 			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cvr ); break;
 			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
+
+			// These actions perform Ajax and are grouped
 			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
 			case "displayAuthorityThumbnailCoverWithoutLinks": displayAuthorityThumbnailCoverWithoutLinks( cvr ); break;
 			case "displaySummary": displaySummary( cvr ); break;
@@ -254,19 +231,15 @@
 	 * @private Creates image element.
 	 * @param {string} src
 	 * @param {string} alt
-	 * @param {CoverSizePrototype} size
+	 * @param {string} type
 	 * @returns {HTMLImageElement}
 	 */
-	function createImage( src, alt, size ) {
+	function createImage( src, alt, type ) {
 		var img = document.createElement( "img" );
 
 		img.setAttribute( "src", src );
 		img.setAttribute( "alt", obalkyknihcz.coverText );
-
-		if ( size !== undefined ) {
-			img.style.height = size.height.toString();
-			img.style.width  = size.width.toString();
-		}
+		img.classList.add( "obalkyknihcz-" + type );
 
 		return img;
 	}
@@ -296,7 +269,7 @@
 	function createDiv( cls, elm ) {
 		var div = document.createElement( "div" );
 
-		div.classList.add( cls );
+		div.classList.add( "obalkyknihcz-" + cls );
 		div.appendChild( elm );
 
 		return div;
@@ -309,13 +282,12 @@
 	 */
 	function fetchImage( cover, type ) {
 		type = type === undefined ? "medium" : type;
-
 		$.ajax({
 			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, getCoverSize( type ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, type );
 					$( cover.target ).empty().append( createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm ) );
 				}
 			}
@@ -334,7 +306,7 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, getCoverSize( type ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, type );
 					$( cover.target ).empty().append( imgElm );
 				}
 			}
@@ -368,9 +340,9 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.medium ),
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" ),
 						anchorElm = createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).prepend( createDiv( "cover_thumbnail", anchorElm ) );
+					$( cover.target ).prepend( createDiv( "cover", anchorElm ) );
 				}
 			}
 		});
@@ -381,9 +353,9 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.tocText, obalkyknihcz.defaults.medium ),
+					var imgElm = createImage( img.src, obalkyknihcz.tocText, "medium" ),
 						anchorElm = createAnchor( getPdfTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).append( createDiv( "toc_thumbnail", anchorElm ) );
+					$( cover.target ).append( createDiv( "toc", anchorElm ) );
 				}
 			}
 		});
@@ -399,19 +371,18 @@
 
 		// Load info text (about the source)
 		var infoDivElm = document.createElement( "div" ),
-			infoText = document.createTextNode( VuFind.translate( "Source" ) ),
-			infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
-			infoAnchorElm = document.createElement( "a" );
+		    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
+		    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
+		    infoAnchorElm = document.createElement( "a" ),
+		    infoAnchorTxt = document.createTextNode( VuFind.translate( "obalkyknihcz_title" ) );
 
-		infoDivElm.style.paddingLeft = "0px";
-		infoDivElm.style.textAlign = "center";
 		infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
 
 		infoAnchorElm.setAttribute( "href", getCoverTargetUrl( cover.bibInfo ) );
 		infoAnchorElm.setAttribute( "target", "_blank" );
 		infoAnchorElm.classList.add( "title" );
 
-		infoAnchorElm.appendChild( document.createTextNode( VuFind.translate( obalkyknihcz_title ) ) );
+		infoAnchorElm.appendChild( infoAnchorTxt );
 		infoDivElm.appendChild( infoText );
 		infoDivElm.appendChild( infoTextSep );
 		infoDivElm.appendChild( infoAnchorElm );
@@ -424,8 +395,8 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.medium );
-					$( cover.target ).prepend( createDiv( "cover_thumbnail", imgElm ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
+					$( cover.target ).prepend( createDiv( "cover", imgElm ) );
 				}
 			}
 		});
@@ -436,8 +407,8 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.tocText, obalkyknihcz.defaults.medium );
-					$( createDiv( "cover_thumbnail", imgElm ) ).insertBefore( infoDivElm );
+					var imgElm = createImage( img.src, obalkyknihcz.tocText, "medium" );
+					$( createDiv( "cover", imgElm ) ).insertBefore( infoDivElm );
 				}
 			}
 		});
@@ -456,8 +427,8 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.icon );
-					$( cover.target ).empty().append( createDiv( "cover_thumbnail", imgElm ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, "icon" );
+					$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
 				}
 			}
 		});
@@ -477,9 +448,9 @@
 					dataType: "image",
 					success: function( img ) {
 						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.medium ),
+							var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" ),
 								anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + auth_id, imgElm );
-							$( cover.target ).empty().append( createDiv( "cover_thumbnail", anchorElm ) );
+							$( cover.target ).empty().append( createDiv( "cover", anchorElm ) );
 						}
 					}
 				});
@@ -500,8 +471,8 @@
 					dataType: "image",
 					success: function( img ) {
 						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.medium );
-							$( cover.target ).empty().append( createDiv( "cover_thumbnail", imgElm ) );
+							var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
+							$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
 						}
 					}
 				});
@@ -546,6 +517,17 @@
 	 * @return {jQuery}
 	 */
 	function obalkyknihcz( action, bibInfo, advert, type ) {
+
+		// In both cases we need to check if there are not actions we can group.
+		// This all is because we need to reduce amount of XHR calls.
+		//
+		// We need to separate (and group) these actions:
+		//   - `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`
+		//   - `displaySummary` and `displaySummaryShort`
+		//
+		// If these will be grouped and thus perform just one XHR call
+		// per group we will be satisfied.
+
 		if ( action === undefined || ! bibInfo ) {
 			$( this ).each(function( idx, elm ) {
 				processCover( ( CoverPrototype.parseFromElement( elm ) ) );
@@ -568,17 +550,8 @@
 
 	// Default plugin options
 
-	// Set covers cache URL
-	var defaults = Object.create( null ),
-		cacheUrl = "https://cache.obalkyknih.cz",
-	    noImgUrl = "themes/bootstrap3/images/noCover.jpg";
-
-	// Defaults
-	Object.defineProperties( defaults, {
-		"icon"     : { get: function() { return new CoverSizePrototype( 54, 68, noImgUrl ); } },
-		"medium"   : { get: function() { return new CoverSizePrototype( 170, 240, noImgUrl ); } } ,
-		"thumbnail": { get: function() { return new CoverSizePrototype( 27, 36, noImgUrl ); } }
-	});
+	// Set default cache URL
+	var cacheUrl = "https://cache.obalkyknih.cz";
 
 	// obalkyknihcz.cacheUrl
 	Object.defineProperty( obalkyknihcz, "cacheUrl", {
@@ -588,45 +561,14 @@
 
 	// Other properties
 	Object.defineProperties( obalkyknihcz, {
-		"defaults"  : { get: function() { return defaults; } },
-		"coverUrl"  : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
-		"tocUrl"    : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
-		"pdfUrl"    : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
-		"linkUrl"   : { get: function() { return "https://www.obalkyknih.cz/view"; } },
-		"coverText" : { get: function() { return VuFind.translate( "Cover for the item" ); } },
-		"tocText"   : { get: function() { return VuFind.translate( "Table of contents" ); } }
+		"coverUrl" : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
+		"tocUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
+		"pdfUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
+		"linkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view"; } },
+		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
+		"tocText"  : { get: function() { return VuFind.translate( "Table of contents" ); } },
+		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
 	});
-
-	/**
-	 * @private Retrieves name for PDF document from its bibInfo.
-	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
-	 * @returns {string}
-	 */
-	function getPdfDocumentName( bibInfo ) {
-		var part = "",
-			sep = "";
-
-		$.each( bibInfo, function( name, value ) {
-			part += sep + name + "-" + value;
-			sep = "_";
-		});
-
-		var documentName = $( ".record-title strong" ).html(),
-			resultName = documentName !== "undefined"
-				? normalizeStr( documentName )
-				: part;
-
-		return resultName.replace( /[|&;^=$:%@"<>()`\/+,.{}\]]/g, "" ).split( " " ).join( "_" );
-	}
-
-	/**
-	 * @private Normalizes string.
-	 * @param {string} str
-	 * @returns {string}
-	 */
-	function normalizeStr( str ) {
-		return "" + str.normalize( 'NFD' ).replace( /[\u0300-\u036f]/g, "" );
-	}
 
 	/**
 	 * @private Returns correct URL for the cover with given bibInfo.
@@ -663,28 +605,15 @@
 		return query;
 	}
 
-	/**
-	 * @private Returns correct cover size by type.
-	 * @param {string} type
-	 * @returns {CoverSizePrototype}
-	 */
-	function getCoverSize( type ) {
-		return obalkyknihcz.defaults[ type ] === undefined
-			? obalkyknihcz.defaults.medium
-			: obalkyknihcz.defaults[ type ];
-	}
-
 	// Extend it with our prototype objects
 	$.extend( obalkyknihcz, {
 		BookMetadata: BookMetadataPrototype,
-		Cover: CoverPrototype,
-		CoverSize: CoverSizePrototype
+		Cover: CoverPrototype
 	});
 
 	// Publish it all for jQuery
 
 	/**
-	 * @property {{icon: CoverSizePrototype, medium: CoverSizePrototype, thumbnail: CoverSizePrototype}} defaults
 	 * @property {string} coverUrl
 	 * @property {string} tocUrl
 	 * @property {string} pdfUrl
@@ -693,7 +622,6 @@
 	 * @property {string} tocText
 	 * @property {BookMetadataPrototype} BookMetadata
 	 * @property {CoverPrototype} Cover
-	 * @property {CoverSizePrototype} CoverSize
 	 * @type {obalkyknihcz}
 	 */
 	$.fn.obalkyknihcz = obalkyknihcz;
@@ -708,6 +636,10 @@
 		return {
 			send: function( headers, complete ) {
 				image = new Image();
+
+				/**
+				 * @param {number} status
+				 */
 				function done( status ) {
 					if ( image ) {
 						var statusText = status === 200 ? "success" : "error",
@@ -717,12 +649,9 @@
 						complete( status, statusText, { image: (tmp.width > 1 && tmp.height > 1) ? tmp : null } );
 					}
 				}
-				image.onreadystatechange = image.onload = function() {
-					done( 200 );
-				};
-				image.onerror = function() {
-					done( 404 );
-				};
+
+				image.onreadystatechange = image.onload = function() { done( 200 ); };
+				image.onerror = function() { done( 404 ); };
 				image.src = options.url;
 			},
 			abort: function() {
