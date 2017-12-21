@@ -630,6 +630,9 @@ jQuery( document ).ready( function( $ ) {
                             });
                         }
 
+                        // Process ObalkyKnih.cz
+                        $('[data-cover="true"]').obalkyknihcz();
+
                         if (data['database'] == 'Solr') {
                             $("#ci-autocomplete-help").attr('class', 'hidden')
                             $("#autocomplete-help").removeAttr('class')
