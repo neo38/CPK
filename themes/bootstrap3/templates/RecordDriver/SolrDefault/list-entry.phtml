@@ -27,9 +27,9 @@ $advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
 
         <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
             <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-                <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                <div data-obalkyknihcz="displayAuthorityCover" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
             <? else: ?>
-                <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                <div data-obalkyknihcz="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
             <? endif; ?>
         <? endif;?>
 

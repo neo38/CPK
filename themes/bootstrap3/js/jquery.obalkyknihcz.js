@@ -3,6 +3,8 @@
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
+ * @todo Remove attribute `data-cover="true"` and use `data-obalkyknihcz="{ACTION}"` instead.
+ * @todo Check if all actions are used!
  * @todo Add cache using {@see CPK.localStorage}.
  * @todo Add selection filter to group some actions to reduce count of Ajax requests.
  * @todo Add custom jQuery selectors (select them directly by action's name).
@@ -132,12 +134,10 @@
 	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
 	 * @property {HTMLElement} target
 	 * @property {string} record
-	 * @property {boolean} isAuthority
-	 * @property {boolean} hasCover
 	 * @constructor
 	 */
 	function CoverPrototype() {
-		var act, adv, bi, elm, rec, isAuth, hasCvr;
+		var act, adv, bi, elm, rec;
 
 		// Public API
 		var Cover = Object.create( null );
@@ -147,9 +147,7 @@
 			"advert"      : { get: function() { return adv; }, set: function( v ) { adv = v; } },
 			"bibInfo"     : { get: function() { return bi; }, set: function( v ) { bi = v; } },
 			"target"      : { get: function() { return elm; }, set: function( v ) { elm = v; } },
-			"record"      : { get: function() { return rec; }, set: function( v ) { rec = v; } },
-			"isAuthority" : { get: function() { return isAuth; }, set: function( v ) { isAuth = v; } },
-			"hasCover"    : { get: function() { return hasCvr; }, set: function( v ) { hasCvr = v; } }
+			"record"      : { get: function() { return rec; }, set: function( v ) { rec = v; } }
 		} );
 
 		return Cover;
@@ -165,7 +163,7 @@
 		var cover = new CoverPrototype();
 
 		// Just to be sure that we are processing correct element
-		if ( ! elm.hasAttribute( "data-action" ) || ! elm.hasAttribute( "data-cover" ) ) {
+		if ( ! elm.hasAttribute( "data-obalkyknihcz" ) ) {
 			throw new Error( "Unable to parse Cover from given element!" );
 		}
 
@@ -181,12 +179,10 @@
 
 		// Collect data
 		cover.target      = elm.parentElement;
-		cover.action      = elm.getAttribute( "data-action" );
+		cover.action      = elm.getAttribute( "data-obalkyknihcz" );
 		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
 		cover.bibInfo     = bi;
 		cover.record      = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
-		cover.hasCover    = elm.hasAttribute( "data-hasCover" ) ? elm.getAttribute( "data-hasCover" ) === "true" : false;
-		cover.isAuthority = elm.hasAttribute( "data-isAuthority" ) ? elm.getAttribute( "data-isAuthority" ) === "true" : false;
 
 		return cover;
 	};
@@ -769,7 +765,7 @@
 
 	// Initializes all elements with attribute 'data-cover="true"'
 	$( document ).ready(function() {
-		$( '[data-cover="true"]' ).obalkyknihcz();
+		$( '[data-obalkyknihcz]' ).obalkyknihcz();
 	});
 
 	// Return context to allow chaining

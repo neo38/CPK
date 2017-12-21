@@ -27,7 +27,7 @@
             <? $recordId =  preg_replace('/[\.:]/', '', $recordId)?>
             <div id="cover_<?=$recordId?>" class="coverThumbnail">
               <? if (! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-              <div data-action="displayThumbnail" data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+              <div data-obalkyknihcz="displayThumbnail" data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
               <? endif;?>
             </div>
           </div>

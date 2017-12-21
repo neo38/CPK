@@ -631,7 +631,7 @@ jQuery( document ).ready( function( $ ) {
                         }
 
                         // Process ObalkyKnih.cz
-                        $('[data-cover="true"]').obalkyknihcz();
+                        $('[data-obalkyknihcz]').obalkyknihcz();
 
                         if (data['database'] == 'Solr') {
                             $("#ci-autocomplete-help").attr('class', 'hidden')
