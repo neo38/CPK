@@ -198,20 +198,19 @@
 		    vm.historyPage = historyPage;
 		    
 		    resolve();
-		    
-		}).then($scope.$applyAsync).then(downloadCovers(result['obalky']));
-	    }
-	}
-	
-	function downloadCovers(covers) {
-	    if (typeof covers !== 'undefined') {
-		for ( var id in covers) {
-		    if (covers.hasOwnProperty(id)) {
-			var cover = covers[id];
 
-			jQuery( id ).obalkyknihcz( "fetchImage", cover.bibInfo, cover.advert, "icon" );
-		    }
-		}
+		    // TODO This is just a temporary solution...
+		    setTimeout(function() {
+				var cvrs = result['obalky'];
+				for ( var id in cvrs) {
+					if (cvrs.hasOwnProperty(id)) {
+						try {
+							jQuery( id ).obalkyknihcz( "fetchImage", cvrs[id].bibInfo, cvrs[id].advert, "icon" );
+						} catch( e ) { console.log( e); }
+					}
+				}
+			}, 200);
+		}).then($scope.$applyAsync);
 	    }
 	}
 	

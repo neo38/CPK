@@ -22,7 +22,7 @@
               <div class="col-xs-3 col-sm-2 col-md-3  cover_<?=$recordId?>" id="<?=$recordId?>">
                 <?php if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
                   <?php if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                  <div data-action="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getPersonalName(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+                  <div data-action="displayAuthorityThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getPersonalName(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                   <?php else: ?>
                   <div data-action="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getTitle(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
                   <?php endif; ?>

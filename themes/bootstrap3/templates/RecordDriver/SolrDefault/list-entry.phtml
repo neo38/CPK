@@ -24,9 +24,15 @@ $advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
     <label class="pull-left flip"><?=$this->record($this->driver)->getCheckbox() ?></label>
     <input type="hidden" value="<?=$id ?>" class="hiddenId"/>
     <div id="cover_<?=$recordId?>" class="coverThumbnail">
-      <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
-      <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
-      <? endif;?>
+
+        <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
+            <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
+                <div data-action="displayAuthorityCover" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+            <? else: ?>
+                <div data-action="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($advert, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-cover="true" data-recordId="<?=$recordId?>"></div>
+            <? endif; ?>
+        <? endif;?>
+
       <? if (! empty($formats)): ?>
         <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>
       <? elseif ($summThumb = $this->record($this->driver)->getThumbnail()): ?>

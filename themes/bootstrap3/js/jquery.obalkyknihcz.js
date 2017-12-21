@@ -6,6 +6,7 @@
  * @todo Add cache using {@see CPK.localStorage}.
  * @todo Add selection filter to group some actions to reduce count of Ajax requests.
  * @todo Add custom jQuery selectors (select them directly by action's name).
+ * @todo Check https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified and absorb it!
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
  */
@@ -223,11 +224,11 @@
 	 * @param {string} extra (Optional.)
 	 */
 	function processCover( cvr, extra ) {
-		extra = extra === undefined ? "thumbnail" : extra;
+		extra = extra === undefined ? "icon" : extra;
 
 		switch( cvr.action ) {
 			case "fetchImage": fetchImage( cvr, extra ); break;
-			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cvr, "thumbnail" ); break;
+			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cvr, extra ); break;
 			case "displayThumbnail": displayThumbnail( cvr ); break;
 			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cvr ); break;
 			case "displayCover": displayCover( cvr ); break;
@@ -313,15 +314,15 @@
 	 * @param {string} type (Optional.)
 	 */
 	function fetchImage( cover, type ) {
-		type = type === undefined ? "thumbnail" : type;
+		type = type === undefined ? "medium" : type;
+
 		$.ajax({
 			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var size   = ( type === "thumbnail" ) ? obalkyknihcz.defaults.thumbnail : obalkyknihcz.defaults.medium,
-						imgElm = createImage( img.src, obalkyknihcz.coverText, size );
-					$( cover.target ).empty().append( createAnchor( obalkyknihcz.getCoverTargetUrl( cover.bibInfo ), imgElm ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, getCoverSize( type ) );
+					$( cover.target ).empty().append( createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm ) );
 				}
 			}
 		});
@@ -339,8 +340,8 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var size = (type === "thumbnail") ? obalkyknihcz.defaults.thumbnail : obalkyknihcz.defaults.medium;
-					$( cover.target ).empty().append( createImage( img.src, obalkyknihcz.coverText, size ) );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, getCoverSize( type ) );
+					$( cover.target ).empty().append( imgElm );
 				}
 			}
 		});
@@ -375,7 +376,7 @@
 			success: function( img ) {
 				if ( img ) {
 					var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.medium ),
-						anchorElm = createAnchor( obalkyknihcz.getCoverTargetUrl( cover.bibInfo ), imgElm );
+						anchorElm = createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm );
 					$( cover.target ).prepend( createDiv( "cover_thumbnail", anchorElm ) );
 				}
 			}
@@ -388,8 +389,8 @@
 			success: function( img ) {
 				if ( img ) {
 					var imgElm = createImage( img.src, obalkyknihcz.tocText, obalkyknihcz.defaults.medium ),
-						anchorElm = createAnchor( obalkyknihcz.getCoverTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).append( createDiv( "cover_thumbnail", anchorElm ) );
+						anchorElm = createAnchor( getPdfTargetUrl( cover.bibInfo ), imgElm );
+					$( cover.target ).append( createDiv( "toc_thumbnail", anchorElm ) );
 				}
 			}
 		});
@@ -413,7 +414,7 @@
 		infoDivElm.style.textAlign = "center";
 		infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
 
-		infoAnchorElm.setAttribute( "href", obalkyknihcz.getCoverTargetUrl( cover.bibInfo ) );
+		infoAnchorElm.setAttribute( "href", getCoverTargetUrl( cover.bibInfo ) );
 		infoAnchorElm.setAttribute( "target", "_blank" );
 		infoAnchorElm.classList.add( "title" );
 
@@ -462,7 +463,7 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, undefined );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.icon );
 					$( cover.target ).empty().append( createDiv( "cover_thumbnail", imgElm ) );
 				}
 			}
@@ -577,7 +578,7 @@
 	 * @return {jQuery}
 	 */
 	function obalkyknihcz( action, bibInfo, advert, type ) {
-		if ( action === undefined || !bibInfo ) {
+		if ( action === undefined || ! bibInfo ) {
 			$( this ).each(function( idx, elm ) {
 				processCover( ( CoverPrototype.parseFromElement( elm ) ) );
 			});
@@ -628,32 +629,85 @@
 		"tocText"   : { get: function() { return VuFind.translate( "Table of contents" ); } }
 	});
 
-	// Extend our object with some methods and our prototype objects
+	/**
+	 * @private Retrieves name for PDF document from its bibInfo.
+	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
+	 * @returns {string}
+	 */
+	function getPdfDocumentName( bibInfo ) {
+		var part = "",
+			sep = "";
+
+		$.each( bibInfo, function( name, value ) {
+			part += sep + name + "-" + value;
+			sep = "_";
+		});
+
+		var documentName = $( ".record-title strong" ).html(),
+			resultName = documentName !== "undefined"
+				? normalizeStr( documentName )
+				: part;
+
+		return resultName.replace( /[|&;^=$:%@"<>()`\/+,.{}\]]/g, "" ).split( " " ).join( "_" );
+	}
+
+	/**
+	 * @private Normalizes string.
+	 * @param {string} str
+	 * @returns {string}
+	 */
+	function normalizeStr( str ) {
+		return "" + str.normalize( 'NFD' ).replace( /[\u0300-\u036f]/g, "" );
+	}
+
+	/**
+	 * @private Returns correct URL for the cover with given bibInfo.
+	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @returns {string}
+	 */
+	function getCoverTargetUrl( bibInfo ) {
+		return obalkyknihcz.linkUrl + "?" + queryPart( bibInfo );
+	}
+
+	/**
+	 * @private Returns correct URL for PDFs.
+	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @returns {string}
+	 */
+	function getPdfTargetUrl( bibInfo ) {
+		return obalkyknihcz.pdfUrl + "?" + queryPart( bibInfo );
+	}
+
+	/**
+	 * @private Creates GET parameters from given `bibInfo`
+	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @returns {string}
+	 */
+	function queryPart( bibInfo ) {
+		var query = "",
+			sep   = "";
+
+		$.each( bibInfo, function( name, value ) {
+			query += sep + name + "=" + encodeURIComponent( value );
+			sep = "&";
+		} );
+
+		return query;
+	}
+
+	/**
+	 * @private Returns correct cover size by type.
+	 * @param {string} type
+	 * @returns {CoverSizePrototype}
+	 */
+	function getCoverSize( type ) {
+		return obalkyknihcz.defaults[ type ] === undefined
+			? obalkyknihcz.defaults.medium
+			: obalkyknihcz.defaults[ type ];
+	}
+
+	// Extend it with our prototype objects
 	$.extend( obalkyknihcz, {
-		/**
-		 * Returns correct URL for the cover with given bibInfo.
-		 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
-		 * @returns {string}
-		 */
-		getCoverTargetUrl: function( bibInfo ) {
-			return obalkyknihcz.linkUrl + "?" + obalkyknihcz.queryPart( bibInfo );
-		},
-		/**
-		 * Creates GET parameters from given `bibInfo`
-		 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
-		 * @returns {string}
-		 */
-		queryPart: function( bibInfo ) {
-			var query = "",
-				sep   = "";
-
-			$.each( bibInfo, function( name, value ) {
-				query += sep + name + "=" + encodeURIComponent( value );
-				sep = "&";
-			} );
-
-			return query;
-		},
 		BookMetadata: BookMetadataPrototype,
 		Cover: CoverPrototype,
 		CoverSize: CoverSizePrototype
