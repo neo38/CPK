@@ -3,14 +3,13 @@
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo Remove attribute `data-cover="true"` and use `data-obalkyknihcz="{ACTION}"` instead.
- * @todo Check if all actions are used!
  * @todo Add cache using {@see CPK.localStorage}.
  * @todo Add selection filter to group some actions to reduce count of Ajax requests.
  * @todo Add custom jQuery selectors (select them directly by action's name).
  * @todo Check https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified and absorb it!
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
+ * @todo Check if all strings for `VuFind.translate` are really registered!
  */
 
 (function( $, document ) {
@@ -232,7 +231,6 @@
 			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
 			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
 			case "displayAuthorityThumbnailCoverWithoutLinks": displayAuthorityThumbnailCoverWithoutLinks( cvr ); break;
-			case "displayAuthorityResults": displayAuthorityResults( cvr ); break;
 			case "displaySummary": displaySummary( cvr ); break;
 			case "displaySummaryShort": displaySummaryShort( cvr ); break;
 		}
@@ -359,10 +357,9 @@
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo If we clear target element at the first place we need to assure that some content is shown even no images were not returned.
 	 */
 	function displayCover( cover ) {
-
-		// TODO Pokud to vyprázdníme, tak případně musíme zajistit náhradní HTML, kdyby se žádný z obrázků nevrátil.
 		$( cover.target ).empty();
 
 		// Firstly we need to load cover
@@ -414,7 +411,7 @@
 		infoAnchorElm.setAttribute( "target", "_blank" );
 		infoAnchorElm.classList.add( "title" );
 
-		infoAnchorElm.appendChild( document.createTextNode( "Obálky knih" ) );
+		infoAnchorElm.appendChild( document.createTextNode( VuFind.translate( obalkyknihcz_title ) ) );
 		infoDivElm.appendChild( infoText );
 		infoDivElm.appendChild( infoTextSep );
 		infoDivElm.appendChild( infoAnchorElm );
@@ -514,30 +511,6 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo We should resolve also failure of the request!
-	 */
-	function displayAuthorityResults( cover ) {
-		$.getJSON(
-			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
-			{ id: cover.bibInfo.auth_id },
-			function( data ) {
-				$.ajax({
-					url: data.data,
-					dataType: "image",
-					success: function( img ) {
-						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, obalkyknihcz.defaults.thumbnail );
-							$( cover.target ).empty().append( createDiv( "cover_thumbnail", imgElm ) );
-						}
-					}
-				});
-			}
-		);
-	}
-
-	/**
-	 * @param {CoverPrototype} cover
-	 * @todo We should resolve also failure of the request!
 	 */
 	function displaySummary( cover ) {
 		$.getJSON(
@@ -551,7 +524,6 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo We should resolve also failure of the request!
 	 */
 	function displaySummaryShort( cover ) {
 		$.getJSON(

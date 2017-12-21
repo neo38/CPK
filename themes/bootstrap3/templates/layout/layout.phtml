@@ -114,6 +114,9 @@
 
         $cacheUrl = $this->ObalkyKnih()->getCacheUrl();
         $this->headScript()->appendScript('jQuery.fn.obalkyknihcz.cacheUrl = "' . $cacheUrl . '";');
+        $this->jsTranslations()->addStrings([
+                'obalkyknihcz_title' => 'Obálky knih'
+        ]);
 
         // Deal with cart stuff:
         $cart = $this->cart();
