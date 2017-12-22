@@ -317,14 +317,14 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnail( cover ) {
-		fetchImage( cover, "icon" );
+		fetchImage( cover, "medium" );
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnailWithoutLinks( cover ) {
-		fetchImageWithoutLinks( cover, "icon" );
+		fetchImageWithoutLinks( cover, "medium" );
 	}
 
 	/**
@@ -427,7 +427,7 @@
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, "icon" );
+					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
 					$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
 				}
 			}
