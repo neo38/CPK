@@ -191,6 +191,9 @@
 		initializePaginator();
 		
 		// We need to refresh the view with async job .. use Promise
+
+
+
 		new Promise(function(resolve) {
 			
 		    loaderDiv.setAttribute('hidden', 'hidden');
@@ -204,13 +207,15 @@
 				var cvrs = result['obalky'];
 				for ( var id in cvrs) {
 					if (cvrs.hasOwnProperty(id)) {
+						console.log( id, cvrs[id] );
 						try {
-							jQuery( id ).obalkyknihcz( "fetchImage", cvrs[id].bibInfo, cvrs[id].advert, "icon" );
+							jQuery( id ).obalkyknihcz( "fetchImage", cvrs[id].advert, cvrs[id].bibInfo, id );
 						} catch( e ) { console.log( e); }
 					}
 				}
+				return Promise.resolve();
 			}, 200);
-		}).then($scope.$applyAsync);
+		}).then($scope.$applyAsync).then();
 	    }
 	}
 	

@@ -17,6 +17,9 @@
 (function( $, document ) {
 	"use strict";
 
+	// This is pretty experimental ;)
+	var XHR_OPTIMALIZATIONS = false;
+
 	/**
 	 * Prototype object for single book's metadata (see documentation for ObalkyKnih.cz API)
 	 * @property {string} _id
@@ -135,10 +138,36 @@
 	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
 	 * @property {HTMLElement} target
 	 * @property {string} record
+	 * @param {string} action (Optional.)
+	 * @param {string} advert (Optional.)
+	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo bibInfo (Optional.)
+	 * @param {string} record (Optional.)
+	 * @param {HTMLElement|string} target (Optional.)
 	 * @constructor
 	 */
-	function CoverPrototype() {
+	function CoverPrototype( action, advert, bibInfo, record, target ) {
 		var act, adv, bi, elm, rec;
+
+		// Process optional parameters
+		if ( action !== undefined && typeof action === "string" ) {
+			act = action;
+		}
+
+		if ( typeof advert !== undefined && typeof action === "string" ) {
+			adv = advert;
+		}
+
+		if ( typeof bibInfo !== undefined && typeof bibInfo === "object" ) {
+			bi = bibInfo;
+		}
+
+		if ( typeof record !== undefined && typeof record === "string" ) {
+			rec = record;
+		}
+
+		if ( target !== undefined && !!target ) {
+			elm = target;
+		}
 
 		// Public API
 		var Cover = Object.create( null );
@@ -182,6 +211,8 @@
 
 		return cover;
 	};
+
+	// Below is implemented basic plugin functionality
 
 	/**
 	 * @private Processes elements that represent covers.
@@ -462,10 +493,12 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
+		console.log( cover );
 		$.getJSON(
 			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
 			{ id: cover.bibInfo.auth_id },
 			function( data ) {
+				console.log( data );
 				$.ajax({
 					url: data.data,
 					dataType: "image",
@@ -506,69 +539,7 @@
 		);
 	}
 
-	// Plugin self
-
-	/**
-	 * Base of our plugin.
-	 * @param {string} action (Optional.)
-	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo (Optional.)
-	 * @param {string} advert
-	 * @param {string} type
-	 * @return {jQuery}
-	 */
-	function obalkyknihcz( action, bibInfo, advert, type ) {
-
-		// In both cases we need to check if there are not actions we can group.
-		// This all is because we need to reduce amount of XHR calls.
-		//
-		// We need to separate (and group) these actions:
-		//   - `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`
-		//   - `displaySummary` and `displaySummaryShort`
-		//
-		// If these will be grouped and thus perform just one XHR call
-		// per group we will be satisfied.
-
-		if ( action === undefined || ! bibInfo ) {
-			$( this ).each(function( idx, elm ) {
-				processCover( ( CoverPrototype.parseFromElement( elm ) ) );
-			});
-		} else {
-			$( this ).each(function( idx, elm ) {
-				var cvr = new CoverPrototype();
-				cvr.action  = action;
-				cvr.bibInfo = bibInfo;
-				cvr.advert  = advert;
-				cvr.target  = elm;
-
-				processCover( cvr, type );
-			});
-		}
-
-		// Return context to allow chaining
-		return this;
-	}
-
-	// Default plugin options
-
-	// Set default cache URL
-	var cacheUrl = "https://cache.obalkyknih.cz";
-
-	// obalkyknihcz.cacheUrl
-	Object.defineProperty( obalkyknihcz, "cacheUrl", {
-		get: function() { return cacheUrl; },
-		set: function( v ) { cacheUrl = v; }
-	});
-
-	// Other properties
-	Object.defineProperties( obalkyknihcz, {
-		"coverUrl" : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
-		"tocUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
-		"pdfUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
-		"linkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view"; } },
-		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
-		"tocText"  : { get: function() { return VuFind.translate( "Table of contents" ); } },
-		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
-	});
+	// Other private methods (utilities)
 
 	/**
 	 * @private Returns correct URL for the cover with given bibInfo.
@@ -605,6 +576,275 @@
 		return query;
 	}
 
+	// Implementation of the jQuery plugin self
+
+	/**
+	 * Base of our plugin.
+	 *
+	 * It works two ways:
+	 * 1) by getting neccessarry data from the data attributes of the target element
+	 * 2) by putting these data directly through arguments
+	 *
+	 * Here are the examples:
+	 *
+	 * <pre>
+	 * jQuery( "[data-obalkyknihcz]" ).obalkyknihcz(); // The first case
+	 * jQuery( "#some-element" ).obalkyknihcz( "fetchImage", advert, bibInfo, recordId ); // The second case
+	 * </pre>
+	 *
+	 * In both cases we need to check if there are not actions we can group.
+	 * This all is because we need to reduce amount of XHR calls.
+	 *
+	 * We need to separate (and group) these actions:
+	 * - `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`
+	 * - `displaySummary` and `displaySummaryShort`
+	 *
+	 * If these will be grouped and thus perform just one XHR call per group
+	 * we will be satisfied.
+	 *
+	 * @param {string} action (Optional.)
+	 * @param {string} advert
+	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo (Optional.)
+	 * @param {string} record
+	 * @return {jQuery}
+	 */
+	function obalkyknihcz( action, advert, bibInfo, record ) {
+
+		/**
+		 * @type {{authority: CoverPrototype[], summary: CoverPrototype[]}}
+		 */
+		var tmp = { authority: [], summary: [] };
+
+		/**
+		 * @private Processes (split) covers.
+		 * @param {CoverPrototype} cvr
+		 */
+		function splitCovers( cvr ) {
+			switch ( cvr.action ) {
+
+				// These actions will be processed normally
+				case "fetchImage":
+				case "fetchImageWithoutLinks":
+				case "displayThumbnail":
+				case "displayThumbnailWithoutLinks":
+				case "displayCover":
+				case "displayCoverWithoutLinks":
+				case "displayThumbnailCoverWithoutLinks":
+					processCover( cvr );
+					break;
+
+				// These will be grouped
+				case "displayAuthorityCover":
+				case "displayAuthorityThumbnailCoverWithoutLinks":
+					tmp.authority.push( cvr );
+					break;
+
+				case "displaySummery":
+				case "displaySummaryShort":
+					tmp.summary.push( cvr );
+					break;
+			}
+		}
+
+		/**
+		 * @private Processes actions `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`.
+		 * @returns {Promise}
+		 */
+		function processAuthRequests() {
+			console.log( "X3", tmp.authority );
+
+			var deferred = $.Deferred(),
+				auth_ids = [];
+
+			// Collect ID of authorities
+			tmp.authority.forEach(function( c ) { auth_ids.push( c.bibInfo.auth_id ); });
+
+			// If there are no authorities to resolve stop it
+			if ( auth_ids.length === 0 ) {
+				setTimeout(function() { deferred.resolve(true); });
+				return deferred.promise();
+			}
+
+			auth_ids = auth_ids.join( "," );
+
+			// Get multiple authorities data by their IDs separated by comma
+			$.getJSON( "/AJAX/JSON?method=getMultipleAuthorityCovers", { id: auth_ids }, function( data ) {
+				console.log( "X3A", data );
+
+				// TODO Use obtained covers!
+
+				deferred.resolve( true );
+			});
+
+			//$( covers.authority ).cpkCover();
+
+			return deferred.promise();
+		}
+
+		/**
+		 * @private Processes actions `displaySummary` and `displaySummaryShort`.
+		 * @returns {Promise}
+		 */
+		function processSummRequests() {
+			console.log( "X4", tmp.summary );
+
+			var deferred = $.Deferred(),
+				bibInfo   = [];
+
+			// Collects all bibInfos
+			tmp.summary.forEach(function( c ) { bibInfo.push( c.bibInfo ); });
+
+			// If there are no summaries to resolve stop it
+			if ( bibInfo.length === 0 ) {
+				setTimeout(function() { deferred.resolve(true); });
+				return deferred.promise();
+			}
+
+			/**
+			 * @param {Object} metadata
+			 */
+			function resolveMetadata( metadata ) {
+				console.log( "X4A", metadata );
+
+				if ( ! ( !! metadata  ) ) {
+					return;
+				}
+
+				if ( metadata.data === null ) {
+					return;
+				}
+
+				/**
+				 * @param {{ isbn: string, nbn: string }} aBibInfo
+				 */
+				function findCover( aBibInfo ) {
+					return tmp.summary.filter(function( c ) {
+						return ( aBibInfo.isbn === c.bibInfo.isbn && bibInfo.nbn === c.bibInfo.nbn );
+					});
+				}
+
+				var meta          = [],
+					currentCovers = [];
+
+				$.each( metadata.data, function( i, d ) {
+					var md = BookMetadataPrototype.parseFromObject( d );
+
+					meta.push( md );
+					currentCovers.push( findCover( md.bibinfo ) );
+				});
+
+				console.log( meta, currentCovers );
+
+				var currentCover = findCover( meta.bibinfo );
+				console.log( currentCover );
+
+				var recId    = currentCover.record,
+					cvrElm   = document.getElementById( "cover_" + recordId ),
+					summElm  = document.getElementById( "summary_" + recordId ),
+					ssummElm = document.getElementById( "short_summary_" + recordId );
+
+				// TODO We need to use cover and annotation!
+				try {
+					// TODO Create image for the cover...
+					console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recId, cvrElm );
+				} catch( e ) {}
+
+				try {
+					// TODO Create summary...
+					console.warn( "XXX Finish creating of summary!", meta, currentCover, recId, summElm );
+				} catch( e ) {}
+
+				try {
+					// TODO Create short summary....
+					console.warn( "XXX Finish creating of short summary!", meta, currentCover, recId, ssummElm );
+				} catch( e ) {}
+
+				deferred.resolve( true );
+			}
+
+			// Perform XHR request for all metadata
+			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
+				.fail(function resolveMetadataActionsXhrFail() {
+					deferred.reject( "XHR request 'resolveSummaryActions' failed!" );
+				});
+
+			return deferred.promise();
+		}
+
+		/**
+		 * @private Resolves all promises.
+		 * @param {boolean} first Result of the first promise.
+		 * @param {boolean} second Result of the second promise.
+		 */
+		function resolvePromises( first, second ) {
+			console.log( "X5", first, second );
+		}
+
+		// This is for elements which has data attributes
+		if ( action === undefined || ! bibInfo ) {
+
+			// Process all actions and split them as we need
+			$( this ).each(function( idx, elm ) {
+				var cvr = CoverPrototype.parseFromElement( elm );
+
+				if ( XHR_OPTIMALIZATIONS === true ) {
+					splitCovers( cvr );
+				} else {
+					processCover( cvr );
+				}
+			});
+
+			// Process actions with grouped Ajax request
+			if ( XHR_OPTIMALIZATIONS === true ) {
+				var promises = $.when( processAuthRequests(), processSummRequests() );
+				promises.done( resolvePromises );
+			}
+		}
+
+		// This is for cases if arguments are passed
+		else {
+
+			// Process all actions and split them as we need
+			$( this ).each(function( idx, elm ) {
+				var cvr = new CoverPrototype( action, advert, bibInfo, record, elm );
+
+				if ( XHR_OPTIMALIZATIONS === true ) {
+					splitCovers( cvr );
+				} else {
+					processCover( cvr );
+				}
+			});
+
+			// Process actions with grouped Ajax request
+			if ( XHR_OPTIMALIZATIONS === true ) {
+				var promises = $.when( processAuthRequests(), processSummRequests() );
+				promises.done( resolvePromises );
+			}
+		}
+
+		return this;
+	}
+
+	// Default plugin options
+
+	// Set default cache URL
+	var cacheUrl = "https://cache.obalkyknih.cz";
+	Object.defineProperty( obalkyknihcz, "cacheUrl", {
+		get: function() { return cacheUrl; },
+		set: function( v ) { cacheUrl = v; }
+	});
+
+	// Other properties
+	Object.defineProperties( obalkyknihcz, {
+		"coverUrl" : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
+		"tocUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
+		"pdfUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
+		"linkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view"; } },
+		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
+		"tocText"  : { get: function() { return VuFind.translate( "Table of contents" ); } },
+		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
+	});
+
 	// Extend it with our prototype objects
 	$.extend( obalkyknihcz, {
 		BookMetadata: BookMetadataPrototype,
@@ -628,16 +868,29 @@
 
 	// Our additition to jQuery ajaxTransport - support for "image" data type.
 	$.ajaxTransport( "image", function( options, originalOptions, jqXhr ) {
+
+		// We works only for asynchronous GET requests
 		if ( options.type !== "GET" || ! options.async ) {
 			return;
 		}
 
+		/**
+		 * @type {Image} image
+		 */
 		var image;
+
 		return {
+
+			/**
+			 * Send request for the image.
+			 * @param {object} headers
+			 * @param {function} complete
+			 */
 			send: function( headers, complete ) {
 				image = new Image();
 
 				/**
+				 * @private Handles image request.
 				 * @param {number} status
 				 */
 				function done( status ) {
@@ -654,6 +907,10 @@
 				image.onerror = function() { done( 404 ); };
 				image.src = options.url;
 			},
+
+			/**
+			 * On image loading is aborted.
+			 */
 			abort: function() {
 				if ( image ) {
 					image = image.onreadystatechange = image.onerror = image.onload = null;
