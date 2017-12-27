@@ -12,6 +12,7 @@
  * @todo Check if all strings for `VuFind.translate` are really registered!
  * @todo Append just class according to size type to the image - do not use "width" or "height" attributes!!!
  * @todo [PHP] We need ZF view helpers to render all.
+ * @todo Use `Function.bind()` and `Function.call()` whenever it's possible (instead of nested functions).
  */
 
 (function( $, document ) {
@@ -50,6 +51,7 @@
 	 * @property {string} succ_toc_count
 	 * @constructor
 	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
+     * @todo Check how is this used in memory (are getters/setters same instances in different instances of the BookMetadataOject)?
 	 */
 	function BookMetadataPrototype() {
 		var _id, annot, burl, bibTitle, bibYear, bibInfo, bookId, cvrIconUrl,
