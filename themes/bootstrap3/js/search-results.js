@@ -98,6 +98,8 @@ jQuery( document ).ready( function( $ ) {
             });
         },
 
+        loadingResults: false,
+
         /**
          * This function gathers data from autocomplete|advancedSearch|windowHistory.
          * The data are sent via ajax to Solr, which returns results.
@@ -116,6 +118,12 @@ jQuery( document ).ready( function( $ ) {
          */
         updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab) {
             var data = {};
+
+            if ( ADVSEARCH.loadingResults === true ) {
+                return false;
+            } else {
+				ADVSEARCH.loadingResults = true;
+            }
 
 			/* If we need to add some new paramts to URL we can use extraData argument */
             if (extraData !== undefined) {
@@ -316,6 +324,7 @@ jQuery( document ).ready( function( $ ) {
                 data['filter'].forEach(function (filter) {
                     if (filter.indexOf('daterange') !== -1) {
                         isSetDateRange = true;
+						ADVSEARCH.loadingResults = false;
                         return false;
                     }
                 });
@@ -423,6 +432,7 @@ jQuery( document ).ready( function( $ ) {
 
             if (newTab) {
                 window.open(data['searchResultsUrl'], '_blank');
+				ADVSEARCH.loadingResults = false;
                 return false;
             }
 
@@ -476,6 +486,7 @@ jQuery( document ).ready( function( $ ) {
                     success: function (response) {
 
                         if ($('#set-database li.active a').attr('data-value') != data['database']) {
+							ADVSEARCH.loadingResults = false;
                             return;
                         }
 
@@ -637,6 +648,8 @@ jQuery( document ).ready( function( $ ) {
                             $("#autocomplete-help").attr('class', 'hidden');
                             $("#ci-autocomplete-help").removeAttr('class');
                         }
+
+						ADVSEARCH.loadingResults = false;
                     },
                     error: function (xmlHttpRequest, status, error) {
                         $('#search-results-loader').remove();
@@ -646,6 +659,8 @@ jQuery( document ).ready( function( $ ) {
                         console.error(error);
                         //console.log( 'Sent data: ' );
                         //console.log( data );
+
+						ADVSEARCH.loadingResults = false;
                     },
                 });
             }
