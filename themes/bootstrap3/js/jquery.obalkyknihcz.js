@@ -4,13 +4,10 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
  * @todo Add cache using {@see CPK.localStorage} -> set a limit (20 MB?) but there is plenty of space.
- * @todo Add selection filter to group some actions to reduce count of Ajax requests.
- * @todo Add custom jQuery selectors (select them directly by action's name).
- * @todo Check https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified and absorb it!
+ * @todo Check https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified and absorb it (names of PDF downloads)!
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
  * @todo Check if all strings for `VuFind.translate` are really registered!
- * @todo Append just class according to size type to the image - do not use "width" or "height" attributes!!!
  * @todo [PHP] We need ZF view helpers to render all.
  * @todo Use `Function.bind()` and `Function.call()` whenever it's possible (instead of nested functions).
  */
@@ -19,7 +16,8 @@
 	"use strict";
 
 	// This is pretty experimental ;)
-	var XHR_OPTIMALIZATIONS = false;
+	// TODO Remove this befor finishing!
+	var XHR_OPTIMALIZATIONS = true;
 
 	/**
 	 * Prototype object for single book's metadata (see documentation for ObalkyKnih.cz API)
@@ -271,7 +269,7 @@
 		var img = document.createElement( "img" );
 
 		img.setAttribute( "src", src );
-		img.setAttribute( "alt", obalkyknihcz.coverText );
+		img.setAttribute( "alt", alt );
 		img.classList.add( "obalkyknihcz-" + type );
 
 		return img;
@@ -468,6 +466,20 @@
 	}
 
 	/**
+	 * @private Helper method for creating HTML of authority's cover.
+	 * @param {string} imgUrl
+	 * @param {string} imgAlt
+	 * @param {string} authId
+	 * @param {HTMLElement} target
+	 */
+	function createAuthorityCover( imgUrl, imgAlt, authId, target ) {
+		var imgElm = createImage( imgUrl, imgAlt, "medium" ),
+			anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + authId, imgElm );
+
+		$( target ).empty().append( createDiv( "cover", anchorElm ) );
+	}
+
+	/**
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityCover( cover ) {
@@ -481,9 +493,7 @@
 					dataType: "image",
 					success: function( img ) {
 						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" ),
-								anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + auth_id, imgElm );
-							$( cover.target ).empty().append( createDiv( "cover", anchorElm ) );
+							createAuthorityCover( img.src, obalkyknihcz.authorityCoverText, auth_id, cover.target );
 						}
 					}
 				});
@@ -651,34 +661,57 @@
 		/**
 		 * @private Processes actions `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`.
 		 * @returns {Promise}
+		 * @todo "Unhandled promise rejection: undefined" error shows up here!
 		 */
 		function processAuthRequests() {
-			console.log( "X3", tmp.authority );
-
 			var deferred = $.Deferred(),
-				auth_ids = [];
+			    auth_ids = [];
 
 			// Collect ID of authorities
 			tmp.authority.forEach(function( c ) { auth_ids.push( c.bibInfo.auth_id ); });
 
 			// If there are no authorities to resolve stop it
 			if ( auth_ids.length === 0 ) {
-				setTimeout(function() { deferred.resolve(true); });
+				setTimeout(function() { deferred.resolve( true ); });
 				return deferred.promise();
 			}
 
-			auth_ids = auth_ids.join( "," );
-
 			// Get multiple authorities data by their IDs separated by comma
-			$.getJSON( "/AJAX/JSON?method=getMultipleAuthorityCovers", { id: auth_ids }, function( data ) {
-				console.log( "X3A", data );
+			$.getJSON( "/AJAX/JSON?method=getMultipleAuthorityCovers", { id: auth_ids.join( "," ) }, function( data ) {
+				console.log( "Data for `getMultipleAuthorityCovers`", data );
 
-				// TODO Use obtained covers!
+				if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
+					console.error( "Request for covers of authorities failed!", data );
+					deferred.resolve( true );
+					return;
+				}
+
+				for ( var i = 0; i < data.data.length; i++ ) {
+					/**
+					 * @type {{ _id: string, auth_biographical_or_historical_data: string, auth_id: string, auth_name: string, auth_year: string, authinfo: Object, backlink_url: string, cover_icon_url: string, cover_medium_url: string, cover_preview510_url: string, cover_thumbnail_url: string, links: array, orig_height: string, orig_width: string }}
+					 */
+					var itm = data.data[i];
+
+					if ( typeof itm.authinfo !== "object" ) {
+						continue;
+					}
+
+					for ( var j = 0; j < tmp.authority.length; j++ ) {
+						/**
+						 * @type {CoverPrototype}
+						 */
+						var cvr = tmp.authority[j];
+
+						if ( cvr.bibInfo.auth_id !== itm.authinfo.auth_id ) {
+							continue;
+						}
+
+						createAuthorityCover( itm.cover_medium_url, obalkyknihcz.authorityCoverText, itm.authinfo.auth_id, cvr.target );
+					}
+				}
 
 				deferred.resolve( true );
 			});
-
-			//$( covers.authority ).cpkCover();
 
 			return deferred.promise();
 		}
@@ -696,132 +729,58 @@
 			// Collects all bibInfos
 			tmp.summary.forEach(function( c ) { bibInfo.push( c.bibInfo ); });
 
+			console.log( bibInfo );
+
 			// If there are no summaries to resolve stop it
 			if ( bibInfo.length === 0 ) {
 				setTimeout(function() { deferred.resolve(true); });
 				return deferred.promise();
 			}
 
-			/**
-			 * @param {Object} metadata
-			 */
-			function resolveMetadata( metadata ) {
-				console.log( "X4A", metadata );
+			// Perform XHR request for all metadata
+			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, function( data ) {
+				console.log( "Data for `getMultipleSummaries`", data );
 
-				if ( ! ( !! metadata  ) ) {
+				if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
+					console.error( "Request for multiple summaries failed!", data );
+					deferred.resolve( false );
 					return;
 				}
 
-				if ( metadata.data === null ) {
-					return;
-				}
-
-				/**
-				 * @param {{ isbn: string, nbn: string }} aBibInfo
-				 */
-				function findCover( aBibInfo ) {
-					return tmp.summary.filter(function( c ) {
-						return ( aBibInfo.isbn === c.bibInfo.isbn && bibInfo.nbn === c.bibInfo.nbn );
-					});
-				}
-
-				var meta          = [],
-					currentCovers = [];
-
-				$.each( metadata.data, function( i, d ) {
-					var md = BookMetadataPrototype.parseFromObject( d );
-
-					meta.push( md );
-					currentCovers.push( findCover( md.bibinfo ) );
-				});
-
-				console.log( meta, currentCovers );
-
-				var currentCover = findCover( meta.bibinfo );
-				console.log( currentCover );
-
-				var recId    = currentCover.record,
-					cvrElm   = document.getElementById( "cover_" + recordId ),
-					summElm  = document.getElementById( "summary_" + recordId ),
-					ssummElm = document.getElementById( "short_summary_" + recordId );
-
-				// TODO We need to use cover and annotation!
-				try {
-					// TODO Create image for the cover...
-					console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recId, cvrElm );
-				} catch( e ) {}
-
-				try {
-					// TODO Create summary...
-					console.warn( "XXX Finish creating of summary!", meta, currentCover, recId, summElm );
-				} catch( e ) {}
-
-				try {
-					// TODO Create short summary....
-					console.warn( "XXX Finish creating of short summary!", meta, currentCover, recId, ssummElm );
-				} catch( e ) {}
+				//...
 
 				deferred.resolve( true );
-			}
-
-			// Perform XHR request for all metadata
-			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, resolveMetadata )
-				.fail(function resolveMetadataActionsXhrFail() {
-					deferred.reject( "XHR request 'resolveSummaryActions' failed!" );
-				});
+			} );
 
 			return deferred.promise();
 		}
 
 		/**
-		 * @private Resolves all promises.
-		 * @param {boolean} first Result of the first promise.
-		 * @param {boolean} second Result of the second promise.
+		 * Are passed arguments or are expected to be get from the data-attributes of the target elements?
+		 * @type {boolean}
 		 */
-		function resolvePromises( first, second ) {
-			console.log( "X5", first, second );
-		}
+		var areArgs = ( action !== undefined && !!bibInfo );
+		console.info( areArgs ? "Direct arguments are used..." : "Data attributes are used..." );
+		console.info( XHR_OPTIMALIZATIONS ? "XHR optimalizations are used..." : "XHR optimalizations are NOT used..." );
 
-		// This is for elements which has data attributes
-		if ( action === undefined || ! bibInfo ) {
+		// Initialize `obalkyknihcz` for all the target elements.
+		$( this ).each(function( idx, elm ) {
+			var cvr = ( areArgs === true )
+				? new CoverPrototype( action, advert, bibInfo, record, elm )
+				: CoverPrototype.parseFromElement( elm );
 
-			// Process all actions and split them as we need
-			$( this ).each(function( idx, elm ) {
-				var cvr = CoverPrototype.parseFromElement( elm );
+			( XHR_OPTIMALIZATIONS === true ) ? splitCovers( cvr ) : processCover( cvr );
+		});
 
-				if ( XHR_OPTIMALIZATIONS === true ) {
-					splitCovers( cvr );
-				} else {
-					processCover( cvr );
-				}
-			});
-
-			// Process actions with grouped Ajax request
-			if ( XHR_OPTIMALIZATIONS === true ) {
-				var promises = $.when( processAuthRequests(), processSummRequests() );
-				promises.done( resolvePromises );
-			}
-		}
-
-		// This is for cases if arguments are passed
-		else {
-
-			// Process all actions and split them as we need
-			$( this ).each(function( idx, elm ) {
-				var cvr = new CoverPrototype( action, advert, bibInfo, record, elm );
-
-				if ( XHR_OPTIMALIZATIONS === true ) {
-					splitCovers( cvr );
-				} else {
-					processCover( cvr );
-				}
-			});
-
-			// Process actions with grouped Ajax request
-			if ( XHR_OPTIMALIZATIONS === true ) {
-				var promises = $.when( processAuthRequests(), processSummRequests() );
-				promises.done( resolvePromises );
-			}
+		// In both cases we need to execute promises if XHR optimalizations are enabled
+		if ( XHR_OPTIMALIZATIONS === true ) {
+			$.when( processAuthRequests(), processSummRequests() )
+				.done( function( first, second ) {
+					console.log( "DONE", first, second );
+				} )
+				.fail( function( first, second ) {
+					console.log( "FAIL", first, second );
+				} );
 		}
 
 		return this;
@@ -844,7 +803,8 @@
 		"linkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view"; } },
 		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
 		"tocText"  : { get: function() { return VuFind.translate( "Table of contents" ); } },
-		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
+		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } },
+		"authorityCoverText": { get: function() { return VuFind.translate( "Cover for the authority" ); } }
 	});
 
 	// Extend it with our prototype objects
@@ -862,6 +822,8 @@
 	 * @property {string} linkUrl
 	 * @property {string} coverText
 	 * @property {string} tocText
+	 * @property {string} noImgUrl
+	 * @property {string} authorityCoverText
 	 * @property {BookMetadataPrototype} BookMetadata
 	 * @property {CoverPrototype} Cover
 	 * @type {obalkyknihcz}

@@ -28,6 +28,7 @@
 namespace CPK\Controller;
 
 use VuFind\Controller\AjaxController as AjaxControllerBase;
+use Zend\Http\Client\Adapter\Exception\TimeoutException as TimeoutException;
 
 /**
  * This controller handles global AJAX functionality
@@ -1068,9 +1069,7 @@ class AjaxController extends AjaxControllerBase
         // obalky
         $bookid = $this->params()->fromPost('obalkyknihbookid');
         // //////////////////////////////////////////
-        $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-            ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
-        $addReviewUrl = $cacheUrl . "/?add_review=true";
+        $addReviewUrl = $this->getObalkyKnihApiUrl( '/?add_review=true' );
         $client = new \Zend\Http\Client($addReviewUrl);
         $client->setMethod('POST');
         $client->setParameterGet(
@@ -1939,9 +1938,7 @@ class AjaxController extends AjaxControllerBase
 
             if (! empty($auth_id)) {
                 try {
-                    $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-                        ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
-                    $metaUrl = $cacheUrl . "/api/auth/meta";
+                    $metaUrl = $this->getObalkyKnihApiUrl( '/api/auth/meta' );
                     $client = new \Zend\Http\Client($metaUrl);
                     $client->setParameterGet(array(
                         'auth_id' => $auth_id
@@ -1963,6 +1960,72 @@ class AjaxController extends AjaxControllerBase
         return $this->obalky;
     }
 
+    public function getMultipleAuthorityCoversAjax()
+    {
+        $ids = $this->params()->fromQuery( 'id' );
+        $covers = $this->getMultipleAuthorityCovers( $ids );
+
+        return $this->output( $covers, self::STATUS_OK );
+    }
+
+    private function getMultipleAuthorityCovers( $ids )
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        try {
+            $metaUrl = $this->getObalkyKnihApiUrl( '/api/auth/meta' );
+            $client = new \Zend\Http\Client($metaUrl);
+            $client->setParameterGet(['auth_id' => $ids]);
+            $response = $client->send();
+            $responseBody = $response->getBody();
+            $phpResponse = json_decode($responseBody, true);
+
+            return empty($phpResponse) ? [] : $phpResponse;
+        } catch (TimeoutException $e) {
+            return [];
+        }
+    }
+
+    public function getMultipleSummariesAjax()
+    {
+        $bibinfo = $this->params()->fromQuery('bibinfo');
+        $summaries = $this->getMultipleSummaries( $bibinfo );
+
+        return $this->output( $summaries, self::STATUS_OK );
+    }
+
+    private function getMultipleSummaries( $bibInfo )
+    {
+        try {
+            $isbnJson = json_encode($bibInfo);
+            $apiUrl = $this->getObalkyKnihApiUrl( '/api/books' );
+            $client = new \Zend\Http\Client($apiUrl);
+            $client->setParameterGet(['multi' => '[' . $isbnJson . ']']);
+            $response = $client->send();
+            $responseBody = $response->getBody();
+            $phpResponse = json_decode($responseBody, true);
+
+            return empty($phpResponse) ? [] : $phpResponse;
+        } catch (TimeoutException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * @private Returns URL for API ObalkyKnih.cz.
+     * @param string $action
+     * @return string
+     */
+    private function getObalkyKnihApiUrl( $action )
+    {
+        $cacheUrl = ! isset( $this->getConfig()->ObalkyKnih->cacheUrl )
+                ? 'https://cache.obalkyknih.cz'
+                : $this->getConfig()->ObalkyKnih->cacheUrl;
+
+        return $cacheUrl . $action;
+    }
 
     /**
      * Get an array of summary strings for the record.
@@ -1972,10 +2035,7 @@ class AjaxController extends AjaxControllerBase
     private function getSummaryObalkyKnih($isbnArray)
     {
         $isbnJson = json_encode($isbnArray);
-
-        $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-            ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
-        $apiBooksUrl = $cacheUrl . "/api/books";
+        $apiBooksUrl = $this->getObalkyKnihApiUrl( '/api/books' );
         $client = new \Zend\Http\Client($apiBooksUrl);
         $client->setParameterGet(array(
             'multi' => '[' . $isbnJson . ']'
