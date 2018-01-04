@@ -105,6 +105,7 @@ class RecordController extends RecordControllerBase
 
         // get number of links
         $field866 = $this->get866Data();
+
         $noLinksFrom856 = $linksFrom856 === false ? 0 : count($linksFrom856);
         $noLinksFrom866 = $field866 === false ? 0 : count($field866);
         $view->eVersionLinksCount = $noLinksFrom856 + $noLinksFrom866;
@@ -126,7 +127,6 @@ class RecordController extends RecordControllerBase
                 $view->$varName = $field7xx;
             }
         }
-
         $user = $this->getAuthManager()->isLoggedIn();
 
         $view->isLoggedIn = $user;
@@ -178,6 +178,7 @@ class RecordController extends RecordControllerBase
         $view->setTemplate($ajax ? 'record/ajaxtab' : 'record/view');
 
         $referer = $this->params()->fromQuery('referer', false);
+
         if ($referer) {
             $view->referer = $referer;
             $view->refererUrl = $this->base64url_decode($referer);
@@ -216,6 +217,7 @@ class RecordController extends RecordControllerBase
             $this->layout()->limit = $searchesConfig->General->default_limit;
             $this->layout()->sort = $searchesConfig->General->default_sort;
         }
+        $this->layout()->url = $_SERVER['REQUEST_URI'];
 
         $this->layout()->metaRecord = $this->getDataForMetaTags();
 
