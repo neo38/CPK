@@ -217,7 +217,7 @@ class RecordController extends RecordControllerBase
             $this->layout()->limit = $searchesConfig->General->default_limit;
             $this->layout()->sort = $searchesConfig->General->default_sort;
         }
-        $this->layout()->url = $_SERVER['REQUEST_URI'];
+        $this->layout()->url = htmlspecialchars($_SERVER['REQUEST_URI']);
 
         $this->layout()->metaRecord = $this->getDataForMetaTags();
 
