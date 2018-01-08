@@ -1962,10 +1962,14 @@ class AjaxController extends AjaxControllerBase
 
     public function getMultipleAuthorityCoversAjax()
     {
-        $ids = $this->params()->fromQuery( 'id' );
-        $covers = $this->getMultipleAuthorityCovers( $ids );
+        $keys = $this->params()->fromQuery( 'id' );
+        $data = $this->getMultipleAuthorityCovers( $keys );
 
-        return $this->output( $covers, self::STATUS_OK );
+        if ( isset( $data[ 'data' ] ) ) {
+            return $this->output( [ 'data' => $data, self::STATUS_NOT_OK ] );
+        } else {
+            return $this->output( $data, self::STATUS_OK );
+        }
     }
 
     private function getMultipleAuthorityCovers( $ids )
@@ -1982,9 +1986,9 @@ class AjaxController extends AjaxControllerBase
             $responseBody = $response->getBody();
             $phpResponse = json_decode($responseBody, true);
 
-            return empty($phpResponse) ? [] : $phpResponse;
+            return $phpResponse === null ? [ 'message' => $responseBody ] : $phpResponse;
         } catch (TimeoutException $e) {
-            return [];
+            return [ 'message' => $e ];
         }
     }
 
