@@ -217,8 +217,8 @@ class RecordController extends RecordControllerBase
             $this->layout()->limit = $searchesConfig->General->default_limit;
             $this->layout()->sort = $searchesConfig->General->default_sort;
         }
-        $this->layout()->url = htmlspecialchars($_SERVER['REQUEST_URI']);
 
+        $this->layout()->path = htmlspecialchars($_SERVER['REQUEST_URI']);
         $this->layout()->metaRecord = $this->getDataForMetaTags();
 
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
@@ -248,15 +248,17 @@ class RecordController extends RecordControllerBase
 
         $multi = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
         $keyword = rawurlencode(sprintf('advert%s record', $sigla));
-        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s', $cacheUrl, $coverUrl, $multi, $type, $keyword);
+        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s%s', $cacheUrl, $coverUrl, $multi, $type, $keyword, ".jpg");
 
         $title = $this->driver->getTitle();
         $author = $this->driver->getDeduplicatedAuthors()['main'];
+        $isbn = $this->driver->getCleanISBN();
 
         return Array(
             'imgSrc' => $imgSrc,
             'title' => $title,
             'author' => $author,
+            'isbn' => $isbn,
         );
     }
 
