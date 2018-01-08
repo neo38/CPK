@@ -10,12 +10,12 @@
     <? if($this->layout()->recordView): ?>
         <meta property="og:url"                content="https://knihovny.cz<?=$path?>" >
         <meta property="og:title"              content="<?=$metaRecord['title']?>" >
-        <meta property="og:description"        content="<?=$metaRecord['author']?>" />
+        <meta property="og:description"        content="<?=$metaRecord['author']?>" >
         <meta property="og:image"              content="<?=$metaRecord['imgSrc']?>" >
         <meta property="og:image:secure_url"   content="<?=$metaRecord['imgSrc']?>" >
-        <meta property="og:image:type"         content="image/jpg" >
-        <meta property="books:isbn"            content="<?=$metaRecord['isbn']?>" />
-        <meta property="books:author"          content="<?=$metaRecord['author']?>" />
+        <meta property="og:type"               content="books.book" >
+        <meta property="og:image:width"        content="266" >
+        <meta property="og:image:height"       content="400" >
     <? else: ?>
         <meta property="og:url"                content="https://knihovny.cz" >
         <meta property="og:title"              content="Knihovny.cz" >

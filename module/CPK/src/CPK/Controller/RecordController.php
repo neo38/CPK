@@ -240,7 +240,7 @@ class RecordController extends RecordControllerBase
         $cacheUrl = !isset($this->getConfig('config')->ObalkyKnih->cacheUrl)
             ? 'https://cache.obalkyknih.cz' : $this->getConfig('config')->ObalkyKnih->cacheUrl;
         $coverUrl = '/api/cover';
-        $type = 'medium';
+        $type = 'preview510';
         $sigla = '';
         if (isset($this->config->ObalkyKnih->sigla)) {
             $sigla = $this->config->ObalkyKnih->sigla;
@@ -248,17 +248,15 @@ class RecordController extends RecordControllerBase
 
         $multi = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
         $keyword = rawurlencode(sprintf('advert%s record', $sigla));
-        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s%s', $cacheUrl, $coverUrl, $multi, $type, $keyword, ".jpg");
+        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s%s', $cacheUrl, $coverUrl, $multi, $type, $keyword);
 
         $title = $this->driver->getTitle();
         $author = $this->driver->getDeduplicatedAuthors()['main'];
-        $isbn = $this->driver->getCleanISBN();
 
         return Array(
             'imgSrc' => $imgSrc,
             'title' => $title,
             'author' => $author,
-            'isbn' => $isbn,
         );
     }
 
