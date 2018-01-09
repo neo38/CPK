@@ -31,6 +31,7 @@ use VuFind\Controller\RecordController as RecordControllerBase,
     VuFind\Controller\HoldsTrait as HoldsTraitBase,
     CPK\RecordDriver\SolrAuthority,
     VuFind\Exception\RecordMissing as RecordMissingException;
+use Zend\Http\Client;
 
 /**
  * Redirects the user to the appropriate default VuFind action.
@@ -219,7 +220,10 @@ class RecordController extends RecordControllerBase
         }
 
         $this->layout()->path = htmlspecialchars($_SERVER['REQUEST_URI']);
-        $this->layout()->metaRecord = $this->getDataForMetaTags();
+        try {
+            $this->layout()->metaRecord = $this->getDataForMetaTags();
+        } catch (\Exception $e) {
+        }
 
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
@@ -235,21 +239,30 @@ class RecordController extends RecordControllerBase
      * Returns data for facebook meta tags
      *
      * @return array
+     * @throws \Exception
      */
     protected function getDataForMetaTags() {
         $cacheUrl = !isset($this->getConfig('config')->ObalkyKnih->cacheUrl)
             ? 'https://cache.obalkyknih.cz' : $this->getConfig('config')->ObalkyKnih->cacheUrl;
-        $coverUrl = '/api/cover';
-        $type = 'preview510';
-        $sigla = '';
-        if (isset($this->config->ObalkyKnih->sigla)) {
-            $sigla = $this->config->ObalkyKnih->sigla;
+        $isbn = $this->driver->getCleanISBN();
+        $url = sprintf('%s/api/books?isbn=%s', $cacheUrl, $isbn);
+
+        $client = new Client($url);
+        $response = $client->send();
+
+        // Response head error handling
+        $responseStatusCode = $response->getStatusCode();
+        if($responseStatusCode !== 200)
+            throw new \Exception("Response status code: ".$responseStatusCode);
+        //
+
+        $decodedOutput = json_decode($response->getBody(), true);
+
+        try {
+            $imgSrc = $decodedOutput[0]['cover_preview510_url'];
+        } catch (\Exception $e) {
+            $imgSrc = '';
         }
-
-        $multi = rawurlencode(json_encode($this->driver->getBibinfoForObalkyKnihV3(), JSON_HEX_QUOT | JSON_HEX_TAG));
-        $keyword = rawurlencode(sprintf('advert%s record', $sigla));
-        $imgSrc = sprintf('%s%s?multi=%s&type=%s&keywords=%s%s', $cacheUrl, $coverUrl, $multi, $type, $keyword);
-
         $title = $this->driver->getTitle();
         $author = $this->driver->getDeduplicatedAuthors()['main'];
 
