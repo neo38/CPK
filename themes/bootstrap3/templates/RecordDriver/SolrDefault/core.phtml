@@ -32,12 +32,22 @@
                 </span>
               <? endif; ?>
             </div>
-
             <? // if you have a preview tab but want to move or remove the preview link
                // from this area of the record view, this can be split into
                // getPreviewData() (should stay here) and
                // getPreviewLink() (can go in your desired tab) ?>
             <? if ($preview): ?><?=$preview?><? endif; ?>
+
+            <div class="old-periodic-covers">
+              <div class="">
+
+              </div>
+              <p>
+                <a href="#">
+                    <?=$this->translate('Show older periodic cover')?>
+                </a>
+              </p>
+            </div>
           </div>
 
           <div class="col-sm-9">
