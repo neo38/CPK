@@ -1924,9 +1924,7 @@ class AjaxController extends AjaxControllerBase
     {
         $id = $this->params()->fromQuery('id');
         $obalky = $this->getAuthorityFromObalkyKnih($id);
-        $coverUrl = empty($obalky[0]['cover_medium_url']) ? '' : $obalky[0]['cover_medium_url'];
-        $coverUrl = str_replace('http://', 'https://', $coverUrl);
-        return $this->output($coverUrl, self::STATUS_OK);
+        return $this->output(count($obalky) > 0 ? $obalky[0] : [], self::STATUS_OK);
 
     }
 

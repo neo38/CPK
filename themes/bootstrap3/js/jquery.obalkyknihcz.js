@@ -22,9 +22,19 @@
 	// obrázků, druhá je, že by jsme cachovali všechny potřebné velikosti;
 	// samozřejmě dle stejného klíče.
 
+	// Místo expirace budeme pracovat u cache jen s maximálním počtem záznamů.
+	// Např. maximálně 1000 pro každý typ (`cpk_auth_metadata`, `cpk_covers`,
+	// `cpk_toc_covers` and `cpk_summaries`).
+
+	// Velikosti obrázků:
+	// - thumbnail: 27x36
+	// - icon: 54x68
+	// - medium: 170x240
+	// - preview510: 510x527
+
 	/**
 	 * @private Processes elements that represent covers.
-	 * @param {$.fn.cpk.Cover} cvr
+	 * @param {CoverPrototype} cvr
 	 * @param {string} extra (Optional.)
 	 */
 	function processCover( cvr, extra ) {
@@ -132,13 +142,42 @@
 	}
 
 	/**
+	 * @private Saves data into the cache.
+	 * @param {string} key
+	 * @param {mixed} data
+	 */
+	function setCache( key, data ) {
+		localStorage.setItem( key, JSON.stringify( data ));
+	}
+
+	/**
+	 * @private Retrieves authority's image from the cache.
+	 * @param {string} key
+	 * @returns {null|{auth_id: string, medium_url: string, preview_url: string}}
+	 */
+	function getCachedAuthorityData( key ) {
+		var cache = getCache( "cpk_auth_metadata" );
+		return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
+	}
+
+	/**
+	 * @private Saves authority's metadata to the cache.
+	 * @param {string} key
+	 * @param {{auth_id: string, medium_url: string, preview_url: string}} data
+	 */
+	function setChachedAuthorityData( key, data ) {
+		var cache = getCache( "cpk_auth_metadata" );
+		cache[ key ] = data;
+		setCache( "cpk_auth_metadata", cache );
+	}
+
+	/**
 	 * @private Fetches image for the given cover.
 	 * @param {CoverPrototype} cover
 	 * @param {string} type (Optional.)
 	 * @param {boolean} withoutLinks (Optional.)
 	 */
 	function fetchImage( cover, type, withoutLinks ) {
-		console.log( "obalkyknihcz.fetchImage", cover, type, withoutLinks );
 
 		// Consolidate arguments
 		type = type === undefined ? "medium" : type;
@@ -162,7 +201,7 @@
 		function setChachedImage( imgKey, img ) {
 			var cache = getCache( "cpk_covers" );
 			cache[ imgKey ] = img;
-			localStorage.setItem( "cpk_covers", JSON.stringify( cache ));
+			setCache( "cpk_covers", cache );
 		}
 
 		/**
@@ -230,7 +269,6 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnailWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayThumbnailWithoutLinks", cover );
 		fetchImage( cover, "medium", true );
 	}
 
@@ -319,64 +357,6 @@
 	function displayCoverWithoutLinks( cover ) {
 		console.log( "obalkyknihcz.displayCoverWithoutLinks", cover );
 		displayCover( cover, true );
-		//--------------------------------------------------------------------------
-		/*var tmp  = $( cover.target ).html(),
-			fail = false;
-
-		console.log( cover, tmp );
-
-		// Empty target element
-		$( cover.target ).empty();
-
-		// Load info text (about the source)
-		var infoDivElm = document.createElement( "div" ),
-		    infoText = document.createTextNode( VUF.translate( "Source" ) ),
-		    infoTextSep = document.createTextNode( VUF.translate( ": " ) ),
-		    infoAnchorElm = document.createElement( "a" ),
-		    infoAnchorTxt = document.createTextNode( VUF.translate( "obalkyknihcz_title" ) );
-
-		infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
-
-		infoAnchorElm.setAttribute( "href", getCoverTargetUrl( cover.bibInfo ) );
-		infoAnchorElm.setAttribute( "target", "_blank" );
-		infoAnchorElm.classList.add( "title" );
-
-		infoAnchorElm.appendChild( infoAnchorTxt );
-		infoDivElm.appendChild( infoText );
-		infoDivElm.appendChild( infoTextSep );
-		infoDivElm.appendChild( infoAnchorElm );
-
-		$( cover.target ).append( infoDivElm );
-
-		// Firstly we need to load cover
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText.toString(), "medium" );
-					$( cover.target ).prepend( createDiv( "cover", imgElm ) );
-				}
-			},
-			fail: function() {
-				fail = true;
-			}
-		});
-
-		// Secondly we need to load TOC
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.tocUrl.toString(), cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.tocText.toString(), "medium" );
-					$( createDiv( "cover", imgElm ) ).insertBefore( infoDivElm );
-				}
-			},
-			fail: function() {
-				fail = true;
-			}
-		});*/
 	}
 
 	/**
@@ -405,42 +385,51 @@
 	 * @param {string} imgUrl
 	 * @param {string} imgAlt
 	 * @param {string} authId
+	 * @param {boolean} withoutLinks
 	 * @param {HTMLElement} target
 	 */
-	function createAuthorityCover( imgUrl, imgAlt, authId, target ) {
-		var imgElm = createImage( imgUrl, imgAlt, "medium" ),
-			anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + authId, imgElm );
+	function createAuthorityCover( imgUrl, imgAlt, authId, target, withoutLinks ) {
+		var imgElm = createImage( imgUrl, imgAlt, "medium" );
+		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 
-		$( target ).empty().append( createDiv( "cover", anchorElm ) );
+		if( withoutLinks === true ) {
+			$( target ).empty().append( createDiv( "cover", imgElm ) );
+		} else {
+			var anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + authId, imgElm );
+			$( target ).empty().append( createDiv( "cover", anchorElm ) );
+		}
+
+
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
-	function displayAuthorityCover( cover ) {
-		console.log( "obalkyknihcz.displayAuthorityCover", cover );
-		var auth_id = cover.bibInfo.auth_id;
+	function displayAuthorityCover( cover, withoutLinks ) {
+		var auth_id = cover.bibInfo.auth_id,
+		    cached = getCachedAuthorityData( auth_id ),
+			alt = obalkyknihcz.authorityCoverText.toString();
+		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 
-		// TODO Tady jsou dva zřetězené dotazy...
-		// Šlo by to jednodušeji implementovat jako "converter"? Tak, aby se
-		// nám vrátil rovnou obrázek.
+		// Check if there is cached image and use it if yes
+		if ( cached !== null && typeof cached === "object" ) {
+			createAuthorityCover( cached.medium_url, alt, auth_id, cover.target, withoutLinks );
+			return;
+		}
 
+		// Otherwise get it via JSON (and cache it after we successfully get the image).
 		$.getJSON(
 			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
 			{ id: auth_id },
 			function( data ) {
-				console.log( data );
-				$.ajax({
-					url: data.data,
-					dataType: "image",
-					success: function( img ) {
-						if ( img ) {
-							createAuthorityCover( img.src,
-								obalkyknihcz.authorityCoverText.toString(),
-								auth_id, cover.target );
-						}
-					}
-				});
+				try {
+					setChachedAuthorityData( auth_id, {
+						auth_id: auth_id,
+						medium_url: data.data.cover_medium_url,
+						preview_url: data.data.cover_preview510_url
+					} );
+					createAuthorityCover( data.data.cover_medium_url, alt, auth_id, cover.target, withoutLinks );
+				} catch( e ) { /* ... */ }
 			}
 		);
 	}
@@ -449,30 +438,7 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayAuthorityThumbnailCoverWithoutLinks", cover );
-
-		// TODO Tady jsou dva zřetězené dotazy...
-		// Šlo by to jednodušeji implementovat jako "converter"? Tak, aby se
-		// nám vrátil rovnou obrázek.
-
-		$.getJSON(
-			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
-			{ id: cover.bibInfo.auth_id },
-			function( data ) {
-				console.log( data );
-				$.ajax({
-					url: data.data,
-					dataType: "image",
-					success: function( img ) {
-						// TODO Use `createAuthorityCover` (firstly modify it)...
-						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText.toString(), "medium" );
-							$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
-						}
-					}
-				});
-			}
-		);
+		displayAuthorityCover( cover, true );
 	}
 
 	/**
@@ -507,7 +473,7 @@
 
 	/**
 	 * @private Returns correct URL for the cover with given bibInfo.
-	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @param {{ isbn: string, nbn: string, auth_id: string, oclc: string}} bibInfo
 	 * @returns {string}
 	 */
 	function getCoverTargetUrl( bibInfo ) {
@@ -516,7 +482,7 @@
 
 	/**
 	 * @private Returns correct URL for PDFs.
-	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @param {{ isbn: string, nbn: string, auth_id: string, oclc: string}} bibInfo
 	 * @returns {string}
 	 */
 	function getPdfTargetUrl( bibInfo ) {
@@ -525,7 +491,7 @@
 
 	/**
 	 * @private Creates GET parameters from given `bibInfo`
-	 * @param {{ isbn: string, nbn: string, auth_id: string}} bibInfo
+	 * @param {{ isbn: string, nbn: string, auth_id: string, oclc: string}} bibInfo
 	 * @returns {string}
 	 */
 	function queryPart( bibInfo ) {
@@ -568,7 +534,7 @@
 	 *
 	 * @param {string} action (Optional.)
 	 * @param {string} advert
-	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo (Optional.)
+	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo (Optional.)
 	 * @param {string} record
 	 * @return {jQuery}
 	 */
@@ -612,62 +578,20 @@
 
 		/**
 		 * @private Processes actions `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`.
-		 * @todo "Unhandled promise rejection: undefined" error shows up here!
 		 */
 		function processAuthRequests() {
-			console.log( "processAuthRequests", tmp.authority );
-
 			var auth_ids = [],
 			    cached   = [];
 
-			/**
-			 * @private Retrieves authority's metadata from the cache.
-			 * @param {string} imgKey
-			 * @returns {null|string}
-			 */
-			function getCachedMetadata( imgKey ) {
-				var cache = getCache( "cpk_auth_metadata" );
-				return ( cache[ imgKey ] !== undefined ) ? cache[ imgKey ] : null;
-			}
-
-			/**
-			 * @private Saves authority's metadata to the cache.
-			 * @param {string} imgKey
-			 * @param {string} img
-			 */
-			function setChachedMetadata( imgKey, img ) {
-				var cache = getCache( "cpk_auth_metadata" );
-				cache[ imgKey ] = img;
-				localStorage.setItem( "cpk_auth_metadata", JSON.stringify( cache ));
-			}
-
-			// Collect ID of authorities
-
-			// Já tady musím pro každé `auth_id` zjistit, jestli jsou
-			// korespondující metadata uložena v cache nebo ne.
-			//
-			// Pokud ano, rovnou je zpracuji, pokud ne, pak je postoupím
-			// k dalšímu zpracování přes AJAX (a tam je uložím do cache).
-			//
-			// (Pozn.: Pokud jsou data nalezeny v cache, tak musíme také
-			// zkontrolovat jejich platnost s ohledem na aktuální čas.)
-
+			// Collect ID of authorities (and find out if they are cached or not).
 			tmp.authority.forEach(function( c ) {
-				var auth = getCachedMetadata( c.bibInfo.auth_id );
-				console.info( auth, auth instanceof $.fn.cpk.AuthorityMetadata );
-
-				if ( auth instanceof $.fn.cpk.AuthorityMetadata ) {
-
-					// Pokud jsou to neexpirovaná metadata tak je rovnou použijeme,
-					// v ostatních případech přidáme ID autora do pole ke zpracování.
-
-					cached.push( auth );
+				var data = getCachedAuthorityData( c.bibInfo.auth_id );
+				if ( data !== null && typeof data === "object" ) {
+					cached.push( data );
 				} else {
 					auth_ids.push( c.bibInfo.auth_id );
 				}
 			});
-
-			console.log( auth_ids, cached );
 
 			// If there are no authorities to resolve stop it
 			if ( auth_ids.length === 0 && cached.length === 0 ) {
@@ -678,32 +602,34 @@
 			 * @param {object} obj
 			 */
 			function prepareCached( obj ) {
-				/**
-				 * @type {jQuery.fn.cpk.AuthorityMetadata}
-				 */
-				var a = $.fn.cpk.AuthorityMetadata.parseFromObject( obj );
-				console.log( a );
-
-				// All data should be pushed into the cache
-				setChachedMetadata( a.authinfo.auth_id, a );
-				cached.push( a );
+				try {
+					var authorMetadata = $.fn.cpk.AuthorityMetadata.parseFromObject( obj ),
+						data = {
+							auth_id: authorMetadata.authinfo.auth_id,
+							medium_url: authorMetadata.cover_medium_url,
+							preview_url: authorMetadata.cover_preview510_url
+						};
+					cached.push( data );
+					setChachedAuthorityData( obj.authinfo.auth_id, data );
+				} catch( e ) { /* ... */
+					console.log( e ); // TODO Remove this!
+				}
 			}
 
 			/**
 			 * @private Process single authority metadata item.
-			 * @param {jQuery.fn.cpk.AuthorityMetadata} auth
+			 * @param {{auth_id: string, medium_url: string, preview_url: string}} data
 			 */
-			function processCached( auth ) {
+			function processCached( data ) {
 				tmp.authority.forEach(function( cvr ) {
-					if ( cvr.bibInfo.auth_id === auth.authinfo.auth_id ) {
-						createAuthorityCover( auth.cover_medium_url,
-							obalkyknihcz.authorityCoverText.toString(),
-							auth.authinfo.auth_id, cvr.target );
+					if ( cvr.bibInfo.auth_id === data.auth_id ) {
+						var alt = obalkyknihcz.authorityCoverText.toString();
+						createAuthorityCover( data.medium_url, alt, data.auth_id, cvr.target, false );
 					}
 				});
 			}
 
-			// Get multiple authorities data by their IDs separated by comma
+			// Get multiple authorities data by their IDs separated by comma.
 			$.ajax({
 				dataType: "json", // TODO Set type to "authority-metadata"...
 				url: "/AJAX/JSON?method=getMultipleAuthorityCovers",
@@ -716,7 +642,12 @@
 				 * @param {jqXHR} jqXhr
 				 */
 				success: function( data, textStatus, jqXhr ) {
-					console.log( "success", data, textStatus, jqXhr );
+
+					// Check status
+					if ( textStatus !== "success" ) {
+						console.error( "Requesst for covers of authorities failed!", data );
+						return;
+					}
 
 					// Check if correct data are returned
 					if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
@@ -724,7 +655,7 @@
 						return;
 					}
 
-					// Process all obtained data
+					// Save all new data into the cache
 					data.data.forEach( prepareCached );
 				},
 				/**
@@ -732,8 +663,6 @@
 				 * @param {string} textStatus
 				 */
 				complete: function( jqXhr, textStatus ) {
-					console.log( "complete", jqXhr, textStatus );
-					console.log( cached );
 
 					// Now process all cached items
 					cached.forEach( processCached );
@@ -779,7 +708,6 @@
 		 * @type {boolean}
 		 */
 		var areArgs = ( action !== undefined && !!bibInfo );
-		console.info( areArgs ? "Direct arguments are used..." : "Data attributes are used..." );
 
 		// Initialize `obalkyknihcz` for all the target elements.
 		$( this ).each(function( idx, elm ) {

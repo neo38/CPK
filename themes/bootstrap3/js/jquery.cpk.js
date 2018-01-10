@@ -101,7 +101,7 @@
 			"auth_id": { get: function() { return id; }, set: function( v ) { id = v; } },
 			"auth_name": { get: function() { return name; }, set: function( v ) { name = v; } },
 			"auth_year": { get: function() { return year; }, set: function( v ) { year = v; } },
-			"auth_info": { get: function() { return info; }, set: function( v ) { info = v; } },
+			"authinfo": { get: function() { return info; }, set: function( v ) { info = v; } },
 			"backlink_url": { get: function() { return blnk; }, set: function( v ) { blnk = v; } },
 			"cover_icon_url": { get: function() { return cvr_ico; }, set: function( v ) { cvr_ico = v; } },
 			"cover_medium_url": { get: function() { return cvr_med; }, set: function( v ) { cvr_med = v; } },
@@ -149,7 +149,7 @@
 	 * @property {string} backlink_url
 	 * @property {string} bib_title
 	 * @property {string} bib_year
-	 * @property {{isbn: string, nbn: string}} bibinfo
+	 * @property {{isbn: string, nbn: string, oclc: string}} bibinfo
 	 * @property {string} book_id
 	 * @property {string} cover_icon_url
 	 * @property {string} cover_medium_url
@@ -257,12 +257,12 @@
 	 * Prototype object for single cover (as is parsed from target <div> element).
 	 * @property {string} action
 	 * @property {string} advert
-	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo
+	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo
 	 * @property {HTMLElement} target
 	 * @property {string} record
 	 * @param {string} action (Optional.)
 	 * @param {string} advert (Optional.)
-	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string}} bibInfo bibInfo (Optional.)
+	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo (Optional.)
 	 * @param {string} record (Optional.)
 	 * @param {HTMLElement|string} target (Optional.)
 	 * @constructor
