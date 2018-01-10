@@ -141,7 +141,7 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	  });
 }
 
-obalky.display_cover_without_links = function (element, bibinfo, query) {
+obalky.display_cover_without_links = function (element, bibinfo, query, serieCount) {
 	  var multi = encodeURIComponent(JSON.stringify(bibinfo));
 	  $(document).ready(function() {
 	    var img = new Image();
@@ -166,12 +166,12 @@ obalky.display_cover_without_links = function (element, bibinfo, query) {
 	  });
 	  
 	  $(document).ready(function() {
-		  setTimeout(function() { 
-			  if ($(element).length > 0) {
+		  setTimeout(function() {
+			  if ($(element).length > 0 && serieCount == 0) {
 				if (!$(element+' div:first-child').hasClass("iconlabel")) {
 			      $(element).append("<div align='left' style='padding-left: 0px; max-width:170px; text-align:center;' class='obalky-knih-link col-md-12'>"+VuFind.translate('Source')+": <a href='"+ obalky.coverTargetUrl(bibinfo) +"' class='title' target='_blank'>Obálky knih</a></div>");
 				}
-			  } 
+			  }
 		  }, 2000);
 	  });
 }

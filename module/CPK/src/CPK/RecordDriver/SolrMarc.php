@@ -2,6 +2,7 @@
 namespace CPK\RecordDriver;
 
 use VuFind\RecordDriver\SolrMarc as ParentSolrMarc;
+use WebDriver\Exception;
 use Zend\Http\Client\Adapter\Exception\TimeoutException as TimeoutException;
 
 class SolrMarc extends ParentSolrMarc
@@ -865,6 +866,38 @@ class SolrMarc extends ParentSolrMarc
         }
         return $bibinfo;
     }
+
+	/**
+	 * Gets info of periodic books
+	 *
+	 * @return array|string
+	 */
+	public function getObalkyKnihSerieInfo() {
+		$bookInfo = $this->getBibinfoForObalkyKnihV3();
+
+		if(isset($bookInfo['isbn'])) {
+			$query = 'isbn=' . $bookInfo['isbn'];
+		} elseif (isset($bookInfo['ean'])) {
+			$query = 'ean=' . $bookInfo['ean'];
+		} elseif (isset($bookInfo['nbn'])) {
+			$query = 'nbn=' . $bookInfo['nbn'];
+		}
+
+		if(!isset($query)) {
+			return [];
+		} else {
+			if(($cacheContent = file_get_contents('http://cache.obalkyknih.cz/api/books?' . $query)) === false) {
+				return [];
+			}
+
+			try {
+				$obalkyCacheJson = json_decode($cacheContent);
+				return isset($obalkyCacheJson[0]) ? $obalkyCacheJson[0] : [];
+			} catch (Exception $e) {
+				return [];
+			}
+		}
+	}
 
     /**
      * Get authority ID of main author.

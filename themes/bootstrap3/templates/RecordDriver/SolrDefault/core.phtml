@@ -11,7 +11,11 @@
         <div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
           <? $QRCode = $this->record($this->driver)->getQRCode("core");
              $cover = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
-             $preview = $this->record($this->driver)->getPreviews(); ?>
+             $preview = $this->record($this->driver)->getPreviews();
+
+             //get information about book from cache of obalky knih
+             $serieInfo = $this->driver->tryMethod('getObalkyKnihSerieInfo');
+          ?>
           <? if ($QRCode || $cover || $preview): ?>
           <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
             <div class="row text-center #cover" id="cover">
@@ -22,7 +26,12 @@
                     <img class="recordcover col-md-12" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
                 <? endif; ?>
                 <script type="text/javascript">
-                    obalky.display_cover_without_links("#cover", <?=$bibinfo?>, <?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>);
+                    obalky.display_cover_without_links(
+                        "#cover",
+                        <?=$bibinfo?>,
+                        <?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>,
+                        <?=$serieInfo->{'succ_cover_count'}?>
+                    );
                 </script>
                 <? /* Display qrcode if appropriate: */ ?>
               <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
@@ -39,14 +48,13 @@
             <? if ($preview): ?><?=$preview?><? endif; ?>
 
             <div class="old-periodic-covers">
-              <div class="">
-
-              </div>
-              <p>
-                <a href="#">
-                    <?=$this->translate('Show older periodic cover')?>
-                </a>
-              </p>
+              <? if ($serieInfo->{'succ_cover_count'} > 0): ?>
+                <p>
+                  <a href="<?=$serieInfo->{'backlink_url'}?>" target="_blank">
+                      <?=$this->translate('Show older periodic cover')?>
+                  </a>
+                </p>
+              <? endif; ?>
             </div>
           </div>
 
