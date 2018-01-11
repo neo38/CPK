@@ -1992,7 +1992,7 @@ class AjaxController extends AjaxControllerBase
 
     public function getMultipleSummariesAjax()
     {
-        $bibinfo = $this->params()->fromQuery('bibinfo');
+        $bibinfo = $this->params()->fromPost( 'multi' );
         $summaries = $this->getMultipleSummaries( $bibinfo );
 
         return $this->output( $summaries, self::STATUS_OK );

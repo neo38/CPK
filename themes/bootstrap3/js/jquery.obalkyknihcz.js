@@ -6,25 +6,19 @@
  * @todo Add cache using {@see CPK.localStorage} -> set a limit (20 MB?) but there is plenty of space.
  * @todo Add expiration for the cache.
  * @todo Check {@link https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified} and absorb it (names of PDF downloads)!
- * @todo Dont' forgot on this bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=312}
+ * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=312}.
+ * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=250}.
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
  * @todo Check if all strings for `VuFind.translate` are really registered!
  * @todo [PHP] We need ZF view helpers to render all.
  * @todo Use `Function.bind()` and `Function.call()` whenever it's possible (instead of nested functions).
  * @todo We should primarily use book's metadata -> even `fetchImage` gathers images that are mentioned in there....
+ * @todo Instead of summaries we will use maximal count of records (per key) in cache.
  */
 
 (function( $, document ) {
 	"use strict";
-
-	// Pozn.: Jedna varianta je, že by jsme cachovali jen největší varianty
-	// obrázků, druhá je, že by jsme cachovali všechny potřebné velikosti;
-	// samozřejmě dle stejného klíče.
-
-	// Místo expirace budeme pracovat u cache jen s maximálním počtem záznamů.
-	// Např. maximálně 1000 pro každý typ (`cpk_auth_metadata`, `cpk_covers`,
-	// `cpk_toc_covers` and `cpk_summaries`).
 
 	// Velikosti obrázků:
 	// - thumbnail: 27x36
@@ -144,7 +138,7 @@
 	/**
 	 * @private Saves data into the cache.
 	 * @param {string} key
-	 * @param {mixed} data
+	 * @param {object} data
 	 */
 	function setCache( key, data ) {
 		localStorage.setItem( key, JSON.stringify( data ));
@@ -169,6 +163,17 @@
 		var cache = getCache( "cpk_auth_metadata" );
 		cache[ key ] = data;
 		setCache( "cpk_auth_metadata", cache );
+	}
+
+	function getCachedSummaryData( key ) {
+		var cache = getCache( "cpk_summary" );
+		return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
+	}
+
+	function setCachedSummaryData( key, data ) {
+		var cache = getCache( "cpk_summary" );
+		cache[ key ] = data;
+		setCache( "cpk_summary", cache );
 	}
 
 	/**
@@ -226,14 +231,12 @@
 
 		// Either use cached image or request not-cached image via Ajax.
 		if ( $.type( cachedImg ) === "string" ) {
-			console.log( "Using cached image...", cachedImg );
 			var img = new Image();
 			img.src = cachedImg;
 			img.onload = function() {
 				useImage( img );
 			};
 		} else {
-			// TODO What about fail?
 			$.ajax({
 				url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, type, cover.advert ),
 				dataType: "image",
@@ -275,21 +278,32 @@
 	/**
 	 * @param {CoverPrototype} cover
 	 * @param {boolean} withoutLinks (Optional.)
+	 * @param {boolean} withoutToc (Optional.)
 	 * @todo Use cache!
 	 */
-	function displayCover( cover, withoutLinks ) {
-		console.log( "obalkyknihcz.displayCover", cover, withoutLinks );
+	function displayCover( cover, withoutLinks, withoutToc ) {
+		console.log( "obalkyknihcz.displayCover", cover, withoutLinks, withoutToc );
 
 		// Normalize arguments
 		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
+		withoutToc   = withoutToc === undefined ? false : withoutToc;
 
+		// We need to save current inner HTML (if Xhr request(s) failed we will use it)
 		var tmp  = $( cover.target ).html(),
 		    fail = false;
 
-		console.log( "withoutLinks=" + ( withoutLinks === undefined ? "no" : ( withoutLinks ? "yes" : "no" ) ) );
-
 		// Empty target element
 		$( cover.target ).empty();
+
+		/**
+		 * @private Tries to restore original HTML if request(s) failed.
+		 */
+		function tryToRestore() {
+			if ( fail === true ) {
+				console.log( "Using temporary saved HTML...", tmp );
+				$( cover.target ).html( tmp );
+			}
+		}
 
 		// Firstly we need to load cover
 		$.ajax({
@@ -317,6 +331,11 @@
 			}
 		});
 
+		if ( withoutToc === true ) {
+			tryToRestore();
+			return;
+		}
+
 		// Secondly we need to load TOC
 		$.ajax({
 			url: getImageUrl( obalkyknihcz.tocUrl.toString(), cover.bibInfo, "medium", cover.advert ),
@@ -324,6 +343,7 @@
 			success: function( img ) {
 				if ( ! img ) {
 					fail = true;
+					return;
 				}
 
 				var imgElm = createImage( img.src, obalkyknihcz.tocText.toString(), "medium" );
@@ -342,29 +362,26 @@
 			}
 		});
 
-		if ( fail === true ) {
-			console.log( "Using temporary saved HTML...", tmp );
-			$( cover.target ).html( tmp );
-		}
+		tryToRestore();
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo Re-implement it to use `displayCover` primarily...
-	 * @todo Use cache!
-	 * @todo Check where is this used!
 	 */
 	function displayCoverWithoutLinks( cover ) {
 		console.log( "obalkyknihcz.displayCoverWithoutLinks", cover );
-		displayCover( cover, true );
+		displayCover( cover, true, false );
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo Use cache!
 	 */
 	function displayThumbnailCoverWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayThumbnailCoverWithoutLinks", cover );
-		var coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" ) ?
+		console.log( "displayThumbnailCoverWithoutLinks", cover );
+		displayCover( cover, true, true );
+
+		/*var coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" ) ?
 			getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, "medium", cover.advert )
 			: cover.bibInfo.cover_medium_url;
 
@@ -377,7 +394,7 @@
 					$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
 				}
 			}
-		});
+		});*/
 	}
 
 	/**
@@ -398,8 +415,6 @@
 			var anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + authId, imgElm );
 			$( target ).empty().append( createDiv( "cover", anchorElm ) );
 		}
-
-
 	}
 
 	/**
@@ -442,15 +457,37 @@
 	}
 
 	/**
+	 * @private Uses given summary (displays it)
+	 * @param {string} partialId
+	 * @param {string} summary
+	 */
+	function useSummary( partialId, summary ) {
+		$( document.getElementById( "short_summary_" + partialId ) ).html( summary );
+	}
+
+	/**
 	 * @param {CoverPrototype} cover
+	 * @todo Use cache!
 	 */
 	function displaySummary( cover ) {
 		console.log( "obalkyknihcz.displaySummary", cover );
+		var cached = getCachedSummaryData( cover.record );
+
+		// Check if summary is already cached or not
+		if ( cached !== null && typeof cached === "object" ) {
+			if ( cached.hasOwnProperty( "full" ) ) {
+				useSummary( cover.record, cached.short );
+				return;
+			}
+		}
+
+		// Not in cache, use Ajax and than save it into the cache.
 		$.getJSON(
 			"/AJAX/JSON?method=getSummaryObalkyKnih",
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
-				$( document.getElementById( "summary_" + cover.record ) ).html( data.data );
+				setCachedSummaryData( cover.record, { "full" : data.data } );
+				useSummary( cover.record, data.data );
 			}
 		);
 	}
@@ -459,12 +496,23 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displaySummaryShort( cover ) {
-		console.log( "obalkyknihcz.displaySummaryShort", cover );
+		var cached = getCachedSummaryData( cover.record );
+
+		// Check if summary is already cached or not
+		if ( cached !== null && typeof cached === "object" ) {
+			if ( cached.hasOwnProperty( "short" ) ) {
+				useSummary( cover.record, cached.short );
+				return;
+			}
+		}
+
+		// Not in cache, use Ajax and than save it into the cache.
 		$.getJSON(
 			"/AJAX/JSON?method=getSummaryShortObalkyKnih",
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
-				$( document.getElementById( "short_summary_" + cover.record ) ).html( data.data );
+				setCachedSummaryData( cover.record, { "short" : data.data } );
+				useSummary( cover.record, data.data );
 			}
 		);
 	}
@@ -560,6 +608,9 @@
 				case "displayCover":
 				case "displayCoverWithoutLinks":
 				case "displayThumbnailCoverWithoutLinks":
+				// TODO Remove this!!!!!
+				case "displaySummary":
+				case "displaySummaryShort":
 					processCover( cvr );
 					break;
 
@@ -569,10 +620,10 @@
 					tmp.authority.push( cvr );
 					break;
 
-				case "displaySummery":
+				/*case "displaySummary":
 				case "displaySummaryShort":
 					tmp.summary.push( cvr );
-					break;
+					break;*/
 			}
 		}
 
@@ -677,30 +728,52 @@
 		function processSummRequests() {
 			console.log( "processSummRequests", tmp.summary );
 
-			var bibInfo   = [];
+			var bibInfo = [],
+			    cached  = [];
+
+			function getCachedSummaryData( key ) {
+				var cache = getCache( "cpk_summaries" );
+				return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
+			}
+
+			function setCachedSummaryData( key, data ) {
+				var cache = getCache( 'cpk_summaries' );
+				cache[ key ] = data;
+				setCache( 'cpk_summaries', cache );
+			}
 
 			// Collects all bibInfos
-			tmp.summary.forEach(function( c ) { bibInfo.push( c.bibInfo ); });
+			tmp.summary.forEach(function( c ) {
+				var data = getCachedSummaryData( c.record );
 
-			console.log( bibInfo );
+				if ( data !== null && typeof data === "object" ) {
+					cached.push( data );
+				} else {
+					bibInfo.push( c.bibInfo );
+				}
+			});
+
+			console.log( bibInfo, cached );
 
 			// If there are no summaries to resolve stop it
-			if ( bibInfo.length === 0 ) {
+			if ( bibInfo.length === 0 && cached.length === 0 ) {
 				return;
 			}
 
 			// Perform XHR request for all metadata
-			$.getJSON( "/AJAX/JSON?method=getMultipleSummaries", { multi: bibInfo }, function( data ) {
-				console.log( "Data for `getMultipleSummaries`", data );
-
-				if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
-					console.error( "Request for multiple summaries failed!", data );
-					return;
+			$.ajax({
+				dataType: "json",
+				url: "/AJAX/JSON?method=getMultipleSummaries",
+				method: "POST",
+				data: { "multi": bibInfo },
+				global: false,
+				success: function( data, textStatus, jqXhr ) {
+					console.log( data, textStatus, jqXhr );
+				},
+				complete: function( jqXhr, textStatus ) {
+					console.log( jqXhr, textStatus );
 				}
-
-				console.log( "It passed...", data );
-				//...
-			} );
+			});
 		}
 
 		/**
