@@ -347,6 +347,7 @@
 		Cover: CoverPrototype
 	} );
 
+	// TODO Is `fn` really the point we want to extend? (in jQuery of course...)
 	$.fn.cpk = cpk;
 
 }( jQuery ));

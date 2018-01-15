@@ -3,8 +3,6 @@
  *
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
- * @todo Add cache using {@see CPK.localStorage} -> set a limit (20 MB?) but there is plenty of space.
- * @todo Add expiration for the cache.
  * @todo Check {@link https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified} and absorb it (names of PDF downloads)!
  * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=312}.
  * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=250}.
@@ -14,17 +12,53 @@
  * @todo [PHP] We need ZF view helpers to render all.
  * @todo Use `Function.bind()` and `Function.call()` whenever it's possible (instead of nested functions).
  * @todo We should primarily use book's metadata -> even `fetchImage` gathers images that are mentioned in there....
- * @todo Instead of summaries we will use maximal count of records (per key) in cache.
+ * @todo Instead of expiration we will use maximal count of records (per key) in cache.
+ * @todo Keep in mind that sizes are: thumbnail: 27x36, icon: 54x68, medium: 170x240, preview510: 510x527
  */
 
 (function( $, document ) {
 	"use strict";
 
-	// Velikosti obrázků:
-	// - thumbnail: 27x36
-	// - icon: 54x68
-	// - medium: 170x240
-	// - preview510: 510x527
+	/**
+	 * Prototype for cache item.
+	 * @param {string} id Record's identifier ("mzkXXXX..").
+	 * @property {null|string} id
+	 * @property {null|string} icon_url
+	 * @property {null|string} medium_url
+	 * @property {null|string} preview_url
+	 * @property {null|string} thumbnail_url
+	 * @property {null|string} summary
+	 * @property {null|string} summary_short
+	 * @constructor
+	 */
+	function CoverCacheItemPrototype( id ) {
+		this.id = id;
+		this.icon_url = null;
+		this.medium_url = null;
+		this.preview_url = null;
+		this.thumbnail_url = null;
+		this.summary = null;
+		this.summary_short = null;
+	}
+
+	/**
+	 * Parses {@see CoverCacheItemPrototype} from the given object.
+	 * @param {Object} obj
+	 * @returns {CoverCacheItemPrototype}
+	 */
+	CoverCacheItemPrototype.parseFromObject = function( obj ) {
+		var cacheItem = new CoverCacheItemPrototype();
+
+		cacheItem.id = obj.hasOwnProperty( "id" ) ? obj.id : null;
+		cacheItem.icon_url = obj.hasOwnProperty( "icon_url" ) ? obj.icon_url : null;
+		cacheItem.medium_url = obj.hasOwnProperty( "medium_url" ) ? obj.medium_url : null;
+		cacheItem.preview_url = obj.hasOwnProperty( "preview_url" ) ? obj.preview_url : null;
+		cacheItem.thumbnail_url = obj.hasOwnProperty( "thumbnail_url" ) ? obj.thumbnail_url : null;
+		cacheItem.summary = obj.hasOwnProperty( "summary" ) ? obj.summary : null;
+		cacheItem.summary_short = obj.hasOwnProperty( "summary_short" ) ? obj.summary_short : null;
+
+		return cacheItem;
+	};
 
 	/**
 	 * @private Processes elements that represent covers.
@@ -144,36 +178,27 @@
 		localStorage.setItem( key, JSON.stringify( data ));
 	}
 
-	/**
-	 * @private Retrieves authority's image from the cache.
-	 * @param {string} key
-	 * @returns {null|{auth_id: string, medium_url: string, preview_url: string}}
-	 */
-	function getCachedAuthorityData( key ) {
-		var cache = getCache( "cpk_auth_metadata" );
-		return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
-	}
+	//CoverCacheItem
 
 	/**
-	 * @private Saves authority's metadata to the cache.
+	 * @private Retrieves cached cover's data.
 	 * @param {string} key
-	 * @param {{auth_id: string, medium_url: string, preview_url: string}} data
+	 * @returns {NULL|CoverCacheItemPrototype}
 	 */
-	function setChachedAuthorityData( key, data ) {
-		var cache = getCache( "cpk_auth_metadata" );
-		cache[ key ] = data;
-		setCache( "cpk_auth_metadata", cache );
+	function getCacheItem( key ) {
+		var cache = getCache( "cpk_obalkyknihcz" );
+		return ( cache[ key ] !== undefined ) ? CoverCacheItemPrototype.parseFromObject( cache[ key ] ) : null;
 	}
 
-	function getCachedSummaryData( key ) {
-		var cache = getCache( "cpk_summary" );
-		return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
-	}
-
-	function setCachedSummaryData( key, data ) {
-		var cache = getCache( "cpk_summary" );
+	/**
+	 * @private Saves cover's data into the cache.
+	 * @param {string} key
+	 * @param {CoverCacheItemPrototype} data
+	 */
+	function setCacheItem( key, data ) {
+		var cache = getCache( "cpk_obalkyknihcz" );
 		cache[ key ] = data;
-		setCache( "cpk_summary", cache );
+		setCache( "cpk_obalkyknihcz", cache );
 	}
 
 	/**
@@ -186,28 +211,6 @@
 
 		// Consolidate arguments
 		type = type === undefined ? "medium" : type;
-		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
-
-		/**
-		 * @private Retrieves image from the cache.
-		 * @param {string} imgKey
-		 * @returns {null|string}
-		 */
-		function getCachedImage( imgKey ) {
-			var cache = getCache( "cpk_covers" );
-			return ( cache[ imgKey ] !== undefined ) ? cache[ imgKey ] : null;
-		}
-
-		/**
-		 * @private Saves image to the cache.
-		 * @param {string} imgKey
-		 * @param {string} img
-		 */
-		function setChachedImage( imgKey, img ) {
-			var cache = getCache( "cpk_covers" );
-			cache[ imgKey ] = img;
-			setCache( "cpk_covers", cache );
-		}
 
 		/**
 		 * @private Creates final HTML.
@@ -225,25 +228,53 @@
 		}
 
 		/**
-		 * @type {string|null}
+		 * @type {CoverCacheItemPrototype|null}
 		 */
-		var cachedImg = getCachedImage( cover.record );
+		var cachedItem = getCacheItem( cover.record );
+		var propName   = "medium_url",
+		    cacheUsed  = false;
+
+		// Set property name to get correct URL
+		switch( type ) {
+			case "icon":
+			case "medium":
+			case "thumbnail":
+				propName = type + "_url";
+				break;
+
+			default:
+				propName = "medium_url";
+				break;
+		}
 
 		// Either use cached image or request not-cached image via Ajax.
-		if ( $.type( cachedImg ) === "string" ) {
-			var img = new Image();
-			img.src = cachedImg;
-			img.onload = function() {
-				useImage( img );
-			};
-		} else {
+		if ( cachedItem !== null && typeof cachedItem === "object" ) {
+			if ( ( propName in cachedItem ) && $.type( cachedItem[ propName ] ) === "string" ) {
+				var img = new Image();
+				img.src = cachedItem[ propName ];
+				img.onload = function() { useImage( img ); };
+				cacheUsed = true;
+			}
+		}
+
+		//console.log( "fetchImage", cachedItem, propName, cacheUsed );
+
+		if ( cacheUsed === false ) {
 			$.ajax({
 				url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, type, cover.advert ),
 				dataType: "image",
 				success: function( img ) {
 					if ( img ) {
 						useImage( img );
-						setChachedImage( cover.record, img.src );
+
+						if ( cachedItem === null || typeof cachedItem !== "object" ) {
+							cachedItem = new CoverCacheItemPrototype( cover.record );
+							cachedItem[ propName ] = img.src;
+						} else {
+							cachedItem[ propName ] = img.src;
+						}
+
+						setCacheItem( cover.record, cachedItem );
 					}
 				}
 			});
@@ -256,7 +287,7 @@
 	 * @param {string} type (Optional.)
 	 */
 	function fetchImageWithoutLinks( cover, type ) {
-		console.log( "obalkyknihcz.fetchImageWithoutLinks", cover, type );
+		//console.log( "obalkyknihcz.fetchImageWithoutLinks", cover, type );
 		fetchImage( cover, type, true );
 	}
 
@@ -264,7 +295,7 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnail( cover ) {
-		console.log( "obalkyknihcz.displayThumbnail", cover );
+		//console.log( "obalkyknihcz.displayThumbnail", cover );
 		fetchImage( cover, "medium", false );
 	}
 
@@ -272,6 +303,7 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnailWithoutLinks( cover ) {
+		//console.log( "obalkyknihcz.displayThumbnailWithoutLinks", cover );
 		fetchImage( cover, "medium", true );
 	}
 
@@ -288,6 +320,13 @@
 		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 		withoutToc   = withoutToc === undefined ? false : withoutToc;
 
+		/**
+		 * @type {CoverCacheItemPrototype} cacheItem
+		 */
+		var cacheItem = getCacheItem( cover.record );
+		console.log( cacheItem );
+		return;
+
 		// We need to save current inner HTML (if Xhr request(s) failed we will use it)
 		var tmp  = $( cover.target ).html(),
 		    fail = false;
@@ -300,7 +339,7 @@
 		 */
 		function tryToRestore() {
 			if ( fail === true ) {
-				console.log( "Using temporary saved HTML...", tmp );
+				console.log( "Trying to restore using temporary saved HTML...", tmp );
 				$( cover.target ).html( tmp );
 			}
 		}
@@ -375,26 +414,10 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo Use cache!
 	 */
 	function displayThumbnailCoverWithoutLinks( cover ) {
-		console.log( "displayThumbnailCoverWithoutLinks", cover );
+		console.log( "obalkyknihcz.displayThumbnailCoverWithoutLinks", cover );
 		displayCover( cover, true, true );
-
-		/*var coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" ) ?
-			getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, "medium", cover.advert )
-			: cover.bibInfo.cover_medium_url;
-
-		$.ajax({
-			url: coverUrl,
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText.toString(), "medium" );
-					$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
-				}
-			}
-		});*/
 	}
 
 	/**
@@ -421,30 +444,37 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityCover( cover, withoutLinks ) {
-		var auth_id = cover.bibInfo.auth_id,
-		    cached = getCachedAuthorityData( auth_id ),
+		console.log( "obalkyknihcz.displayAuthorityCover", cover, withoutLinks );
+		var authId = cover.bibInfo.auth_id,
+			cacheItem = getCacheItem( authId ),
 			alt = obalkyknihcz.authorityCoverText.toString();
 		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 
+		console.log( "displayAuthorityCover", cover, withoutLinks, cacheItem );
+
 		// Check if there is cached image and use it if yes
-		if ( cached !== null && typeof cached === "object" ) {
-			createAuthorityCover( cached.medium_url, alt, auth_id, cover.target, withoutLinks );
-			return;
+		if ( cacheItem !== null && typeof cacheItem === "object" ) {
+			if ( ( "medium_url" in cacheItem ) && $.type( cacheItem.medium_url ) === "string" ) {
+				console.log( "Using cached item: ", cacheItem, cacheItem.prototype );
+				createAuthorityCover( cacheItem.medium_url, alt, authId, cover.target, withoutLinks );
+				return;
+			}
 		}
 
 		// Otherwise get it via JSON (and cache it after we successfully get the image).
 		$.getJSON(
 			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
-			{ id: auth_id },
+			{ id: authId },
 			function( data ) {
 				try {
-					setChachedAuthorityData( auth_id, {
-						auth_id: auth_id,
-						medium_url: data.data.cover_medium_url,
-						preview_url: data.data.cover_preview510_url
-					} );
-					createAuthorityCover( data.data.cover_medium_url, alt, auth_id, cover.target, withoutLinks );
-				} catch( e ) { /* ... */ }
+					cacheItem = new CoverCacheItemPrototype( cover.record );
+					cacheItem.auth_id = authId;
+					cacheItem.medium_url = data.data.cover_medium_url;
+					cacheItem.preview_url = data.data.cover_preview510_url;
+
+					setCacheItem( authId, cacheItem );
+					createAuthorityCover( data.data.cover_medium_url, alt, authId, cover.target, withoutLinks );
+				} catch( e ) { console.error( e );/* ... */ }
 			}
 		);
 	}
@@ -453,6 +483,7 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
+		console.log( "obalkyknihcz.displayAuthorityThumbnailCoverWithoutLinks", cover );
 		displayAuthorityCover( cover, true );
 	}
 
@@ -471,12 +502,14 @@
 	 */
 	function displaySummary( cover ) {
 		console.log( "obalkyknihcz.displaySummary", cover );
-		var cached = getCachedSummaryData( cover.record );
+		var cacheItem = getCacheItem( cover.record );
+		console.log( cacheItem );
 
 		// Check if summary is already cached or not
-		if ( cached !== null && typeof cached === "object" ) {
-			if ( cached.hasOwnProperty( "full" ) ) {
-				useSummary( cover.record, cached.short );
+		if ( cacheItem !== null && typeof cacheItem === "object" ) {
+			if ( ( "summary" in cacheItem ) && $.type( cacheItem.summary ) === "string" ) {
+				console.log( "Used cacheItem for summary", cacheItem );
+				useSummary( cover.record, cacheItem.short );
 				return;
 			}
 		}
@@ -486,7 +519,15 @@
 			"/AJAX/JSON?method=getSummaryObalkyKnih",
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
-				setCachedSummaryData( cover.record, { "full" : data.data } );
+				console.log( data );
+
+				if ( cacheItem === null || typeof( cacheItem ) !== "object" ) {
+					console.log( "Creating new cacheItem..." );
+					cacheItem = new CoverCacheItemPrototype( cover.record );
+				}
+
+				cacheItem.summary = data.data;
+				setCacheItem( cover.record, cacheItem );
 				useSummary( cover.record, data.data );
 			}
 		);
@@ -494,15 +535,17 @@
 
 	/**
 	 * @param {CoverPrototype} cover
+	 * @todo Use cache!
 	 */
 	function displaySummaryShort( cover ) {
-		var cached = getCachedSummaryData( cover.record );
+		console.log( "obalkyknihcz.displaySummaryShort", cover );
+		var cacheItem = getCacheItem( cover.record );
 
 		// Check if summary is already cached or not
-		if ( cached !== null && typeof cached === "object" ) {
-			if ( cached.hasOwnProperty( "short" ) ) {
-				useSummary( cover.record, cached.short );
-				return;
+		if ( cacheItem !== null && typeof cacheItem === "object" ) {
+			if ( ( "summary_short" in cacheItem ) && $.type( cacheItem.summary_short ) === "string" ) {
+				console.log( "Used cacheItem for summary short", cacheItem );
+				useSummary( cover.record, cacheItem.summary_short );
 			}
 		}
 
@@ -511,7 +554,12 @@
 			"/AJAX/JSON?method=getSummaryShortObalkyKnih",
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
-				setCachedSummaryData( cover.record, { "short" : data.data } );
+				if ( cacheItem === null || typeof( cacheItem ) !== "object" ) {
+					cacheItem = new CoverCacheItemPrototype( cover.record );
+				}
+
+				cacheItem.summary_short = data.data;
+				setCacheItem( cover.record, cacheItem );
 				useSummary( cover.record, data.data );
 			}
 		);
@@ -611,14 +659,16 @@
 				// TODO Remove this!!!!!
 				case "displaySummary":
 				case "displaySummaryShort":
+				case "displayAuthorityCover":
+				case "displayAuthorityThumbnailCoverWithoutLinks":
 					processCover( cvr );
 					break;
 
 				// These will be grouped
-				case "displayAuthorityCover":
+				/*case "displayAuthorityCover":
 				case "displayAuthorityThumbnailCoverWithoutLinks":
 					tmp.authority.push( cvr );
-					break;
+					break;*/
 
 				/*case "displaySummary":
 				case "displaySummaryShort":
@@ -726,8 +776,6 @@
 		 * @returns {Promise}
 		 */
 		function processSummRequests() {
-			console.log( "processSummRequests", tmp.summary );
-
 			var bibInfo = [],
 			    cached  = [];
 
