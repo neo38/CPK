@@ -72,47 +72,38 @@
 
 	/**
 	 * Prototype object for meta data of an authority.
-	 * @property {string} _id
-	 * @property {string} auth_biographical_or_historical_data
-	 * @property {string} auth_id
-	 * @property {string} auth_name
-	 * @property {string} auth_year
-	 * @property {{auth_id: string}} authinfo
-	 * @property {string} backlink_url
-	 * @property {string} cover_icon_url
-	 * @property {string} cover_medium_url
-	 * @property {string} cover_preview510_url
-	 * @property {string} cover_thumbnail_url
-	 * @property {array} links
-	 * @property {string} orig_height
-	 * @property {string} orig_width
+	 * @property {NULL|string} _id
+	 * @property {NULL|string} auth_biographical_or_historical_data
+	 * @property {NULL|string} auth_id
+	 * @property {NULL|string} auth_name
+	 * @property {NULL|string} auth_year
+	 * @property {NULL|{auth_id: string}} authinfo
+	 * @property {NULL|string} backlink_url
+	 * @property {NULL|string} cover_icon_url
+	 * @property {NULL|string} cover_medium_url
+	 * @property {NULL|string} cover_preview510_url
+	 * @property {NULL|string} cover_thumbnail_url
+	 * @property {NULL|array} links
+	 * @property {NULL|string} orig_height
+	 * @property {NULL|string} orig_width
 	 * @constructor
 	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
 	 */
 	function AuthorityMetadataPrototype() {
-		var _id, bohd, id, name, year, info, blnk, cvr_ico, cvr_med, cvr_prw,
-			cvr_thb, links, h, w;
-
-		// Public API
-		var Meta = Object.create( null );
-		Object.defineProperties( Meta, {
-			"_id": { get: function() { return _id; }, set: function( v ) { _id = v; } },
-			"auth_biographical_or_historical_data": { get: function() { return bohd; }, set: function( v ) { bohd = v; } },
-			"auth_id": { get: function() { return id; }, set: function( v ) { id = v; } },
-			"auth_name": { get: function() { return name; }, set: function( v ) { name = v; } },
-			"auth_year": { get: function() { return year; }, set: function( v ) { year = v; } },
-			"authinfo": { get: function() { return info; }, set: function( v ) { info = v; } },
-			"backlink_url": { get: function() { return blnk; }, set: function( v ) { blnk = v; } },
-			"cover_icon_url": { get: function() { return cvr_ico; }, set: function( v ) { cvr_ico = v; } },
-			"cover_medium_url": { get: function() { return cvr_med; }, set: function( v ) { cvr_med = v; } },
-			"cover_preview510_url": { get: function() { return cvr_prw; }, set: function( v ) { cvr_prw = v; } },
-			"cover_thumbnail_url": { get: function() { return cvr_thb; }, set: function( v ) { cvr_thb = v; } },
-			"links": { get: function() { return links; }, set: function( v ) { links = v; } },
-			"orig_height": { get: function() { return h; }, set: function( v ) { h = v; } },
-			"orig_width": { get: function() { return w; }, set: function( v ) { w = v; } }
-		});
-
-		return Meta;
+		this._id = null;
+		this.auth_biographical_or_historical_data = null;
+		this.auth_id = null;
+		this.auth_name = null;
+		this.auth_year = null;
+		this.authinfo = null;
+		this.backlink_url = null;
+		this.cover_icon_url = null;
+		this.cover_medium_url = null;
+		this.cover_preview510_url = null;
+		this.cover_thumbnail_url = null;
+		this.links = null;
+		this.orig_height = null;
+		this.orig_width = null;
 	}
 
 	/**

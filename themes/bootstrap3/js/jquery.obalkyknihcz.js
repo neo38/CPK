@@ -4,7 +4,6 @@
  * @author Ondřej Doněk, <ondrejd@gmail.com>
  *
  * @todo Check {@link https://github.com/moravianlibrary/CPK/commit/412d9dcd24ab1f9af8fda4844da18289332f8c22?diff=unified} and absorb it (names of PDF downloads)!
- * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=312}.
  * @todo Don't forgot on bug {@link https://bugzilla.knihovny.cz/show_bug.cgi?id=250}.
  * @todo Try to minify this (if it works well).
  * @todo Add QUnit tests!
@@ -22,19 +21,21 @@
 	/**
 	 * Prototype for cache item.
 	 * @param {string} id Record's identifier ("mzkXXXX..").
-	 * @property {null|string} id
-	 * @property {null|string} icon_url
-	 * @property {null|string} medium_url
-	 * @property {null|string} preview_url
-	 * @property {null|string} thumbnail_url
-	 * @property {null|string} summary
-	 * @property {null|string} summary_short
+	 * @property {NULL|string} id
+	 * @property {NULL|string} icon_url
+	 * @property {NULL|string} medium_url
+	 * @property {NULL|string} pdf_url
+	 * @property {NULL|string} preview_url
+	 * @property {NULL|string} thumbnail_url
+	 * @property {NULL|string} summary
+	 * @property {NULL|string} summary_short
 	 * @constructor
 	 */
 	function CoverCacheItemPrototype( id ) {
 		this.id = id;
 		this.icon_url = null;
 		this.medium_url = null;
+		this.pdf_url = null;
 		this.preview_url = null;
 		this.thumbnail_url = null;
 		this.summary = null;
@@ -52,6 +53,7 @@
 		cacheItem.id = obj.hasOwnProperty( "id" ) ? obj.id : null;
 		cacheItem.icon_url = obj.hasOwnProperty( "icon_url" ) ? obj.icon_url : null;
 		cacheItem.medium_url = obj.hasOwnProperty( "medium_url" ) ? obj.medium_url : null;
+		cacheItem.pdf_url = obj.hasOwnProperty( "pdf_url" ) ? obj.pdf_url : null;
 		cacheItem.preview_url = obj.hasOwnProperty( "preview_url" ) ? obj.preview_url : null;
 		cacheItem.thumbnail_url = obj.hasOwnProperty( "thumbnail_url" ) ? obj.thumbnail_url : null;
 		cacheItem.summary = obj.hasOwnProperty( "summary" ) ? obj.summary : null;
@@ -99,8 +101,7 @@
 	 * @returns {string}
 	 */
 	function getImageUrl( baseUrl, bibInfo, type, query ) {
-		return baseUrl +
-			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
+		return baseUrl + "?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
 			"&type=" + type + "&keywords=" + encodeURIComponent( query );
 	}
 
@@ -178,8 +179,6 @@
 		localStorage.setItem( key, JSON.stringify( data ));
 	}
 
-	//CoverCacheItem
-
 	/**
 	 * @private Retrieves cached cover's data.
 	 * @param {string} key
@@ -208,9 +207,8 @@
 	 * @param {boolean} withoutLinks (Optional.)
 	 */
 	function fetchImage( cover, type, withoutLinks ) {
-
-		// Consolidate arguments
 		type = type === undefined ? "medium" : type;
+		withoutLinks = withoutLinks === undefined ? "medium" : withoutLinks;
 
 		/**
 		 * @private Creates final HTML.
@@ -247,38 +245,41 @@
 				break;
 		}
 
-		// Either use cached image or request not-cached image via Ajax.
+		// Try to get image from cache
 		if ( cachedItem !== null && typeof cachedItem === "object" ) {
 			if ( ( propName in cachedItem ) && $.type( cachedItem[ propName ] ) === "string" ) {
-				var img = new Image();
-				img.src = cachedItem[ propName ];
-				img.onload = function() { useImage( img ); };
-				cacheUsed = true;
+				$.ajax({
+					url: cachedItem[ propName ],
+					dataType: "image",
+					success: function( img ) {
+						useImage( img );
+					}
+				});
 			}
 		}
 
-		//console.log( "fetchImage", cachedItem, propName, cacheUsed );
-
-		if ( cacheUsed === false ) {
-			$.ajax({
-				url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, type, cover.advert ),
-				dataType: "image",
-				success: function( img ) {
-					if ( img ) {
-						useImage( img );
-
-						if ( cachedItem === null || typeof cachedItem !== "object" ) {
-							cachedItem = new CoverCacheItemPrototype( cover.record );
-							cachedItem[ propName ] = img.src;
-						} else {
-							cachedItem[ propName ] = img.src;
-						}
-
-						setCacheItem( cover.record, cachedItem );
-					}
-				}
-			});
+		if ( cacheUsed === true ) {
+			return;
 		}
+
+		// Get image from server
+		$.ajax({
+			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
+			dataType: "image",
+			success: function( img ) {
+				if ( img ) {
+					if ( cachedItem === null || typeof cachedItem !== "object" ) {
+						cachedItem = new CoverCacheItemPrototype( cover.record );
+						cachedItem[ propName ] = img.src;
+					} else {
+						cachedItem[ propName ] = img.src;
+					}
+
+					useImage( img );
+					setCacheItem( cover.record, cachedItem );
+				}
+			}
+		});
 	}
 
 	/**
@@ -287,7 +288,6 @@
 	 * @param {string} type (Optional.)
 	 */
 	function fetchImageWithoutLinks( cover, type ) {
-		//console.log( "obalkyknihcz.fetchImageWithoutLinks", cover, type );
 		fetchImage( cover, type, true );
 	}
 
@@ -295,7 +295,6 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnail( cover ) {
-		//console.log( "obalkyknihcz.displayThumbnail", cover );
 		fetchImage( cover, "medium", false );
 	}
 
@@ -303,7 +302,6 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnailWithoutLinks( cover ) {
-		//console.log( "obalkyknihcz.displayThumbnailWithoutLinks", cover );
 		fetchImage( cover, "medium", true );
 	}
 
@@ -312,6 +310,7 @@
 	 * @param {boolean} withoutLinks (Optional.)
 	 * @param {boolean} withoutToc (Optional.)
 	 * @todo Use cache!
+	 * @todo Cache TOC!!!!!
 	 */
 	function displayCover( cover, withoutLinks, withoutToc ) {
 		console.log( "obalkyknihcz.displayCover", cover, withoutLinks, withoutToc );
@@ -323,57 +322,78 @@
 		/**
 		 * @type {CoverCacheItemPrototype} cacheItem
 		 */
-		var cacheItem = getCacheItem( cover.record );
-		console.log( cacheItem );
-		return;
+		var cacheItem = getCacheItem( cover.record ),
+		    isCacheItem = false;
 
-		// We need to save current inner HTML (if Xhr request(s) failed we will use it)
-		var tmp  = $( cover.target ).html(),
-		    fail = false;
+		if ( cacheItem !== null && typeof cacheItem === "object" ) {
+			isCacheItem = true;
+		} else {
+			cacheItem = new CoverCacheItemPrototype( cover.record );
+		}
+
+		// We need to save current inner HTML (if Xhr request(s) failed
+		// we will use it) - but firstly we need to remove <div> with
+		// definition of the cover.
+		$( cover.target ).find( "div[data-obalkyknihcz]" ).remove();
+		var tmp  = ( new String( $( cover.target ).html() ) ).trim();
 
 		// Empty target element
 		$( cover.target ).empty();
 
 		/**
+		 * @private Creates HTML for the cover image.
+		 * @param {string} imgUrl
+		 * @param {string} alt
+		 */
+		function useCoverImage( imgUrl, alt ) {
+			var imgElm = createImage( imgUrl, alt, "medium" );
+
+			if ( withoutLinks === true ) {
+				$( cover.target ).prepend( createDiv( "cover", imgElm ) );
+			} else {
+				var anchorElm = createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm );
+				$( cover.target ).prepend( createDiv( "cover", anchorElm ) );
+			}
+		}
+
+		/**
 		 * @private Tries to restore original HTML if request(s) failed.
 		 */
 		function tryToRestore() {
-			if ( fail === true ) {
-				console.log( "Trying to restore using temporary saved HTML...", tmp );
-				$( cover.target ).html( tmp );
-			}
+			$( cover.target ).append( tmp );
 		}
 
-		// Firstly we need to load cover
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( ! img ) {
-					fail = true;
-					return;
+		if ( isCacheItem === true && ( "medium_url" in cacheItem ) && $.type( cacheItem.medium_url ) === "string" ) {
+			console.log( "Using cache item:", cacheItem );
+			useCoverImage( cacheItem.medium_url, obalkyknihcz.coverText.toString() );
+		} else {
+
+			// Use ajax to load the image
+			$.ajax({
+				url: getImageUrl( obalkyknihcz.coverUrl.toString(), cover.bibInfo, "medium", cover.advert ),
+				dataType: "image",
+				success: function( img ) {
+					if ( ! img ) {
+						tryToRestore();
+					} else {
+						cacheItem.medium_url = img.src;
+						setCacheItem( cover.record, cacheItem );
+						useCoverImage( img.src, obalkyknihcz.coverText.toString() );
+					}
+				},
+				fail: function() {
+					tryToRestore();
 				}
+			});
+		}
 
-				var imgElm = createImage( img.src, obalkyknihcz.coverText.toString(), "medium" );
-
-				if ( withoutLinks === true ) {
-					$( cover.target ).prepend( createDiv( "cover", imgElm ) );
-				} else {
-					var anchorElm = createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).prepend( createDiv( "cover", anchorElm ) );
-				}
-
-				fail = false;
-			},
-			fail: function() {
-				fail = true;
-			}
-		});
-
+		// Now get PDF (TOC)
 		if ( withoutToc === true ) {
-			tryToRestore();
+			//tryToRestore();
 			return;
 		}
+
+		// TODO IF ( is in the cache "pdf_url" ) THEN "use it" ELSE "ajax"
 
 		// Secondly we need to load TOC
 		$.ajax({
@@ -383,7 +403,12 @@
 				if ( ! img ) {
 					fail = true;
 					return;
+				} else {
+					cacheItem.pdf_url = img.src;
+					setCacheItem( cover.record, cacheItem );
 				}
+
+				console.log( "Loaded TOC image ... CACHE IT !!!", img );
 
 				var imgElm = createImage( img.src, obalkyknihcz.tocText.toString(), "medium" );
 
@@ -400,15 +425,12 @@
 				fail = true;
 			}
 		});
-
-		tryToRestore();
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
 	function displayCoverWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayCoverWithoutLinks", cover );
 		displayCover( cover, true, false );
 	}
 
@@ -416,7 +438,7 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayThumbnailCoverWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayThumbnailCoverWithoutLinks", cover );
+		console.log( "displayThumbnailCoverWithoutLinks", cover );
 		displayCover( cover, true, true );
 	}
 
@@ -429,33 +451,37 @@
 	 * @param {HTMLElement} target
 	 */
 	function createAuthorityCover( imgUrl, imgAlt, authId, target, withoutLinks ) {
-		var imgElm = createImage( imgUrl, imgAlt, "medium" );
-		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
+		$.ajax({
+			url: imgUrl,
+			dataType: "image",
+			success: function( img ) {
+				var imgElm = createImage( img.src, imgAlt, "medium" );
+				withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 
-		if( withoutLinks === true ) {
-			$( target ).empty().append( createDiv( "cover", imgElm ) );
-		} else {
-			var anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + authId, imgElm );
-			$( target ).empty().append( createDiv( "cover", anchorElm ) );
-		}
+				if( withoutLinks === true ) {
+					$( target ).empty().append( createDiv( "cover", imgElm ) );
+				} else {
+					var anchorUrl = "https://www.obalkyknih.cz/view_auth?auth_id=" + authId,
+					    anchorElm = createAnchor( anchorUrl, imgElm );
+
+					$( target ).empty().append( createDiv( "cover", anchorElm ) );
+				}
+			}
+		});
 	}
 
 	/**
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityCover( cover, withoutLinks ) {
-		console.log( "obalkyknihcz.displayAuthorityCover", cover, withoutLinks );
 		var authId = cover.bibInfo.auth_id,
 			cacheItem = getCacheItem( authId ),
 			alt = obalkyknihcz.authorityCoverText.toString();
 		withoutLinks = withoutLinks === undefined ? false : withoutLinks;
 
-		console.log( "displayAuthorityCover", cover, withoutLinks, cacheItem );
-
 		// Check if there is cached image and use it if yes
 		if ( cacheItem !== null && typeof cacheItem === "object" ) {
 			if ( ( "medium_url" in cacheItem ) && $.type( cacheItem.medium_url ) === "string" ) {
-				console.log( "Using cached item: ", cacheItem, cacheItem.prototype );
 				createAuthorityCover( cacheItem.medium_url, alt, authId, cover.target, withoutLinks );
 				return;
 			}
@@ -483,7 +509,6 @@
 	 * @param {CoverPrototype} cover
 	 */
 	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
-		console.log( "obalkyknihcz.displayAuthorityThumbnailCoverWithoutLinks", cover );
 		displayAuthorityCover( cover, true );
 	}
 
@@ -498,35 +523,38 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo Use cache!
+	 * @param {boolean} short (Optional.) Defaultly `FALSE`.
 	 */
-	function displaySummary( cover ) {
-		console.log( "obalkyknihcz.displaySummary", cover );
+	function displaySummary( cover, short ) {
 		var cacheItem = getCacheItem( cover.record );
-		console.log( cacheItem );
+		short = short === undefined ? false : short;
 
 		// Check if summary is already cached or not
 		if ( cacheItem !== null && typeof cacheItem === "object" ) {
-			if ( ( "summary" in cacheItem ) && $.type( cacheItem.summary ) === "string" ) {
-				console.log( "Used cacheItem for summary", cacheItem );
-				useSummary( cover.record, cacheItem.short );
+			if ( ( short === false && "summary" in cacheItem ) && $.type( cacheItem.summary ) === "string" ) {
+				useSummary( cover.record, cacheItem.summary );
+				return;
+			} else if ( ( short === true && "summary_short" in cacheItem ) && $.type( cacheItem.summary_short ) === "string" ) {
+				useSummary( cover.record, cacheItem.summary_short );
 				return;
 			}
 		}
 
 		// Not in cache, use Ajax and than save it into the cache.
 		$.getJSON(
-			"/AJAX/JSON?method=getSummaryObalkyKnih",
+			short === true ? "/AJAX/JSON?method=getSummaryShortObalkyKnih" : "/AJAX/JSON?method=getSummaryObalkyKnih",
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
-				console.log( data );
-
 				if ( cacheItem === null || typeof( cacheItem ) !== "object" ) {
-					console.log( "Creating new cacheItem..." );
 					cacheItem = new CoverCacheItemPrototype( cover.record );
 				}
 
-				cacheItem.summary = data.data;
+				if ( short === true ) {
+					cacheItem.summary_short = data.data;
+				} else {
+					cacheItem.summary = data.data;
+				}
+
 				setCacheItem( cover.record, cacheItem );
 				useSummary( cover.record, data.data );
 			}
@@ -535,34 +563,9 @@
 
 	/**
 	 * @param {CoverPrototype} cover
-	 * @todo Use cache!
 	 */
 	function displaySummaryShort( cover ) {
-		console.log( "obalkyknihcz.displaySummaryShort", cover );
-		var cacheItem = getCacheItem( cover.record );
-
-		// Check if summary is already cached or not
-		if ( cacheItem !== null && typeof cacheItem === "object" ) {
-			if ( ( "summary_short" in cacheItem ) && $.type( cacheItem.summary_short ) === "string" ) {
-				console.log( "Used cacheItem for summary short", cacheItem );
-				useSummary( cover.record, cacheItem.summary_short );
-			}
-		}
-
-		// Not in cache, use Ajax and than save it into the cache.
-		$.getJSON(
-			"/AJAX/JSON?method=getSummaryShortObalkyKnih",
-			{ bibinfo: cover.bibInfo },
-			function( data ) {
-				if ( cacheItem === null || typeof( cacheItem ) !== "object" ) {
-					cacheItem = new CoverCacheItemPrototype( cover.record );
-				}
-
-				cacheItem.summary_short = data.data;
-				setCacheItem( cover.record, cacheItem );
-				useSummary( cover.record, data.data );
-			}
-		);
+		displaySummary( cover, true );
 	}
 
 	// Other private methods (utilities)
@@ -664,8 +667,8 @@
 					processCover( cvr );
 					break;
 
-				// These will be grouped
-				/*case "displayAuthorityCover":
+				/*// These will be grouped
+				case "displayAuthorityCover":
 				case "displayAuthorityThumbnailCoverWithoutLinks":
 					tmp.authority.push( cvr );
 					break;*/
@@ -686,10 +689,17 @@
 
 			// Collect ID of authorities (and find out if they are cached or not).
 			tmp.authority.forEach(function( c ) {
-				var data = getCachedAuthorityData( c.bibInfo.auth_id );
-				if ( data !== null && typeof data === "object" ) {
-					cached.push( data );
-				} else {
+				var cacheItem = getCacheItem( c.bibInfo.auth_id ),
+				    isCached = false;
+
+				if ( cacheItem !== null && typeof cacheItem === "object" ) {
+					if ( cacheItem.medium_url !== undefined && $.type( cacheItem.medium_url ) === "string" ) {
+						cached.push( cacheItem );
+						isCached = true;
+					}
+				}
+
+				if ( isCached !== true ) {
 					auth_ids.push( c.bibInfo.auth_id );
 				}
 			});
@@ -705,70 +715,79 @@
 			function prepareCached( obj ) {
 				try {
 					var authorMetadata = $.fn.cpk.AuthorityMetadata.parseFromObject( obj ),
-						data = {
-							auth_id: authorMetadata.authinfo.auth_id,
-							medium_url: authorMetadata.cover_medium_url,
-							preview_url: authorMetadata.cover_preview510_url
-						};
-					cached.push( data );
-					setChachedAuthorityData( obj.authinfo.auth_id, data );
+						cacheItem = new CoverCacheItemPrototype( authorMetadata.authinfo.auth_id );
+
+					cacheItem.medium_url = authorMetadata.cover_medium_url;
+					cacheItem.preview_url = authorMetadata.cover_preview510_url;
+
+					cached.push( cacheItem );
+					setCacheItem( authorMetadata.authinfo.auth_id, cacheItem );
 				} catch( e ) { /* ... */
-					console.log( e ); // TODO Remove this!
+					console.log( obj, e ); // TODO Remove this!
 				}
 			}
 
 			/**
 			 * @private Process single authority metadata item.
-			 * @param {{auth_id: string, medium_url: string, preview_url: string}} data
+			 * @param {CoverCacheItemPrototype} data
 			 */
 			function processCached( data ) {
 				tmp.authority.forEach(function( cvr ) {
-					if ( cvr.bibInfo.auth_id === data.auth_id ) {
-						var alt = obalkyknihcz.authorityCoverText.toString();
-						createAuthorityCover( data.medium_url, alt, data.auth_id, cvr.target, false );
+					if ( cvr.bibInfo.auth_id === data.id || cvr.record === data.id ) {
+						var withoutLinks = ( cvr.action === "displayAuthorityCover" ) ? false : true,
+							alt = obalkyknihcz.authorityCoverText.toString();
+
+						createAuthorityCover( data.medium_url, alt, data.id, cvr.target, withoutLinks );
 					}
 				});
 			}
 
-			// Get multiple authorities data by their IDs separated by comma.
-			$.ajax({
-				dataType: "json", // TODO Set type to "authority-metadata"...
-				url: "/AJAX/JSON?method=getMultipleAuthorityCovers",
-				data: { id: auth_ids.join( "," ) },
-				global: false,
-				method: "GET",
-				/**
-				 * @param {{ data: array, status: string }} data
-				 * @param {string} textStatus
-				 * @param {jqXHR} jqXhr
-				 */
-				success: function( data, textStatus, jqXhr ) {
+			if ( auth_ids.length > 0 ) {
 
-					// Check status
-					if ( textStatus !== "success" ) {
-						console.error( "Requesst for covers of authorities failed!", data );
-						return;
+				// Get covers
+				$.ajax({
+					dataType: "json", // TODO Set type to "authority-metadata"...
+					url: "/AJAX/JSON?method=getMultipleAuthorityCovers",
+					data: { id: auth_ids.join( "," ) },
+					global: false,
+					method: "GET",
+					/**
+					 * @param {{ data: array, status: string }} data
+					 * @param {string} textStatus
+					 * @param {jqXHR} jqXhr
+					 */
+					success: function( data, textStatus, jqXhr ) {
+
+						// Check status
+						if ( textStatus !== "success" ) {
+							console.error( "Requesst for covers of authorities failed!", data );
+							return;
+						}
+
+						// Check if correct data are returned
+						if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
+							console.error( "Request for covers of authorities failed!", data );
+							return;
+						}
+
+						// Save all new data into the cache
+						data.data.forEach( prepareCached );
+					},
+					/**
+					 * @param {jqXHR} jqXhr
+					 * @param {string} textStatus
+					 */
+					complete: function( jqXhr, textStatus ) {
+
+						// Now process all cached items
+						cached.forEach( processCached );
 					}
+				});
+			} else {
 
-					// Check if correct data are returned
-					if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
-						console.error( "Request for covers of authorities failed!", data );
-						return;
-					}
-
-					// Save all new data into the cache
-					data.data.forEach( prepareCached );
-				},
-				/**
-				 * @param {jqXHR} jqXhr
-				 * @param {string} textStatus
-				 */
-				complete: function( jqXhr, textStatus ) {
-
-					// Now process all cached items
-					cached.forEach( processCached );
-				}
-			});
+				// Process just all cached
+				cached.forEach( processCached );
+			}
 		}
 
 		/**
@@ -776,37 +795,42 @@
 		 * @returns {Promise}
 		 */
 		function processSummRequests() {
+			console.log( "TODO processSummRequests" );
 			var bibInfo = [],
 			    cached  = [];
 
-			function getCachedSummaryData( key ) {
-				var cache = getCache( "cpk_summaries" );
-				return ( cache[ key ] !== undefined ) ? cache[ key ] : null;
-			}
-
-			function setCachedSummaryData( key, data ) {
-				var cache = getCache( 'cpk_summaries' );
-				cache[ key ] = data;
-				setCache( 'cpk_summaries', cache );
-			}
-
 			// Collects all bibInfos
 			tmp.summary.forEach(function( c ) {
-				var data = getCachedSummaryData( c.record );
+				var cacheItem = getCacheItem( c.record ),
+				    isCached = false;
 
-				if ( data !== null && typeof data === "object" ) {
-					cached.push( data );
-				} else {
+				if ( cacheItem !== null && typeof cacheItem === "object" ) {
+					console.log( c.action );
+
+					if ( c.action === "displaySummary" ) {
+						if ( cacheItem.summary !== undefined && $.type( cacheItem.summary ) === "string" ) {
+							cached.push( cacheItem );
+							isCached = true;
+						}
+					} else {
+						if ( cacheItem.summary_short !== undefined && $.type( cacheItem.summary_short ) === "string" ) {
+							cached.push( cacheItem );
+							isCached = true;
+						}
+					}
+				}
+
+				if ( isCached !== true ) {
 					bibInfo.push( c.bibInfo );
 				}
 			});
-
-			console.log( bibInfo, cached );
 
 			// If there are no summaries to resolve stop it
 			if ( bibInfo.length === 0 && cached.length === 0 ) {
 				return;
 			}
+
+			console.log( bibInfo, cached );
 
 			// Perform XHR request for all metadata
 			$.ajax({
@@ -852,9 +876,9 @@
 	// Other properties
 	Object.defineProperties( obalkyknihcz, {
 		"cacheUrl": { get: function() { return cacheUrl; }, set: function( v ) { cacheUrl = v; } },
-		"coverUrl": { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
-		"tocUrl": { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
-		"pdfUrl": { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
+		"coverUrl": { get: function() { return cacheUrl + "/api/cover"; } },
+		"tocUrl": { get: function() { return cacheUrl + "/api/toc/thumbnail"; } },
+		"pdfUrl": { get: function() { return cacheUrl + "/api/toc/pdf"; } },
 		"linkUrl": { get: function() { return "https://www.obalkyknih.cz/view"; } },
 		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
 		"tocText": { get: function() { return VuFind.translate( "Table of contents" ); } },
