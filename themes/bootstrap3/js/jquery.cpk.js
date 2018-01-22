@@ -83,7 +83,7 @@
 	 * @property {NULL|string} cover_medium_url
 	 * @property {NULL|string} cover_preview510_url
 	 * @property {NULL|string} cover_thumbnail_url
-	 * @property {NULL|array} links
+	 * @property {NULL|[{ source_name: string, link: string, title: string }]} links
 	 * @property {NULL|string} orig_height
 	 * @property {NULL|string} orig_width
 	 * @constructor
@@ -138,14 +138,26 @@
 	 * @property {string} _id
 	 * @property {{source: string, html: string}} annotation
 	 * @property {string} backlink_url
+	 * @property {string} bib_author
 	 * @property {string} bib_title
 	 * @property {string} bib_year
 	 * @property {{isbn: string, nbn: string, oclc: string}} bibinfo
 	 * @property {string} book_id
+	 * @property {string} book_id_parent
+	 * @property {string} flag_bare_record (0=record contains cover, toc, comments...; 1=record has no additional info (cover, toc, comments))
+	 * @property {string} part_info
+	 * @property {string} part_root
+	 * @property {string} part_no
+	 * @property {string} part_name
+	 * @property {string} part_year
+	 * @property {string} part_volume
 	 * @property {string} cover_icon_url
 	 * @property {string} cover_medium_url
 	 * @property {string} cover_preview510_url
 	 * @property {string} cover_thumbnail_url
+	 * @property {string} toc_thumbnail_url
+	 * @property {string} toc_pdf_url
+	 * @property {string} toc_full_text
 	 * @property {string} csn_iso_690
 	 * @property {string} csn_iso_690_source
 	 * @property {string} ean
@@ -153,56 +165,49 @@
 	 * @property {number} flag_bare_record
 	 * @property {string} nbn
 	 * @property {string} oclc
+	 * @property {string} ismn
 	 * @property {string} orig_height
 	 * @property {string} orig_width
 	 * @property {number} part_root
 	 * @property {number} rating_count
 	 * @property {number} rating_sum
+	 * @property {number} rating_avg5
+	 * @property {number} rating_avg100
+	 * @property {number} rating_url
 	 * @property {array} reviews
 	 * @property {string} succ_cover_count
 	 * @property {string} succ_toc_count
+	 * @property {string} ebook
 	 * @constructor
 	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
-	 * @todo Check how is this used in memory (are getters/setters same instances in different instances of the BookMetadataOject)?
 	 */
 	function BookMetadataPrototype() {
-		var _id, annot, burl, bibTitle, bibYear, bibInfo, bookId, cvrIconUrl,
-			cvrMediumUrl, cvrPreviewUrl, cvrThumbUrl, csn, csnSrc, ean, eanOther,
-			flag, nbn, oclc, origHeight, origWidth, root, ratCnt, ratSum, revs,
-			sucCvrCnt, sucTocCnt;
-
-		// Public API
-		var Meta = Object.create( null );
-		Object.defineProperties( Meta, {
-			"_id": { get: function() { return _id; }, set: function( v ) { _id = v; } },
-			"annotation": { get: function() { return annot; }, set: function( v ) { annot = v; } },
-			"backlink_url": { get: function() { return burl; }, set: function( v ) { burl = v; } },
-			"bib_title": { get: function() { return bibTitle; }, set: function( v ) { bibTitle = v; } },
-			"bib_year": { get: function() { return bibYear; }, set: function( v ) { bibYear = v; } },
-			"bibinfo": { get: function() { return bibInfo; }, set: function( v ) { bibInfo = v; } },
-			"book_id": { get: function() { return bookId; }, set: function( v ) { bookId = v; } },
-			"cover_icon_url": { get: function() { return cvrIconUrl; }, set: function( v ) { cvrIconUrl = v; } },
-			"cover_medium_url": { get: function() { return cvrMediumUrl; }, set: function( v ) { cvrMediumUrl = v; } },
-			"cover_preview510_url": { get: function() { return cvrPreviewUrl; }, set: function( v ) { cvrPreviewUrl = v; } },
-			"cover_thumbnail_url": { get: function() { return cvrThumbUrl; }, set: function( v ) { cvrThumbUrl = v; } },
-			"csn_iso_690": { get: function() { return csn; }, set: function( v ) { csn = v; } },
-			"csn_iso_690_source": { get: function() { return csnSrc; }, set: function( v ) { csnSrc = v; } },
-			"ean": { get: function() { return ean; }, set: function( v ) { ean = v; } },
-			"ean_other": { get: function() { return eanOther; }, set: function( v ) { eanOther = v; } },
-			"flag_bare_record": { get: function() { return flag; }, set: function( v ) { flag = v; } },
-			"nbn": { get: function() { return nbn; }, set: function( v ) { nbn = v; } },
-			"oclc": { get: function() { return oclc; }, set: function( v ) { oclc = v; } },
-			"orig_height": { get: function() { return origHeight; }, set: function( v ) { origHeight = v; } },
-			"orig_width": { get: function() { return origWidth; }, set: function( v ) { origWidth = v; } },
-			"part_root": { get: function() { return root; }, set: function( v ) { root = v; } },
-			"rating_count": { get: function() { return ratCnt; }, set: function( v ) { ratCnt = v; } },
-			"rating_sum": { get: function() { return ratSum; }, set: function( v ) { ratSum = v; } },
-			"reviews": { get: function() { return revs; }, set: function( v ) { revs = v; } },
-			"succ_cover_count": { get: function() { return sucCvrCnt; }, set: function( v ) { sucCvrCnt = v; } },
-			"succ_toc_count": { get: function() { return sucTocCnt; }, set: function( v ) { sucTocCnt = v; } }
-		});
-
-		return Meta;
+		this._id = null;
+		this.annotation = null;
+		this.backlink_url = null;
+		this.bib_title = null;
+		this.bib_year = null;
+		this.bibinfo = null;
+		this.book_id = null;
+		this.cover_icon_url = null;
+		this.cover_medium_url = null;
+		this.cover_preview510_url = null;
+		this.cover_thumbnail_url = null;
+		this.csn_iso_690 = null;
+		this.csn_iso_690_source = null;
+		this.ean = null;
+		this.ean_other = null;
+		this.flag_bare_record = null;
+		this.nbn = null;
+		this.oclc = null;
+		this.orig_height = null;
+		this.orig_width = null;
+		this.part_root = null;
+		this.rating_count = null;
+		this.rating_sum = null;
+		this.reviews = null;
+		this.succ_cover_count = null;
+		this.succ_toc_count = null;
 	}
 
 	/**
@@ -246,11 +251,11 @@
 
 	/**
 	 * Prototype object for single cover (as is parsed from target <div> element).
-	 * @property {string} action
-	 * @property {string} advert
-	 * @property {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo
-	 * @property {HTMLElement} target
-	 * @property {string} record
+	 * @property {NULL|string} action
+	 * @property {NULL|string} advert
+	 * @property {NULL|{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo
+	 * @property {NULL|HTMLElement} target
+	 * @property {NULL|string} record
 	 * @param {string} action (Optional.)
 	 * @param {string} advert (Optional.)
 	 * @param {{ isbn: string, nbn: string, auth_id: string, cover_medium_url: string, oclc: string}} bibInfo (Optional.)
@@ -259,41 +264,11 @@
 	 * @constructor
 	 */
 	function CoverPrototype( action, advert, bibInfo, record, target ) {
-		var act, adv, bi, elm, rec;
-
-		// Process optional parameters
-		if ( action !== undefined && typeof action === "string" ) {
-			act = action;
-		}
-
-		if ( advert !== undefined && typeof action === "string" ) {
-			adv = advert;
-		}
-
-		if ( bibInfo !== undefined && typeof bibInfo === "object" ) {
-			bi = bibInfo;
-		}
-
-		if ( record !== undefined && typeof record === "string" ) {
-			rec = record;
-		}
-
-		if ( target !== undefined && !!target ) {
-			elm = target;
-		}
-
-		// Public API
-		var Cover = Object.create( null );
-
-		Object.defineProperties( Cover, {
-			"action"  : { get: function() { return act; }, set: function( v ) { act = v; } },
-			"advert"  : { get: function() { return adv; }, set: function( v ) { adv = v; } },
-			"bibInfo" : { get: function() { return bi; }, set: function( v ) { bi = v; } },
-			"target"  : { get: function() { return elm; }, set: function( v ) { elm = v; } },
-			"record"  : { get: function() { return rec; }, set: function( v ) { rec = v; } }
-		} );
-
-		return Cover;
+		this.action = ( action !== undefined && typeof action === "string" ) ? action : null;
+		this.advert = ( advert !== undefined && typeof action === "string" ) ? advert : null;
+		this.bibInfo = ( bibInfo !== undefined && typeof bibInfo === "object" ) ? bibInfo : null;
+		this.record = ( record !== undefined && typeof record === "string" ) ? record :  null;
+		this.target = ( target !== undefined && !!target ) ? target : null;
 	}
 
 	/**
@@ -326,6 +301,59 @@
 	};
 
 	/**
+	 * Prototype for cache item.
+	 * @param {NULL,string} id Record's identifier ("mzkXXXX..").
+	 * @property {NULL|string} id
+	 * @property {NULL|string} icon_url
+	 * @property {NULL|string} medium_url
+	 * @property {NULL|string} pdf_url
+	 * @property {NULL|string} preview_url
+	 * @property {NULL|string} thumbnail_url
+	 * @property {NULL|string} summary
+	 * @property {NULL|string} summary_short
+	 * @constructor
+	 */
+	function CoverCacheItemPrototype( id ) {
+		this.id = id;
+		this.icon_url = null;
+		this.medium_url = null;
+		this.pdf_url = null;
+		this.preview_url = null;
+		this.thumbnail_url = null;
+		this.summary = null;
+		this.summary_short = null;
+	}
+
+	/**
+	 * Parses {@see CoverCacheItemPrototype} from the given object.
+	 * @param {AuthorityMetadataPrototype|{ id: string, icon_url: string, medium_url: string, pdf_url: string, preview_url: string, thumbnail_url: string, summary: string, summary_short: string }} obj
+	 * @returns {CoverCacheItemPrototype}
+	 */
+	CoverCacheItemPrototype.parseFromObject = function( obj ) {
+		var cacheItem;
+
+		if ( obj.constructor.name === "AuthorityMetadataPrototype" ) {
+			cacheItem = new CoverCacheItemPrototype( obj.authinfo.auth_id );
+			cacheItem.icon_url = obj.cover_icon_url;
+			cacheItem.medium_url = obj.cover_medium_url;
+			cacheItem.preview_url = obj.cover_preview510_url;
+			cacheItem.thumbnail_url = obj.cover_thumbnail_url;
+			cacheItem.summary_short = obj.auth_biographical_or_historical_data;
+		} else {
+			cacheItem = new CoverCacheItemPrototype( obj.hasOwnProperty( "id" ) ? obj.id : null );
+			cacheItem.icon_url = "icon_url" in obj ? obj.icon_url : null;
+			cacheItem.medium_url = "medium_url" in obj ? obj.medium_url : null;
+			cacheItem.pdf_url = "pdf_url" in obj ? obj.pdf_url : null;
+			cacheItem.preview_url = "preview_url" in obj ? obj.preview_url : null;
+			cacheItem.thumbnail_url = "thumbnail_url" in obj ? obj.thumbnail_url : null;
+			cacheItem.summary = "summary" in obj ? obj.summary : null;
+			cacheItem.summary_short = "summary_short" in obj ? obj.summary_short : null;
+		}
+
+		return cacheItem;
+	};
+
+	/**
 	 * This is our jQuery global access point.
 	 * @type {Object}
 	 */
@@ -335,7 +363,8 @@
 	$.extend( cpk, {
 		AuthorityMetadata: AuthorityMetadataPrototype,
 		BookMetadata: BookMetadataPrototype,
-		Cover: CoverPrototype
+		Cover: CoverPrototype,
+		CoverCacheItem: CoverCacheItemPrototype
 	} );
 
 	// TODO Is `fn` really the point we want to extend? (in jQuery of course...)
