@@ -62,7 +62,7 @@
               <? endforeach; ?>
 
             <? else: ?>
-              <p id="summary_<?=$id?>" class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
+              <p id="summary_<?=$recordId?>" class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
               <div data-obalkyknihcz="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
           <? endif; ?>
 
