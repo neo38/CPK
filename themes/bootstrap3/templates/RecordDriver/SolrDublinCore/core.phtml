@@ -5,13 +5,18 @@ $source = explode(".", $id)[0];
 $maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
 $bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3();
 $advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
+
+$recordId =  preg_replace("/\./", "", $id);
+$recordId =  preg_replace("/:/", "", $recordId);
 ?>
 <div class="well">
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
     <div class="text-center #cover" id="cover">
-        <img src="<?=$this->url('cover-unavailable')?>" class="recordcover" alt="<?=$this->transEsc('No Cover Image')?>"/>
-        <div data-obalkyknihcz="displayCoverWithoutLinks" data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$id?>"></div>
+        <div>
+            <img src="<?=$this->url('cover-unavailable')?>" class="recordcover" alt="<?=$this->transEsc('No Cover Image')?>"/>
+            <div data-obalkyknihcz="displayCoverWithoutLinks" data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+        </div>
         <? /* Display qrcode if appropriate: */ ?>
       <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
       <? if($QRCode): ?>

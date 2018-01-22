@@ -2,6 +2,9 @@
     // Get source of the record to print it to h3 header
     $id = $this->driver->getUniqueID();
     $source = explode(".", $id)[0];
+
+    $recordId =  preg_replace("/\./", "", $id);
+    $recordId =  preg_replace("/:/", "", $recordId);
 ?>
 
 <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
@@ -16,12 +19,14 @@
           <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
             <div class="row text-center #cover" id="cover">
                 <? $formats = $this->driver->getFormats(); ?>
+                <div>
                 <? if (! empty($formats)): ?>
                     <div class="iconlabel col-md-12"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>
                 <? else: ?>
                     <img class="recordcover col-md-12" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
                 <? endif; ?>
-                <div data-obalkyknihcz="displayCover" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$id?>"></div>
+                <div data-obalkyknihcz="displayCover" data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
+                </div>
                 <? /* Display qrcode if appropriate: */ ?>
               <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
               <? if($QRCode): ?>
@@ -58,7 +63,7 @@
 
             <? else: ?>
               <p id="summary_<?=$id?>" class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
-              <div data-obalkyknihcz="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$id?>"></div>
+              <div data-obalkyknihcz="displaySummary" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
           <? endif; ?>
 
             <? if ($this->userlist()->getMode() !== 'disabled'): ?>
