@@ -408,7 +408,6 @@
 		var isTocCacheItem = false;
 
 		if ( tocCacheItem !== null && typeof tocCacheItem === "object" ) {
-			console.log( "Founded TOC cache item: ", tocCacheItem );
 			isTocCacheItem = true;
 		} else {
 			tocCacheItem = new $.fn.cpk.CoverCacheItem( cover.record );
@@ -416,7 +415,6 @@
 
 		// Secondly we need to load TOC
 		if ( isTocCacheItem === true && ( "pdf_url" in tocCacheItem ) && $.type( tocCacheItem.pdf_url ) === "string" ) {
-			console.log( "Using TOC cache item:", tocCacheItem );
 			useTocImage( tocCacheItem.pdf_url );
 
 			if ( ! withoutLinks ) {
@@ -427,7 +425,6 @@
 				url: getImageUrl( obalkyknihcz.tocUrl.toString(), cover.bibInfo, "medium", cover.advert ),
 				dataType: "image",
 				success: function ( img ) {
-					//console.log( img );
 					if ( !img ) {
 						tryToRestore();
 					} else {
@@ -564,7 +561,7 @@
 
 		// Not in cache, use Ajax and than save it into the cache.
 		$.getJSON(
-			short === true ? "/AJAX/JSON?method=getSummaryShortObalkyKnih" : "/AJAX/JSON?method=getSummaryObalkyKnih",
+			"/AJAX/JSON?method=" + ( short === true ? "getSummaryShortObalkyKnih" : "getSummaryObalkyKnih" ),
 			{ bibinfo: cover.bibInfo },
 			function( data ) {
 				if ( cacheItem === null || typeof( cacheItem ) !== "object" ) {
@@ -682,8 +679,8 @@
 				case "displayCoverWithoutLinks":
 				case "displayThumbnailCoverWithoutLinks":
 				// TODO Remove these keys below!
-				case "displaySummary":
-				case "displaySummaryShort":
+				//case "displaySummary":
+				//case "displaySummaryShort":
 					processCover( cvr );
 					break;
 
@@ -730,19 +727,6 @@
 			}
 
 			/**
-			 * @param {object} obj
-			 */
-			function prepareCached( obj ) {
-				try {
-					var authorMetadata = $.fn.cpk.AuthorityMetadata.parseFromObject( obj ),
-						cacheItem = $.fn.cpk.CoverCacheItem.parseFromObject( authorMetadata );
-
-					cached.push( cacheItem );
-					setCacheItem( authorMetadata.authinfo.auth_id, cacheItem );
-				} catch( e ) { /* ... */ }
-			}
-
-			/**
 			 * @private Process single authority metadata item.
 			 * @param {CoverCacheItemPrototype} data
 			 */
@@ -786,7 +770,15 @@
 						}
 
 						// Save all new data into the cache
-						data.data.forEach( prepareCached );
+						data.data.forEach( function( obj ) {
+							try {
+								var authorMetadata = $.fn.cpk.AuthorityMetadata.parseFromObject( obj ),
+									cacheItem = $.fn.cpk.CoverCacheItem.parseFromObject( authorMetadata );
+
+								cached.push( cacheItem );
+								setCacheItem( authorMetadata.authinfo.auth_id, cacheItem );
+							} catch( e ) { /* ... */ }
+						} );
 					},
 					/**
 					 * @param {jqXHR} jqXhr
@@ -819,8 +811,15 @@
 			 * @param {CoverCacheItemPrototype} data
 			 */
 			function processCached( data ) {
+				console.log( data );
+				if ( $.type( data ) !== "object" || ! ( "id" in data ) ) {
+					return;
+				}
+
 				tmp.summary.forEach(function( cvr ) {
-					if ( cvr.record === data.id ) {
+					if ( ! ( "record" in cvr ) ) {
+						console.error( "processCached -> bad cache item given!" );
+					} else if ( cvr.record === data.id ) {
 						var short = ( cvr.action === "displaySummary" ) ? false : true;
 						//console.log( data, short );
 						useSummary( cvr.record, ! short ? data.summary : data.summary_short, short );
@@ -856,7 +855,6 @@
 
 			// If there are no summaries to resolve stop it
 			if ( bibInfo.length === 0 && cached.length === 0 ) {
-				console.log( "There are no summaries to process..." );
 				return;
 			}
 
@@ -871,11 +869,46 @@
 					method: "POST",
 					data: { "multi": bibInfo },
 					global: false,
+					/**
+					 * @param {{ data: array, status: string }} data
+					 * @param {string} textStatus
+					 * @param {jqXHR} jqXhr
+					 */
 					success: function( data, textStatus, jqXhr ) {
-						console.log( data, textStatus, jqXhr );
+
+						// Check status
+						if ( textStatus !== "success" ) {
+							console.error( "Requesst for multiple summaries failed!", data );
+							return;
+						}
+
+						// Check if correct data are returned
+						if ( data.data === undefined || ! jQuery.isArray( data.data ) ) {
+							console.error( "Request for covers of authorities failed!", data );
+							return;
+						}
+
+						console.log( "TODO Prepare cached items!", data, textStatus, jqXhr );
+
+						// Save all new data into the cache
+						data.data.forEach( function( obj ) {
+							try {
+								var bookMetadata = $.fn.cpk.BookMetadata.parseFromObject( obj ),
+									cacheItem = $.fn.cpk.CoverCacheItem.parseFromObject( bookMetadata );
+
+								cached.push( cacheItem );
+								setCacheItem( bookMetadata.nbn, cacheItem );
+							} catch( e ) { /* ... */ }
+						} );
 					},
+					/**
+					 * @param {jqXHR} jqXhr
+					 * @param {string} textStatus
+					 */
 					complete: function( jqXhr, textStatus ) {
-						console.log( jqXhr, textStatus );
+
+						// Now process all cached items
+						cached.forEach( processCached );
 					}
 				});
 			} else {

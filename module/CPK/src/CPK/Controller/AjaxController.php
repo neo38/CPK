@@ -2004,7 +2004,7 @@ class AjaxController extends AjaxControllerBase
             $isbnJson = json_encode($bibInfo);
             $apiUrl = $this->getObalkyKnihApiUrl( '/api/books' );
             $client = new \Zend\Http\Client($apiUrl);
-            $client->setParameterGet(['multi' => '[' . $isbnJson . ']']);
+            $client->setParameterGet(['multi' => $isbnJson]);
             $response = $client->send();
             $responseBody = $response->getBody();
             $phpResponse = json_decode($responseBody, true);
@@ -2014,6 +2014,7 @@ class AjaxController extends AjaxControllerBase
             return [];
         }
     }
+
 
     /**
      * @private Returns URL for API ObalkyKnih.cz.

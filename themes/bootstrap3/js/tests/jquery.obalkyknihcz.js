@@ -29,13 +29,13 @@ QUnit.testDone( function( details ) {
 
 QUnit.test( "CacheHandler.getCacheItem", function( a ) {
 	var t1 = jQuery.fn.obalkyknihcz.getCacheItem( testData[0].id );
-	a.ok( ( t1 !== null && jQuery.type( t1 ) === "object" ) );
+	a.ok( ( t1 !== null && t1.constructor.name === "CoverCacheItemPrototype" ) );
 	a.ok( t1.id === testData[0].id );
 	a.ok( t1.summary_short === testData[0].summary_short );
 	a.ok( t1.thumbnail_url === testData[0].thumbnail_url );
 
 	var t2 = jQuery.fn.obalkyknihcz.getCacheItem( testData[1].id );
-	a.ok( ( t2 !== null && jQuery.type( t2 ) === "object" ) );
+	a.ok( ( t2 !== null && t2.constructor.name === "CoverCacheItemPrototype" ) );
 	a.ok( t2.id === testData[1].id );
 	a.ok( t2.summary_short === testData[1].summary_short );
 	a.ok( t2.thumbnail_url === testData[1].thumbnail_url );

@@ -328,9 +328,14 @@
 	 * Parses {@see CoverCacheItemPrototype} from the given object.
 	 * @param {AuthorityMetadataPrototype|{ id: string, icon_url: string, medium_url: string, pdf_url: string, preview_url: string, thumbnail_url: string, summary: string, summary_short: string }} obj
 	 * @returns {CoverCacheItemPrototype}
+	 * @throws Throws an exception whenever the given parameter is not an object.
 	 */
 	CoverCacheItemPrototype.parseFromObject = function( obj ) {
 		var cacheItem;
+
+		if ( $.type( obj ) !== "object" ) {
+			throw new Exception( "Object expected but '" + $.type( obj ) + "' given!" );
+		}
 
 		if ( obj.constructor.name === "AuthorityMetadataPrototype" ) {
 			cacheItem = new CoverCacheItemPrototype( obj.authinfo.auth_id );
@@ -339,6 +344,9 @@
 			cacheItem.preview_url = obj.cover_preview510_url;
 			cacheItem.thumbnail_url = obj.cover_thumbnail_url;
 			cacheItem.summary_short = obj.auth_biographical_or_historical_data;
+		} else if ( obj.constructor.name === "BookMetadataPrototype" ) {
+			console.log( "XXX Process BookMetadataPrototype!", obj );
+			//...
 		} else {
 			cacheItem = new CoverCacheItemPrototype( obj.hasOwnProperty( "id" ) ? obj.id : null );
 			cacheItem.icon_url = "icon_url" in obj ? obj.icon_url : null;
