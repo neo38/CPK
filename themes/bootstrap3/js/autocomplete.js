@@ -43,13 +43,13 @@
       input.val(value);
       hide();
       input.trigger('autocompleteVufind:select', {value: value, eventType: eventType});
-      
+
       if (clickedResult) {
     	  var href = jQuery( '#'+clickedResultId ).attr( 'href' );
     	  window.location.href = href;
     	  return false;
       }
-      
+
       $( '.searchForm' ).submit();
     }
 
@@ -57,7 +57,7 @@
 
     	if (main) {
     		shell.append($('<div/>')
-        		.addClass('autocomplete-results-category-main')
+        		.addClass('autocomplete-results-category-main' + searchType)
                 .html(category)
             );
     	} else {
@@ -103,77 +103,77 @@
           shell.append(item);
         }
     }
-    
-    function createTitlesListFrom(shell, input, data, category, main) {
-    	createListFrom(shell, input, data, VuFind.translate('in_titles'), false, 'adv_search_title_series');
-    }
-    
-    function createAuthorsListFrom(shell, input, data, category, main) {
-    	createListFrom(shell, input, data, VuFind.translate('in_authors'), false, 'adv_search_author_corporation');
-    }
-    
-    function createSubjectsListFrom(shell, input, data, category, main) {
-    	createListFrom(shell, input, data, VuFind.translate('in_subjects'), false, 'adv_search_subject_keywords');
-    }
 
-    function createList(data, input) {
-      var shell = $('<div/>');
+      function createList(byHistory, data, input) {
+          var shell = $('<div/>');
 
-      if((data.byTitle.length > 0) || (data.byAuthor.length > 0) || (data.bySubject.length > 0)) {
-    	  createListFrom(shell, input, {}, VuFind.translate('The most commonly occurring')+":", true);
-      }
-      
-      if(data.byTitle.length > 0) {
-    	  createTitlesListFrom(shell, input, data.byTitle, VuFind.translate('in_titles'), false);
-      }
-      if(data.byAuthor.length > 0) {
-    	  createAuthorsListFrom(shell, input, data.byAuthor,VuFind.translate('in_authors'), false);
-      }
-      if(data.bySubject.length > 0) {
-    	  createSubjectsListFrom(shell, input, data.bySubject, VuFind.translate('in_subjects'), false);
-      }
-
-      $.fn.autocompleteVufind.element.html(shell);
-      $.fn.autocompleteVufind.element.find('.item').mousedown(function() {
-        populate($(this).attr('data-value'), input, {mouse: true}, true, $(this).attr('id'));
-      });
-      align(input, $.fn.autocompleteVufind.element);
-    }
-
-    function search(input, element) {
-      if (xhr) { xhr.abort(); }
-      if (input.val().length >= options.minLength) {
-        element.html('<i class="item loading">'+options.loadingString+'</i>');
-        show();
-        align(input, $.fn.autocompleteVufind.element);
-        var term = input.val();
-        var cid = input.data('cache-id');
-        if (options.cache && typeof $.fn.autocompleteVufind.cache[cid][term] !== "undefined" && ($.fn.autocompleteVufind.cache['facetsEnabled'] == $( '.searchFormKeepFilters' ).is(':checked'))) {
-          if ($.fn.autocompleteVufind.cache[cid][term].length === 0) {
-            hide();
-          } else {
-            createList($.fn.autocompleteVufind.cache[cid][term], input, element);
+          if (typeof byHistory !== 'undefined') {
+              createListFrom(shell, input, byHistory, VuFind.translate('Recent searches') + ":", true, ' adv_search_history');
+              //createListFrom(shell, input, byHistory, VuFind.translate('in_history'), false);
           }
-        } else if (typeof options.handler !== "undefined") {
-          options.handler(input.val(), function(data) {
-            if (options.cache) {
-              $.fn.autocompleteVufind.cache[cid][term] = data;
-            }
-            $.fn.autocompleteVufind.cache['facetsEnabled'] = $( '.searchFormKeepFilters' ).is(':checked');
-            if (data.length === 0) {
-              hide();
-            } else {
-              createList(data, input, element);
-            }
+          if ((typeof data.byTitle === 'undefined') && (typeof data.byAuthor === 'undefined') && (typeof data.bySubject === 'undefined')) {
+              if (data.length === 0)
+                  createListFrom(shell, input, {}, VuFind.translate("No match found"), true, ' main_notification');
+              else
+                  createListFrom(shell, input, {}, VuFind.translate("Write at least three characters"), true, ' main_notification');
+          } else {
+              createListFrom(shell, input, {}, VuFind.translate('The most commonly occurring') + ":", true);
+              if (data.byTitle.length > 0) {
+                  createListFrom(shell, input, data.byTitle, VuFind.translate('in_titles'), false, 'adv_search_title_series');
+              }
+              if (data.byAuthor.length > 0) {
+                  createListFrom(shell, input, data.byAuthor, VuFind.translate('in_authors'), false, 'adv_search_author_corporation');
+              }
+              if (data.bySubject.length > 0) {
+                  createListFrom(shell, input, data.bySubject, VuFind.translate('in_subjects'), false, 'adv_search_subject_keywords');
+              }
+          }
+
+          $.fn.autocompleteVufind.element.html(shell);
+          $.fn.autocompleteVufind.element.find('.item').mousedown(function () {
+              populate($(this).attr('data-value'), input, {mouse: true}, true, $(this).attr('id'));
           });
-        } else {
-          console.error('handler function not provided for autocomplete');
-        }
-        input.data('selected', -1);
-      } else {
-        hide();
+          align(input, $.fn.autocompleteVufind.element);
       }
-    }
+
+      function search(input, element) {
+          if (xhr) {
+              xhr.abort();
+          }
+          element.html('<i class="item loading">' + options.loadingString + '</i>');
+          show();
+          align(input, $.fn.autocompleteVufind.element);
+          var searchHistory, byHistory;
+          searchHistory = JSON.parse(localStorage.getItem("searchHistory"));
+          if (searchHistory !== null)
+              byHistory = searchHistory.slice(0, options.sizeHistory);
+          if (input.val().length >= options.minLength) {
+              var term = input.val();
+              var cid = input.data('cache-id');
+              //console.log(term);
+              //console.log(cid);
+              if (options.cache && typeof $.fn.autocompleteVufind.cache[cid][term] !== "undefined" && ($.fn.autocompleteVufind.cache['facetsEnabled'] == $('.searchFormKeepFilters').is(':checked'))) {
+                  if ($.fn.autocompleteVufind.cache[cid][term].length === 0) {
+                      hide();
+                  } else {
+                      createList($.fn.autocompleteVufind.cache[cid][term], input, element);
+                  }
+              } else if (typeof options.handler !== "undefined") {
+                  options.handler(input.val(), function (data) {
+                      if (options.cache) {
+                          $.fn.autocompleteVufind.cache[cid][term] = data;
+                      }
+                      $.fn.autocompleteVufind.cache['facetsEnabled'] = $('.searchFormKeepFilters').is(':checked');
+                      createList(byHistory, data, input, element);
+                  });
+              } else {
+                  console.error('handler function not provided for autocomplete');
+              }
+          } else {
+              createList(byHistory, {}, input, element);
+          }
+          input.data('selected', -1);
+      }
 
     function setup(input, element) {
       if (typeof element === 'undefined') {
@@ -207,7 +207,7 @@
         search(input, element);
       });
       input.focus(function() {
-    	  if (input.val().length == 0) {
+    	  if (input.val().length !== 0) {
     		  search(input, element);
     	  }
       });
@@ -295,13 +295,13 @@
                 $(this).data('selected', -1);
               }
             }
-            
+
             /* Hit esc after enter to hide list */
             hide();
             $(this).data('selected', -1);
             element.addClass('autocomplete-results hidden');
             /**/
-            
+
             break;
           }
           // hide on escape
@@ -365,7 +365,8 @@
       highlight: true,
       loadingString: 'Loading...',
       maxResults: 15,
-      minLength: 3
+      minLength: 3,
+      sizeHistory: 3
     };
     $.fn.autocompleteVufind.ajax = function(ops) {
       if (timer) clearTimeout(timer);

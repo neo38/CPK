@@ -881,6 +881,29 @@ jQuery( document ).ready( function( $ ) {
 
         },
 
+        /**
+         * save original searching to local storage
+         */
+        saveLocalStorage: function (searchText) {
+            var searchHistory = JSON.parse(localStorage.getItem("searchHistory"));
+            searchText = searchText.toLowerCase();
+            if (searchHistory !== null) {
+                if (searchHistory.indexOf(searchText) !== -1) {// kontrola opakovani
+                    searchHistory.splice(searchHistory.indexOf(searchText), 1);
+                }
+                if (searchHistory.length >= 20) {
+                    searchHistory.splice(-1, 1);
+                }
+                searchHistory.unshift(searchText);
+            } else {
+                searchHistory = new Array(searchText)
+            }
+            localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+
+            //console.log(JSON.parse(localStorage.getItem("searchHistory")));
+            //localStorage.clear();
+        }
+
     }
 	
 	/**
@@ -1378,12 +1401,12 @@ jQuery( document ).ready( function( $ ) {
 	 */
 	$( 'body' ).on( 'click', '.search-type-template-switch', function( event ) {
 		event.preventDefault();
-		
+
 		var currentUrl = window.location.href;
 		var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
 		
 		var newSearchTypeTemplate = 'basic';
-		
+
 		if (searchTypeTemplate == 'basic') {
 			newSearchTypeTemplate = 'advanced';
 		}

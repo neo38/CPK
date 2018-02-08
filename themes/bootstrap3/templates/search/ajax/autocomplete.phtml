@@ -72,6 +72,8 @@
 			$( 'body' ).on( 'click', '#run-autocomplete', function( event ) {
 				event.preventDefault();
 
+                ADVSEARCH.saveLocalStorage($("#searchForm_lookfor").val());
+
                 /* if autocomplete used in Search/Results, load results async */
                 var href = $( '#run-autocomplete' ).attr( 'href' );
                 var currentUrl = window.location.pathname;
@@ -100,6 +102,9 @@
 			 */
             $( '.searchForm' ).submit( function( event ) {
                 event.preventDefault();
+
+                ADVSEARCH.saveLocalStorage($("#searchForm_lookfor").val());
+
             	var currentUrl = window.location.pathname;
                 var controller = currentUrl.split('/')[1];
                 var action = currentUrl.split('/')[2];

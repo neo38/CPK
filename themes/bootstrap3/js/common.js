@@ -331,7 +331,7 @@ function setupAutocomplete() {
   // Search autocomplete
   $('.autocomplete').each(function(i, op) {
     $(op).autocompleteVufind({
-      maxResults: 6,
+      maxResults: 5,
       cache: false,
       loadingString: VuFind.translate('loading')+'...',
       handler: function(query, cb) {
