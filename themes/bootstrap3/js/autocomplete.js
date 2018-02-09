@@ -109,7 +109,6 @@
 
           if (typeof byHistory !== 'undefined') {
               createListFrom(shell, input, byHistory, VuFind.translate('Recent searches') + ":", true, ' adv_search_history');
-              //createListFrom(shell, input, byHistory, VuFind.translate('in_history'), false);
           }
           if ((typeof data.byTitle === 'undefined') && (typeof data.byAuthor === 'undefined') && (typeof data.bySubject === 'undefined')) {
               if (data.length === 0)
@@ -117,7 +116,7 @@
               else
                   createListFrom(shell, input, {}, VuFind.translate("Write at least three characters"), true, ' main_notification');
           } else {
-              createListFrom(shell, input, {}, VuFind.translate('The most commonly occurring') + ":", true);
+              createListFrom(shell, input, {}, VuFind.translate('The most commonly occurring') + ":", true, '');
               if (data.byTitle.length > 0) {
                   createListFrom(shell, input, data.byTitle, VuFind.translate('in_titles'), false, 'adv_search_title_series');
               }
@@ -150,8 +149,6 @@
           if (input.val().length >= options.minLength) {
               var term = input.val();
               var cid = input.data('cache-id');
-              //console.log(term);
-              //console.log(cid);
               if (options.cache && typeof $.fn.autocompleteVufind.cache[cid][term] !== "undefined" && ($.fn.autocompleteVufind.cache['facetsEnabled'] == $('.searchFormKeepFilters').is(':checked'))) {
                   if ($.fn.autocompleteVufind.cache[cid][term].length === 0) {
                       hide();

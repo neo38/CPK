@@ -888,20 +888,18 @@ jQuery( document ).ready( function( $ ) {
             var searchHistory = JSON.parse(localStorage.getItem("searchHistory"));
             searchText = searchText.toLowerCase();
             if (searchHistory !== null) {
-                if (searchHistory.indexOf(searchText) !== -1) {// kontrola opakovani
-                    searchHistory.splice(searchHistory.indexOf(searchText), 1);
+                var indexOf = searchHistory.indexOf(searchText);
+                if (indexOf !== -1) {// kontrola opakovani
+                    searchHistory.splice(indexOf, 1);
                 }
                 if (searchHistory.length >= 20) {
-                    searchHistory.splice(-1, 1);
+                    searchHistory.pop();
                 }
                 searchHistory.unshift(searchText);
             } else {
                 searchHistory = new Array(searchText)
             }
             localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-
-            //console.log(JSON.parse(localStorage.getItem("searchHistory")));
-            //localStorage.clear();
         }
 
     }
