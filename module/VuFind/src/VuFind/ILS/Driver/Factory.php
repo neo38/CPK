@@ -197,9 +197,6 @@ class Factory
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
             $sessionFactory
         );
-
-        return $kohaRest->setCacheStorage(
-            $sm->getServiceLocator()->get('VuFind\CacheManager')->getCache('object')
-        );
+	    return $kohaRest;
     }
 }
