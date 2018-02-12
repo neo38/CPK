@@ -163,6 +163,7 @@ class ConfigurationsHandler
         // get the templates
         $this->ncipTemplate = $this->configLocator->get('xcncip2_template')->toArray();
         $this->alephTemplate = $this->configLocator->get('aleph_template')->toArray();
+        $this->alephTemplate = $this->configLocator->get('koha_rest_template')->toArray();
 
         // setup email
         $this->approvalConfig = $this->configLocator->get('config')['Approval']->toArray();

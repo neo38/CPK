@@ -98,7 +98,8 @@ $config = array(
                 ],
                 'factories' => array(
                     'multibackend' => 'CPK\ILS\Driver\Factory::getMultiBackend',
-                    'aleph' => 'CPK\ILS\Driver\Factory::getAleph'
+                    'aleph' => 'CPK\ILS\Driver\Factory::getAleph',
+                    'koharest' => 'VuFind\ILS\Driver\Factory::getKohaRest',
                 ), /* factories */
             ], /* ils_driver */
                 'autocomplete' => [

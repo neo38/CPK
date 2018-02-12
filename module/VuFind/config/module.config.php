@@ -394,6 +394,7 @@ $config = [
                     'unicorn' => 'VuFind\ILS\Driver\Factory::getUnicorn',
                     'voyager' => 'VuFind\ILS\Driver\Factory::getVoyager',
                     'voyagerrestful' => 'VuFind\ILS\Driver\Factory::getVoyagerRestful',
+                    'koharest' => 'VuFind\ILS\Driver\Factory::getKohaRest',
                 ],
                 'invokables' => [
                     'amicus' => 'VuFind\ILS\Driver\Amicus',
