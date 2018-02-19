@@ -14,7 +14,8 @@
   <div class="collapse navbar-collapse" id="header-collapse">
     <ul class="nav navbar-nav">
         <li <? if (($this->layout()->headerType != "newlibraries") && ($this->layout()->headerType != "inspiration")): ?>class="active"<? endif; ?> id="catalogSearchLink">
-            <a href="<?=$this->url('home')?>"><?=$this->translate('Catalog')?><span class="sr-only">(current)</span></a>
+            <a href="/Search/Results/?lookfor0[]=&type0[]=AllFields&bool0[]=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=20&sort=relevance&page=1&searchTypeTemplate=basic&database=Solr&keepFacetsEnabled=true&join=AND">
+                <?=$this->translate('Catalog')?><span class="sr-only">(current)</span></a>
         </li>
         <li <? if ($this->layout()->headerType == "inspiration"): ?>class="active"<? endif; ?> >
             <a href="/Search/Inspiration" title="<?=$this->translate('Inspiration')?>"><?=$this->translate('Inspiration')?></a>
