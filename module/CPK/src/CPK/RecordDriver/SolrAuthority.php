@@ -25,7 +25,7 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function getPersonalName()
     {
-        $field = $this->getFieldArray('100', array('a', 'd'));
+        $field = $this->getFieldArray('100', array('a', 'c', 'd'));
         $name = empty($field) ? '' : $field[0];
         return $name;
     }
@@ -81,7 +81,7 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function getHighlightedTitle()
     {
-        $field = $this->getFieldArray('100', array('a', 'd'));
+        $field = $this->getFieldArray('100', array('a', 'c', 'd'));
         $name = empty($field) ? '' : $field[0];
         if (substr($name, -1) == ',') $name = substr($name, 0, -1);
         return $name;
@@ -243,6 +243,24 @@ class SolrAuthority extends ParentSolrMarc
             'type0' => array(0 => 'adv_search_author_corporation'),
             'bool0' => array(0 => 'AND'),
             'lookfor0' => array(0 => $this->getAuthorityId()),
+            'limit' => '2',
+        );
+        $results = $this->searchRunner->run( $request, 'Solr', $this->searchController->getSearchSetupCallback() );
+        return ($results->getResultTotal() > 1) ? true : false;
+    }
+
+    /**
+     * Returns true, if there are publications about this authority.
+     *
+     * @return bool
+     */
+    public function publicationsAboutAvailable()
+    {
+        $request = array(
+            'join' => 'AND',
+            'type0' => array(0 => 'adv_search_subject_keywords'),
+            'bool0' => array(0 => 'AND'),
+            'lookfor0' => array(0 => $this->getAuthorityId()),
             'limit' => '1',
         );
         $results = $this->searchRunner->run( $request, 'Solr', $this->searchController->getSearchSetupCallback() );
@@ -257,6 +275,16 @@ class SolrAuthority extends ParentSolrMarc
     public function getPublicationsUrl()
     {
         return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=" . $this->getAuthorityId();
+    }
+
+    /**
+     * Get link to search publications about authority.
+     *
+     * @return string
+     */
+    public function getAboutPublicationsUrl()
+    {
+        return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_subject_keywords&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=" . $this->getAuthorityId();
     }
 
 }
