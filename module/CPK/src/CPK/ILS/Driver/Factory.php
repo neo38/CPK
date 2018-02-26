@@ -98,9 +98,7 @@ class Factory
             $sessionFactory
         );
 
-        return $kohaRest->setCacheStorage(
-            $sm->getServiceLocator()->get('VuFind\CacheManager')->getCache('object')
-        );
+        return $kohaRest;
     }
 
 }
