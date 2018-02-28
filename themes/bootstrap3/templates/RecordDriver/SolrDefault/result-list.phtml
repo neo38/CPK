@@ -153,6 +153,17 @@
   $recordsInLibraries = $prependedLibraries + $foundRecords;
 
   $firstRecordInInstitutions = reset($recordsInLibraries);
+
+  if ($snippet = $this->driver->getHighlightedSnippet()) {
+      $httpQuery = http_build_query(
+          array(
+              'sn' => $snippet['snippet'],
+              'cap' => $snippet['caption']
+          ));
+      $extReferer = base64_encode(sprintf("%s&%s", base64_decode($this->referer), urlencode($httpQuery)));
+  } else {
+      $extReferer = $this->referer;
+  }
 ?>
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12">
     <div class="white-box clearfix">
@@ -166,7 +177,7 @@
             <? if ($this->fromEmailSearch): ?>
             <a href='/Record/<?=$this->driver->getUniqueID()?>' title='<?=htmlspecialchars($this->driver->getTitle())?>' tabindex='-1' style='cursor: pointer;'>
             <? else: ?>
-            <a href='/Record/<?=$firstRecordInInstitutions['id']?>?referer=<?=$this->referer?>' title='<?=htmlspecialchars($this->driver->getTitle())?>' tabindex='-1' style='cursor: pointer;'>
+            <a href='/Record/<?=$firstRecordInInstitutions['id']?>?referer=<?=$extReferer?>' title='<?=htmlspecialchars($this->driver->getTitle())?>' tabindex='-1' style='cursor: pointer;'>
             <? endif;?>
             	<div class="coverThumbnail cover_<?=$recordId?>">
 
@@ -197,7 +208,7 @@
         <? if ($this->fromEmailSearch): ?>
             <a href="/Record/<?=$this->driver->getUniqueID()?>" class="title">
         <? else: ?>
-            <a href="/Record/<?=$firstRecordInInstitutions['id']?>?referer=<?=$this->referer?>" class="title">
+            <a href="/Record/<?=$firstRecordInInstitutions['id']?>?referer=<?=$extReferer?>" class="title">
         <? endif;?>
 
         <?

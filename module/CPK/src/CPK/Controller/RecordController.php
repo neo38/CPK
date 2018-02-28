@@ -182,6 +182,13 @@ class RecordController extends RecordControllerBase
         if ($referer) {
             $view->referer = $referer;
             $view->refererUrl = $this->base64url_decode($referer);
+            $query = parse_url($view->refererUrl, PHP_URL_QUERY);
+            parse_str(urldecode($query), $output);
+            $snippet = array(
+                'caption' => $output['cap'],
+                'snippet' => $output['sn']
+            );
+            $view->snippet = $snippet;
         }
 
         $view->apikey= (isset($this->getConfig()->GoogleMaps->apikey) && ! empty($this->getConfig()->GoogleMaps->apikey)) ? $this->getConfig()->GoogleMaps->apikey : null;
