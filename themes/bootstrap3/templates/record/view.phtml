@@ -21,6 +21,42 @@
 ?>
 
 <script>
+    dataLayer.push({
+        'page': {
+            'type': 'detail'
+        }
+    });
+</script>
+
+<? if($source != "library"): ?>
+    <script>
+        dataLayer.push({
+            'page': {
+                'category': 'record'
+            }
+        });
+    </script>
+    <? if($source != "auth"): ?>
+        <script>
+            dataLayer.push({
+                'page': {
+                    'library': '<?=$source?>'
+                }
+            });
+        </script>
+    <? endif; ?>
+<? else: ?>
+    <script>
+        dataLayer.push({
+            'page': {
+                'category': 'library'
+            }
+        });
+    </script>
+<? endif; ?>
+
+
+<script>
 	jQuery( document ).ready( function( $ ) {
 		getCitation( '<?=$this->driver->getUniqueID()?>', false, insertCitation );
     });
@@ -30,7 +66,7 @@
     <i class="pr-interface-arrowleft"> </i> <?=$this->translate('Back to search results')?>
 </a>
 <script>
-    if (document.referrer !== ""){
+    if (document.referrer.search("/Search/") !== -1){
         document.getElementById("back-to-search-link-ID").classList.remove("hide");
         document.getElementById("back-to-search-link-ID").setAttribute("href",document.referrer);
     } else {
