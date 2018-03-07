@@ -1017,7 +1017,7 @@ jQuery( document ).ready( function( $ ) {
 	 * Add or remove clicked facet
 	 */
 	$( 'body' ).on( 'click', '.facet-filter-or', function( event ) {
-		event.preventDefault();
+		// event.preventDefault();
 		
 		if ( event.ctrlKey ){
 		     window.open( $( this ).attr( 'href' ), '_blank' );
@@ -1089,7 +1089,7 @@ jQuery( document ).ready( function( $ ) {
 	/*
 	 * Add or remove clicked facet
 	 */
-	$( 'body' ).on( 'click', '.facet-filter', function( event ) {
+	$( 'body' ).on( 'click', '.facet-filter-ebsco', function( event ) {
 		event.preventDefault();
 		
 		if ( event.ctrlKey ){
