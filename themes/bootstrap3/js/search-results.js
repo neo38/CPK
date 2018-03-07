@@ -1030,7 +1030,7 @@ jQuery( document ).ready( function( $ ) {
 	 * Add or remove clicked facet
 	 */
 	$( 'body' ).on( 'click', '.facet-filter-or', function( event ) {
-		// event.preventDefault();
+		event.preventDefault();
 		
 		if ( event.ctrlKey ){
 		     window.open( $( this ).attr( 'href' ), '_blank' );
