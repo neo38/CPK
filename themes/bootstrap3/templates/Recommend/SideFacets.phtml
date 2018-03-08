@@ -558,6 +558,7 @@ $(document).off("click", ".jstree-anchor").on("click", ".jstree-anchor", functio
                     $parts[] = urlencode($key . '[]') . '=' . urlencode($current);
                 }
             } else {
+                if ($key == 'type') { $key = 'type0[]'; }
                 $parts[] = urlencode($key) . '=' . urlencode($value);
             }
         }
