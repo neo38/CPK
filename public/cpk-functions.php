@@ -101,3 +101,117 @@ function dd($var) {
 function d($var) {
     var_dump($var);
 }
+
+/**
+ * Redirect to user friendly error page
+ * @return  mixed
+ */
+function redirectToUserFriendlyErrorPage()
+{
+    $host  = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+    $uri   = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+    $extra = 'error.php';
+    header("Location: http://$host$uri/$extra");
+
+    include_once(__DIR__ . "/../themes/bootstrap3/templates/error/fatal-error-redirect.phtml");
+    exit;
+}
+
+/**
+ * Show error
+ * @param  string $message
+ * @return string
+ */
+function showError(string $message)
+{
+    die("Error!<br>\n" . $message);
+}
+
+/**
+ * Log error to file
+ * @param   string  $message
+ * @return  void
+ */
+function logError(string $message)
+{
+    $logFile = __DIR__ . "/../log/fatal-errors.log";
+    $fp = fopen($logFile, "a");
+    fwrite($fp, $message);
+    fwrite($fp, "");
+    fclose($fp);
+}
+
+function cpkErrorHandler($errorSeverity, $errorMessage, $errorFile, $errorLine, array $errorContext)
+{
+    $message = date("Y-m-d H:i:s ") . PHP_EOL;
+    $message .= friendlyErrorType($errorSeverity) . PHP_EOL;
+    $message .= $errorMessage . PHP_EOL;
+    $message .= "Error on line $errorLine in file $errorFile" . PHP_EOL . PHP_EOL;
+
+    logError($message);
+
+    if (0 === error_reporting() || // error was suppressed with the @-operator
+        in_array(
+            friendlyErrorType($errorSeverity),
+            array_map('trim', explode(',', IGNORED_ERROR_TYPES))
+        )
+    ) {
+        return false;
+    }
+
+    if (php_sapi_name() == 'cli' ||
+        defined('STDIN') ||
+        (isset($_SERVER['argc']) && is_numeric($_SERVER['argc'])) ||
+        (isset($_SERVER['argc']) && $_SERVER['argc'] > 0)
+    ) {
+        return false;
+    }
+
+    if (! isset($_SERVER['VUFIND_ENV'])) {
+        exit('Variable VUFIND_ENV is not set in Apache config! [Ignore this message when in CLI]');
+    }
+
+    switch ($_SERVER['VUFIND_ENV']) {
+        case 'production':
+            redirectToUserFriendlyErrorPage();
+            break;
+        case 'development':
+            showError($message);
+            break;
+        default:
+            die('Variable VUFIND_ENV has strange value in Apache config! [Ignore this message when in CLI]');
+    }
+};
+
+function cpkExceptionHandler(\Exception $exception)
+{
+    $message = date("Y-m-d H:i:s ");
+    $message .= get_class($exception) . PHP_EOL;
+    $message .= htmlentities($exception->getMessage()) . PHP_EOL . PHP_EOL;
+
+    logError($message);
+
+    if (php_sapi_name() == 'cli' ||
+        defined('STDIN') ||
+        (isset($_SERVER['argc']) && is_numeric($_SERVER['argc'])) ||
+        (isset($_SERVER['argc']) && $_SERVER['argc'] > 0)
+    ) {
+        return false;
+    }
+
+    if (! isset($_SERVER['VUFIND_ENV'])) {
+        exit('Variable VUFIND_ENV is not set in Apache config! [Ignore this message when in CLI]');
+    }
+
+    switch ($_SERVER['VUFIND_ENV']) {
+        case 'production':
+            redirectToUserFriendlyErrorPage();
+            break;
+        case 'development':
+            showError($message);
+            throw $exception;
+            break;
+        default:
+            die('Variable VUFIND_ENV has strange value in Apache config! [Ignore this message when in CLI]');
+    }
+}
