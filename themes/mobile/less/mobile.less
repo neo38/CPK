@@ -1,0 +1,31 @@
+@
+@font-size-facets: 22px;
+@space-facets: 14px;
+
+.side-facets-placeholder-active {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  left: 0;
+  top: Calc(@font-size-facets + 2*@space-facets);
+  position: fixed;
+  z-index: 20000;
+  overflow-x: auto;
+}
+
+.bar-facets {
+  padding: @space-facets;
+}
+
+.font-facets {
+  font-size: @font-size-facets;
+  font-weight: bold;
+}
+
+.scroll-block {
+  overflow: hidden;
+}
+
+.footer-search-inactive {
+  margin-bottom: Calc(@font-size-facets + 2*@space-facets);;
+}

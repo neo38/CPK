@@ -80,8 +80,20 @@
   <div class='col-xs-12 col-sm-12 col-md-12 col-lg-6' style='padding-right: 20px;'>
 	<h2><?=$this->translate('Footer header')?></h2>
 	<p class='info'>
-	<?=$this->translate('Footer text')?>
-	</p>
+        <?=$this->translate('Footer text')?>
+    </p>
+    <?=($_COOKIE['ui'] == 'mobile')? $this->translate('standard_version') :  $this->translate('mobile_version');?><br>
+      <form action="<?
+      if ($_COOKIE['ui'] == 'standard') {
+          setcookie('ui','mobile');
+          $_COOKIE['ui']='mobile';
+      } else {
+          setcookie('ui', 'standard');
+          $_COOKIE['ui'] = 'standard';
+      }
+      ?>">
+          <input type="submit">
+      </form>
   </div>
   <div class='col-xs-12 col-sm-12  col-md-12  col-lg-3  footer-item'>
     <h2><?=$this->translate('Develops')?></h2>
@@ -114,7 +126,7 @@
         </div>
 
     </div>
-	<div class='copyright'>
+	<div id="copyright" class='copyright'>
 		<p>
 			<span>&copy; 2015 - <?=date("Y")?></span>
 			<a href='http://mzk.cz/' title='<?=$this->translate('source_mzk');?>' target='_blank'>Moravian Library</a>

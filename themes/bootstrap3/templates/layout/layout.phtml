@@ -1,3 +1,19 @@
+<?
+//unset($_COOKIE['ui']);
+
+// setcookie('ui','dark');
+// $_COOKIE['ui']='dark';
+
+$mobile = new \VuFindTheme\Mobile();
+if (($mobile->detect()) && (!isset($_COOKIE['ui']))) {
+    setcookie('ui','mobile');
+    $_COOKIE['ui']='mobile';
+}
+else if (!isset($_COOKIE['ui'])) {
+    setcookie('ui','standard');
+    $_COOKIE['ui']='standard';
+}
+?>
 <?=$this->doctype('HTML5')?>
 <html lang="<?=explode("-", $this->layout()->userLang)[0]?>">
   <head>

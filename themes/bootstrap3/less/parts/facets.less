@@ -24,7 +24,7 @@
     margin-left: -18px;
     font-size: 20px;
     margin-top: -5px;
-    color: #e5004b
+    color: @primary;
   }
 
   .btn-default {
@@ -124,11 +124,11 @@ li.jstree-facet ul {
 .sidebar .list-group:not(.filters) {
   .title::after {
       content: none;
-      color: #e5004b !important;
+      color: @primary !important;
   }
 
   .title.collapsed::after {
-      color: #e5004b !important;
+      color: @primary!important;
       content: none;
   }
 
@@ -187,8 +187,12 @@ li.jstree-facet ul {
 .geo-denied {
   display: none;
   text-align: center;
-  color: #ca1010;
+  color: @brand-danger;
   border: 1px solid red;
   padding: 10px;
   font-size: 20px;
+}
+
+.side-facets-placeholder-active {
+  background: @body-bg;
 }
