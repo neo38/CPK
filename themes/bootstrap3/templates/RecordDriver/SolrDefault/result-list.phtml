@@ -154,6 +154,7 @@
 
   $firstRecordInInstitutions = reset($recordsInLibraries);
 
+  $extReferer = $this->referer;
   if ($snippet = $this->driver->getHighlightedSnippet()) {
       $httpQuery = http_build_query(
           array(
@@ -161,8 +162,6 @@
               'cap' => $snippet['caption']
           ));
       $extReferer = base64_encode(sprintf("%s&%s", base64_decode($this->referer), urlencode($httpQuery)));
-  } else {
-      $extReferer = $this->referer;
   }
 ?>
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12">
