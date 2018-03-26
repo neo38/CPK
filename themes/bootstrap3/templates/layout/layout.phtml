@@ -1,16 +1,20 @@
 <?
-//unset($_COOKIE['ui']);
-
-// setcookie('ui','dark');
-// $_COOKIE['ui']='dark';
-
+if (!empty($_POST['theme']) && $_POST['theme'] == $_COOKIE['ui']) {
+    if ($_POST['theme'] == 'mobile'){
+        setcookie('ui','standard',time()+24*60*60,'/');
+    } else {
+        setcookie('ui', 'mobile', time() + 24*60*60, '/');
+    }
+    header('Location: '.(isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+    exit;
+}
 $mobile = new \VuFindTheme\Mobile();
 if (($mobile->detect()) && (!isset($_COOKIE['ui']))) {
-    setcookie('ui','mobile');
+    setcookie('ui','mobile',time()+24*60*60,'/');
     $_COOKIE['ui']='mobile';
 }
 else if (!isset($_COOKIE['ui'])) {
-    setcookie('ui','standard');
+    setcookie('ui','standard',time()+24*60*60,'/');
     $_COOKIE['ui']='standard';
 }
 ?>

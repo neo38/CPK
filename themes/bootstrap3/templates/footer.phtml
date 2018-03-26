@@ -82,17 +82,10 @@
 	<p class='info'>
         <?=$this->translate('Footer text')?>
     </p>
-    <?=($_COOKIE['ui'] == 'mobile')? $this->translate('standard_version') :  $this->translate('mobile_version');?><br>
-      <form action="<?
-      if ($_COOKIE['ui'] == 'standard') {
-          setcookie('ui','mobile');
-          $_COOKIE['ui']='mobile';
-      } else {
-          setcookie('ui', 'standard');
-          $_COOKIE['ui'] = 'standard';
-      }
-      ?>">
-          <input type="submit">
+      <form action="#" method="POST" class="text-center">
+          <button id="switch-lang" type="submit" name="theme" value="<?=$_COOKIE['ui']?>">
+              <i class="pr-tool-<?=($_COOKIE['ui'] == 'mobile')? 'computermonitor' : 'cellphoneandroidmobile' ;?>" title="<?=($_COOKIE['ui'] == 'mobile')? $this->translate('standard_version') :  $this->translate('mobile_version');?>"></i>
+          </button>
       </form>
   </div>
   <div class='col-xs-12 col-sm-12  col-md-12  col-lg-3  footer-item'>
