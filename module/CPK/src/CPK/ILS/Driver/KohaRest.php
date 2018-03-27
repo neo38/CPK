@@ -40,5 +40,27 @@ use VuFind\ILS\Driver\KohaRest as KohaRestBase;
  */
 class KohaRest extends KohaRestBase
 {
+    public function __construct(\VuFind\Date\Converter $dateConverter, Callable $sessionFactory)
+    {
+        parent::__construct($dateConverter, $sessionFactory);
+    }
 
+    /**
+     * Get Statuses
+     *
+     * This is responsible for retrieving the status information for a
+     * collection of records.
+     *
+     * @param array $ids The array of record ids to retrieve the status for
+     *
+     * @return mixed     An array of getStatus() return values on success.
+     */
+    public function getStatuses($ids, ...$params)
+    {
+        $biblioId = explode(":" ,$params[2]);
+        $biblioId = $biblioId[1];
+        $items = $this->getItemStatusesForBiblio($biblioId);
+
+        return $items;
+    }
 }

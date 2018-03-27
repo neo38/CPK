@@ -28,8 +28,9 @@
  */
 namespace CPK\ILS\Driver;
 
-use VuFind\Exception\ILS as ILSException, VuFind\ILS\Driver\MultiBackend as MultiBackendBase, CPK\ILS\Driver\SolrIdResolver as SolrIdResolver, CPK\ILS\Driver\Aleph, CPK\ILS\Driver\XCNCIP2, VuFind\ILS\Driver\KohaRest;
+use VuFind\Exception\ILS as ILSException, VuFind\ILS\Driver\MultiBackend as MultiBackendBase, CPK\ILS\Driver\SolrIdResolver as SolrIdResolver, CPK\ILS\Driver\Aleph, CPK\ILS\Driver\XCNCIP2;
 use CPK\Mailer\Mailer;
+use CPK\ILS\Driver\KohaRest;
 
 /**
  * Multiple Backend Driver.
