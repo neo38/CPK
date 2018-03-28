@@ -63,4 +63,148 @@ class KohaRest extends KohaRestBase
 
         return $items;
     }
+
+    /**
+     * Get Patron Profile
+     *
+     * This is responsible for retrieving the profile for a specific patron.
+     *
+     * @param array $patron The patron array
+     *
+     * @return array        Array of the patron's profile data on success.
+     */
+    public function getMyProfile($patron)
+    {
+        $result = $this->makeRequest(
+            ['v1', 'patrons', 52], false, 'GET', $patron
+        );
+        $expirationDate = !empty($result['dateexpiry'])
+            ? $this->dateConverter->convertToDisplayDate(
+                'Y-m-d', $result['dateexpiry']
+            ) : '';
+
+
+        return [
+            'firstname' => $result['firstname'],
+            'lastname' => $result['surname'],
+            'phone' => $result['mobile'],
+            'smsnumber' => $result['smsalertnumber'],
+            'email' => $result['email'],
+            'address1' => $result['address'],
+            'address2' => $result['address2'],
+            'zip' => $result['zipcode'],
+            'city' => $result['city'],
+            'country' => $result['country'],
+            'expire' => $expirationDate,
+            'cat_username' => $patron['cat_username']
+        ];
+    }
+
+    /**
+     * Get Patron Fines
+     *
+     * This is responsible for retrieving all fines by a specific patron.
+     *
+     * @param array $patron The patron array from patronLogin
+     *
+     * @return array        Array of the patron's fines on success.
+     */
+    public function getMyFines($patron)
+    {
+        $fines = parent::getMyFines($patron);
+        foreach ($fines as &$fine) {
+            $fine['payableOnline'] = true;
+        }
+        return $fines;
+    }
+
+    /**
+     * Get statuses for an item
+     *
+     * @param array $item Item from Koha
+     *
+     * @return array Status array and possible due date
+     */
+    protected function getItemStatusCodes($item)
+    {
+        $statuses = [];
+        if ($item['availability']['available']) {
+            $statuses[] = $this->translator->translate('status_available');
+        } elseif (isset($item['availability']['unavailabilities'])) {
+            foreach ($item['availability']['unavailabilities'] as $key => $reason) {
+                if (isset($this->config['ItemStatusMappings'][$key])) {
+                    $statuses[] = $this->config['ItemStatusMappings'][$key];
+                } elseif (strncmp($key, 'Item::', 6) == 0) {
+                    $status = substr($key, 6);
+                    switch ($status) {
+                        case 'CheckedOut':
+                            $overdue = false;
+                            if (!empty($reason['date_due'])) {
+                                $duedate = $this->dateConverter->convert(
+                                    'Y-m-d',
+                                    'U',
+                                    $reason['date_due']
+                                );
+                                $overdue = $duedate < time();
+                            }
+                            $statuses[] = $overdue ? 'Overdue' : $this->translator->translate('status_On Loan');
+                            break;
+                        case 'Lost':
+                            $statuses[] = $this->translator->translate('status_Lost');
+                            break;
+                        case 'NotForLoan':
+                        case 'NotForLoanForcing':
+                            if (isset($reason['code'])) {
+                                switch ($reason['code']) {
+                                    case 'Not For Loan':
+                                        $statuses[] = 'On Reference Desk';
+                                        break;
+                                    default:
+                                        $statuses[] = $reason['code'];
+                                        break;
+                                }
+                            } else {
+                                $statuses[] = 'On Reference Desk';
+                            }
+                            break;
+                        case 'Transfer':
+                            $onHold = false;
+                            if (!empty($item['availability']['notes'])) {
+                                foreach ($item['availability']['notes'] as $noteKey
+                                => $note
+                                ) {
+                                    if ('Item::Held' === $noteKey) {
+                                        $onHold = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            $statuses[] = $onHold ? 'In Transit On Hold' : 'In Transit';
+                            break;
+                        case 'Held':
+                            $statuses[] = 'On Hold';
+                            break;
+                        case 'Waiting':
+                            $statuses[] = 'On Hold';
+                            break;
+                        default:
+                            $statuses[] = !empty($reason['code'])
+                                ? $reason['code'] : $status;
+                    }
+                }
+            }
+            if (empty($statuses)) {
+                $statuses[] = 'Not Available';
+            }
+        } else {
+            $this->error(
+                "Unable to determine status for item: " . print_r($item, true)
+            );
+        }
+
+        if (empty($statuses)) {
+            $statuses[] = 'No information available';
+        }
+        return array_unique($statuses);
+    }
 }
