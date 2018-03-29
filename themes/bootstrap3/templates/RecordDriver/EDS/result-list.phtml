@@ -6,8 +6,7 @@ $recordSource = explode(".", $recordId)[0];
 $format = $this->driver->getPubTypeId();
 $items = $this->driver->getItems();
 $lookfor = $this->results->getUrlQuery()->isQuerySuppressed() ? '' : $this->params->getDisplayQuery();
-//var_dump($this->driver); exit();
-//var_dump($items); exit();
+
 if (empty($lookfor)) {
     $lookfor = $this->record($this->driver)->getObalkyKnihAdvert('results');
 }
@@ -22,20 +21,18 @@ $authors = $this->driver->getAuthors();
 $sourceTitle = $this->driver->getSourceTitle();
 $volume = $this->driver->getVolume();
 $accessUrl = $this->driver->getAccessUrl();
-//var_dump($accessUrl);exit();
+
 ?>
 <div class="white-box clearfix">
     <div class="row col-xs-12 source<?=$this->escapeHtmlAttr($this->driver->getSourceIdentifier())?> recordId<?=$this->driver->supportsAjaxStatus()?' ajaxItemId':''?>">
         <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
         <div class="col-sm-2 col-xs-3 left">
 
-            <div class="coverThumbnail cover_<?=$id?>">
-                <? if (! empty($format)): ?>
-                    <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-eds-<?=$format?>"></i></div>
-                <? else: ?>
-                    <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-eds-unknown"></i></div>
-                <? endif; ?>
+          <div class="coverThumbnail cover_<?=$id?>">
+            <div class="iconlabel">
+              <i class="cover-pr-icon-medium pr-format-eds-<?= $format ?? 'unknown' ?>"></i>
             </div>
+          </div>
 
         </div>
         <div class="col-sm-7 col-xs-7 middle search-result-container">

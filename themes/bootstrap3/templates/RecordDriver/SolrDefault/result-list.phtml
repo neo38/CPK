@@ -7,6 +7,7 @@
   if (empty($lookfor)) {
       $lookfor = $this->record($this->driver)->getObalkyKnihAdvert('results');
   }
+  $isAuthority = ($this->driver instanceof \CPK\RecordDriver\SolrAuthority);
 
   /* Display information on duplicate records if available */
   $records = $this->driver->getDedupData();
@@ -172,18 +173,31 @@
 
                     <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
                         <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-                        <div data-obalkyknihcz="displayAuthorityCover" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
+                        <div data-obalkyknihcz="displayAuthorityCover"
+                             data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>"
+                             data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>"
+                             data-recordId="<?=$recordId?>"
+                             data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'authority-unknown') ?>">
+                        </div>
                         <? else: ?>
-                        <div data-obalkyknihcz="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
+                        <div
+                            data-obalkyknihcz="displayCover"
+                            data-advert="<?=htmlspecialchars($lookfor, ENT_QUOTES)?>"
+                            data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>"
+                            data-recordId="<?=$recordId?>"
+                            data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+                        </div>
                         <? endif; ?>
                     <? endif;?>
-                    <? if (! empty($formats)): ?>
-                        <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>
-                    <? elseif ($summThumb = $this->record($this->driver)->getThumbnail()): ?>
-                        <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
-                    <? else: ?>
-                        <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
-                    <? endif; ?>
+
+                    <div class="iconlabel">
+                      <? if (! empty($formats)): ?>
+                        <i class="cover-pr-icon-medium pr-format-<?= $this->record($this->driver)->getFormatClass($formats[0]) ?>"></i>
+                      <? else: ?>
+                        <i class="cover-pr-icon-medium pr-format-<?= $isAuthority ? 'authority-unknown' : 'unknown' ?>"></i>
+                      <? endif; ?>
+                    </div>
+
                 </div>
             </a>
             <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
@@ -317,7 +331,12 @@
           <? endforeach; ?>
         <? endif; ?>
       <? else: ?>
-          <div data-obalkyknihcz="displaySummaryShort" data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>" data-recordId="<?=$recordId?>"></div>
+          <div
+              data-obalkyknihcz="displaySummaryShort"
+              data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>"
+              data-recordId="<?=$recordId?>"
+              data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+          </div>
           <span id="short_summary_<?=$recordId?>"><i class="fa fa-spinner fa-spin"></i>&nbsp;<?=$this->transEsc('loading_obalkyknih_summary')?></span><br/>
       <? endif; ?>
 

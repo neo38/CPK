@@ -3,9 +3,12 @@
     $id = $this->driver->getUniqueID();
     $source = explode(".", $id)[0];
 
+    $this->headLink()->appendStylesheet('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css');
+
   // Set up standard record scripts:
   $this->headScript()->appendFile("record.js");
   $this->headScript()->appendFile("check_save_statuses.js");
+  $this->headScript()->appendFile("//cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js");
 
   // Activate Syndetics Plus if necessary:
   if ($this->syndeticsPlus()->isActive()) {
@@ -408,4 +411,3 @@
 </div>
 
 <?=$this->inlineScript(\Zend\View\Helper\HeadScript::SCRIPT, '$(document).ready(recordDocReady);', 'SET'); ?>
-

@@ -15,8 +15,6 @@
                 <input form="cancelHold" type="checkbox" name="cancelSelectedIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" id="checkbox_<?=$safeId?>" />
               <? endif; ?>
             </div>
-          <? else: ?>
-            <div class="col-xs-1"></div>
           <? endif; ?>
           <div class="col-md-2 text-center">
             <?
@@ -27,12 +25,25 @@
             <? $recordId =  preg_replace('/[\.:]/', '', $recordId)?>
             <div id="cover_<?=$recordId?>" class="coverThumbnail">
               <? if (! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-              <div data-obalkyknihcz="displayThumbnail" data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+              <div
+                  data-obalkyknihcz="displaySmallCover"
+                  data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>"
+                  data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+                  data-recordId="<?=$recordId?>"
+                  data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+              </div>
+              <div class="iconlabel">
+                <? if (! empty($formats)): ?>
+                  <i class="cover-pr-icon-medium pr-format-<?= $this->record($this->driver)->getFormatClass($formats[0]) ?>"></i>
+                <? else: ?>
+                  <i class="cover-pr-icon-medium pr-format-unknown' ?>"></i>
+                <? endif; ?>
+              </div>
               <? endif;?>
             </div>
           </div>
 
-          <div class="col-sm-6 col-xs-12">
+          <div class="col-sm-7 col-xs-12">
             <?
               // If this is a non-missing Solr record, we should display a link:
               if (is_a($resource, 'VuFind\\RecordDriver\\SolrDefault') && !is_a($resource, 'VuFind\\RecordDriver\\Missing')) {

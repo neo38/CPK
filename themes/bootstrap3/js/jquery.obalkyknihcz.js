@@ -12,13 +12,17 @@
  * @todo Check if all strings for `VuFind.translate` are really registered!
  * @todo Append just class according to size type to the image - do not use "width" or "height" attributes!!!
  * @todo [PHP] We need ZF view helpers to render all.
+ *
+ * @fixme responsive
+ * @fixme (resit v MZK siti) user 702 - Nefunguje nacitani obalek pri strankovani
+ * @fixme Obálky čísel periodik https://bugzilla.knihovny.cz/show_bug.cgi?id=250
  */
 
 (function( $, document ) {
 	"use strict";
 
 	// This is pretty experimental ;)
-	var XHR_OPTIMALIZATIONS = false;
+	let XHR_OPTIMALIZATIONS = false;
 
 	/**
 	 * Prototype object for single book's metadata (see documentation for ObalkyKnih.cz API)
@@ -52,13 +56,13 @@
 	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
 	 */
 	function BookMetadataPrototype() {
-		var _id, annot, burl, bibTitle, bibYear, bibInfo, bookId, cvrIconUrl,
+		let _id, annot, burl, bibTitle, bibYear, bibInfo, bookId, cvrIconUrl,
 			cvrMediumUrl, cvrPreviewUrl, cvrThumbUrl, csn, csnSrc, ean, eanOther,
 			flag, nbn, oclc, origHeight, origWidth, root, ratCnt, ratSum, revs,
 			sucCvrCnt, sucTocCnt;
 
 		// Public API
-		var Meta = Object.create( null );
+		let Meta = Object.create( null );
 
 		Object.defineProperties( Meta, {
 			"_id": { get: function() { return _id; }, set: function( v ) { _id = v; } },
@@ -99,7 +103,7 @@
 	 * @todo Check against the ObalkyKnih.cz API if all properties are included!
 	 */
 	BookMetadataPrototype.parseFromObject = function parseMetadataFromObject( metadata ) {
-		var ret = new BookMetadataPrototype();
+		let ret = new BookMetadataPrototype();
 
 		ret._id = metadata.hasOwnProperty( "_id" ) ? "" : metadata._id;
 		ret.annotation = metadata.hasOwnProperty( "annotation" ) ? {} : metadata.annotation;
@@ -146,7 +150,7 @@
 	 * @constructor
 	 */
 	function CoverPrototype( action, advert, bibInfo, record, target ) {
-		var act, adv, bi, elm, rec;
+		let act, adv, bi, elm, rec;
 
 		// Process optional parameters
 		if ( action !== undefined && typeof action === "string" ) {
@@ -170,7 +174,7 @@
 		}
 
 		// Public API
-		var Cover = Object.create( null );
+		let Cover = Object.create( null );
 
 		Object.defineProperties( Cover, {
 			"action"      : { get: function() { return act; }, set: function( v ) { act = v; } },
@@ -190,7 +194,7 @@
 	 * @throws Throws errors whenever parsing of element or bibInfo failed.
 	 */
 	CoverPrototype.parseFromElement = function parseCoverFromElement( elm ) {
-		var cover = new CoverPrototype(),
+		let cover = new CoverPrototype(),
 		    bi = Object.create( null );
 
 		// Just to be sure that we are processing correct element
@@ -208,6 +212,7 @@
 		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
 		cover.bibInfo     = bi;
 		cover.record      = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
+        cover.format      = elm.hasAttribute( "data-format" ) ? elm.getAttribute( "data-format" ) : "";
 
 		return cover;
 	};
@@ -220,25 +225,24 @@
 	 * @param {string} extra (Optional.)
 	 */
 	function processCover( cvr, extra ) {
-		extra = extra === undefined ? "icon" : extra;
+		extra = extra === undefined ? "medium" : extra;
 
 		switch( cvr.action ) {
 
 			// These actions don't perform Ajax (and is better to render
 			// them through PHP using ZF view helpers if possible).
 			case "fetchImage": fetchImage( cvr, extra ); break;
-			case "fetchImageWithoutLinks": fetchImageWithoutLinks( cvr, extra ); break;
 			case "displayThumbnail": displayThumbnail( cvr ); break;
-			case "displayThumbnailWithoutLinks": displayThumbnailWithoutLinks( cvr ); break;
 
 			// These actions perform Ajax but grouping is not possible
+
+            case "displaySmallCover": displaySmallCover( cvr ); break;
 			case "displayCover": displayCover( cvr ); break;
-			case "displayCoverWithoutLinks": displayCoverWithoutLinks( cvr ); break;
-			case "displayThumbnailCoverWithoutLinks": displayThumbnailCoverWithoutLinks( cvr ); break;
+            case "displayCoreCover": displayCover( cvr, 'core' ); break;
 
 			// These actions perform Ajax and are grouped
 			case "displayAuthorityCover": displayAuthorityCover( cvr ); break;
-			case "displayAuthorityThumbnailCoverWithoutLinks": displayAuthorityThumbnailCoverWithoutLinks( cvr ); break;
+            case "displayAuthorityCoreCover": displayAuthorityCover( cvr, 'core' ); break;
 			case "displaySummary": displaySummary( cvr ); break;
 			case "displaySummaryShort": displaySummaryShort( cvr ); break;
 		}
@@ -253,7 +257,12 @@
 	 * @returns {string}
 	 */
 	function getImageUrl( baseUrl, bibInfo, type, query ) {
-		return baseUrl +
+
+		if (undefined == bibInfo) {
+			let bibInfo = {};
+		}
+
+        return baseUrl +
 			"?multi=" + encodeURIComponent( JSON.stringify( bibInfo ) ) +
 			"&type=" + type + "&keywords=" + encodeURIComponent( query );
 	}
@@ -266,7 +275,7 @@
 	 * @returns {HTMLImageElement}
 	 */
 	function createImage( src, alt, type ) {
-		var img = document.createElement( "img" );
+		let img = document.createElement( "img" );
 
 		img.setAttribute( "src", src );
 		img.setAttribute( "alt", obalkyknihcz.coverText );
@@ -279,14 +288,17 @@
 	 * @private Creates anchor element.
 	 * @param {string} href
 	 * @param {HTMLImageElement} img
+     * @param {string} target
 	 * @returns {HTMLAnchorElement}
 	 */
-	function createAnchor( href, img ) {
-		var a = document.createElement( "a" );
+	function createAnchor( href, img, target = '_self' ) {
+		let a = document.createElement( "a" );
 
 		a.setAttribute( "href", href );
 		a.classList.add( "title" );
 		a.appendChild( img );
+
+		a.setAttribute( "target", target );
 
 		return a;
 	}
@@ -298,7 +310,7 @@
 	 * @returns {HTMLDivElement}
 	 */
 	function createDiv( cls, elm ) {
-		var div = document.createElement( "div" );
+		let div = document.createElement( "div" );
 
 		div.classList.add( "obalkyknihcz-" + cls );
 		div.appendChild( elm );
@@ -311,165 +323,159 @@
 	 * @param {CoverPrototype} cover
 	 * @param {string} type (Optional.)
 	 */
-	function fetchImage( cover, type ) {
+	function fetchImage( cover, type ) {console.log(type);
 		type = type === undefined ? "medium" : type;
 		$.ajax({
 			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
 			dataType: "image",
 			success: function( img ) {
 				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, type );
-					$( cover.target ).empty().append( createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm ) );
+					let imgElm = createImage( img.src, obalkyknihcz.coverText, type );
+					$( cover.target ).empty().append( createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm, '_blank' ) );
 				}
-			}
+			},
 		});
 	}
 
-	/**
-	 * @private Fetches image for the given cover. Renders image without link.
-	 * @param {CoverPrototype} cover
-	 * @param {string} type (Optional.)
-	 */
-	function fetchImageWithoutLinks( cover, type ) {
-		type = type === undefined ? "thumbnail" : type;
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, type );
-					$( cover.target ).empty().append( imgElm );
-				}
-			}
-		});
-	}
+    /**
+     * @param {CoverPrototype} cover
+	 * @param {string} iconType icon|thumbnail|medium|core
+     */
+    function displayCover( cover, iconType = 'medium' ) {
+
+        let isCore = (iconType == 'core');
+        let type = 'medium';
+        let size = isCore ? 'preview510' : type;
+
+        // Firstly we need to load cover
+        $.ajax({
+            url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, size, cover.advert ),
+            dataType: "image",
+            success: function( img ) {
+
+                if ( img ) {
+
+                    // Empty target element
+                    $( cover.target ).empty();
+
+                    let imgElm = createImage( img.src, obalkyknihcz.coverText, type );
+
+                    if (isCore) {
+                        let bigImageAnchorElm = createAnchor( img.src, imgElm) ;
+                        bigImageAnchorElm.setAttribute( "class", "fancyZoomImage" );
+                        $( cover.target ).prepend( createDiv( "cover", bigImageAnchorElm ) );
+
+                        $( '.fancyZoomImage' ).fancybox({
+                            'hideOnContentClick': true,
+                            'transitionIn'	:	'elastic',
+                            'transitionOut'	:	'elastic',
+                            'speedIn'		:	600,
+                            'speedOut'		:	200,
+                            'overlayShow'	:	false
+                        });
+                    } else {
+                        $( cover.target ).prepend( createDiv( "cover", imgElm ) );
+                    }
+
+                    if (isCore) {
+
+						// Secondly we need to load TOC
+						$.ajax({
+							url: getImageUrl( obalkyknihcz.tocUrl, cover.bibInfo, "medium", cover.advert ),
+							dataType: "image",
+							success: function( img ) {
+								if ( img ) {
+									let imgElm = createImage( img.src, obalkyknihcz.tocText, type );
+									let anchorElm = createAnchor( getPdfTargetUrl( cover.bibInfo ), imgElm, '_blank' );
+									$( cover.target ).find( ".obalkyknihcz-cover" ).append( createDiv( "toc", anchorElm ) );
+								}
+							}
+						});
+
+                        // Load info text (about the source)
+                        let infoDivElm = document.createElement( "div" ),
+                            infoText = document.createTextNode( VuFind.translate( "Source" ) ),
+                            infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
+                            infoAnchorElm = document.createElement( "a" ),
+                            infoAnchorTxt = document.createTextNode( VuFind.translate( "obalkyknihcz_title" ) );
+
+                        $( cover.target ).append( infoDivElm );
+
+                        infoDivElm.classList.add("obalky-knih-link", "col-md-12");
+
+                        infoAnchorElm.setAttribute("href", getCoverTargetUrl(cover.bibInfo));
+                        infoAnchorElm.setAttribute("target", "_blank");
+                        infoAnchorElm.classList.add("title");
+
+                        infoAnchorElm.appendChild(infoAnchorTxt);
+                        infoDivElm.appendChild(infoText);
+                        infoDivElm.appendChild(infoTextSep);
+                        infoDivElm.appendChild(infoAnchorElm);
+                    }
+
+                }
+            }
+        });
+
+    }
+
+    /**
+     * @param {CoverPrototype} cover
+     */
+    function displaySmallCover( cover ) {
+
+        let type = 'medium';
+        let size = 'small';
+
+        let coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" )
+            ? getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert )
+            : cover.bibInfo.cover_medium_url;
+
+        $.ajax({
+            url: coverUrl,
+            dataType: "image",
+            success: function( img ) {
+                if ( img ) {
+                    let imgElm = createImage( img.src, obalkyknihcz.coverText, size );
+                    $( cover.target ).empty().append( createDiv( "cover", imgElm ) );
+                }
+            }
+        });
+    }
+
+    /**
+     * @param {CoverPrototype} cover
+     */
+    function displayThumbnail( cover ) {
+
+        let type = 'thumbnail';
+
+        let coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" )
+            ? getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert )
+            : cover.bibInfo.cover_medium_url;
+
+        $.ajax({
+            url: coverUrl,
+            dataType: "image",
+            success: function( img ) {
+                if ( img ) {
+                    let imgElm = createImage( img.src, obalkyknihcz.coverText, type );
+                    $( cover.target ).empty().append( createDiv( "cover", imgElm ) );
+                }
+            }
+        });
+    }
 
 	/**
 	 * @param {CoverPrototype} cover
+     * @param {string} iconType icon|thumbnail|medium|core
 	 */
-	function displayThumbnail( cover ) {
-		fetchImage( cover, "medium" );
-	}
+	function displayAuthorityCover( cover, iconType = 'medium' ) {
 
-	/**
-	 * @param {CoverPrototype} cover
-	 */
-	function displayThumbnailWithoutLinks( cover ) {
-		fetchImageWithoutLinks( cover, "medium" );
-	}
+        let isCore = (iconType == 'core');
+        let type = 'medium';
 
-	/**
-	 * @param {CoverPrototype} cover
-	 * @todo If we clear target element at the first place we need to assure that some content is shown even no images were not returned.
-	 */
-	function displayCover( cover ) {
-		$( cover.target ).empty();
-
-		// Firstly we need to load cover
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" ),
-						anchorElm = createAnchor( getCoverTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).prepend( createDiv( "cover", anchorElm ) );
-				}
-			}
-		});
-
-		// Secondly we need to load TOC
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.tocUrl, cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.tocText, "medium" ),
-						anchorElm = createAnchor( getPdfTargetUrl( cover.bibInfo ), imgElm );
-					$( cover.target ).append( createDiv( "toc", anchorElm ) );
-				}
-			}
-		});
-	}
-
-	/**
-	 * @param {CoverPrototype} cover
-	 */
-	function displayCoverWithoutLinks( cover ) {
-
-		// Empty target element
-		$( cover.target ).empty();
-
-		// Load info text (about the source)
-		var infoDivElm = document.createElement( "div" ),
-		    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
-		    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
-		    infoAnchorElm = document.createElement( "a" ),
-		    infoAnchorTxt = document.createTextNode( VuFind.translate( "obalkyknihcz_title" ) );
-
-		infoDivElm.classList.add( "obalky-knih-link", "col-md-12" );
-
-		infoAnchorElm.setAttribute( "href", getCoverTargetUrl( cover.bibInfo ) );
-		infoAnchorElm.setAttribute( "target", "_blank" );
-		infoAnchorElm.classList.add( "title" );
-
-		infoAnchorElm.appendChild( infoAnchorTxt );
-		infoDivElm.appendChild( infoText );
-		infoDivElm.appendChild( infoTextSep );
-		infoDivElm.appendChild( infoAnchorElm );
-
-		$( cover.target ).append( infoDivElm );
-
-		// Firstly we need to load cover
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
-					$( cover.target ).prepend( createDiv( "cover", imgElm ) );
-				}
-			}
-		});
-
-		// Secondly we need to load TOC
-		$.ajax({
-			url: getImageUrl( obalkyknihcz.tocUrl, cover.bibInfo, "medium", cover.advert ),
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.tocText, "medium" );
-					$( createDiv( "cover", imgElm ) ).insertBefore( infoDivElm );
-				}
-			}
-		});
-	}
-
-	/**
-	 * @param {CoverPrototype} cover
-	 */
-	function displayThumbnailCoverWithoutLinks( cover ) {
-		var coverUrl = ( typeof cover.bibInfo.cover_medium_url !== "string" )
-			? getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, "medium", cover.advert )
-			: cover.bibInfo.cover_medium_url;
-
-		$.ajax({
-			url: coverUrl,
-			dataType: "image",
-			success: function( img ) {
-				if ( img ) {
-					var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
-					$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
-				}
-			}
-		});
-	}
-
-	/**
-	 * @param {CoverPrototype} cover
-	 */
-	function displayAuthorityCover( cover ) {
-		var auth_id = cover.bibInfo.auth_id;
+		let auth_id = cover.bibInfo.auth_id;
 		$.getJSON(
 			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
 			{ id: auth_id },
@@ -479,33 +485,32 @@
 					dataType: "image",
 					success: function( img ) {
 						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" ),
-								anchorElm = createAnchor( "https://www.obalkyknih.cz/view_auth?auth_id=" + auth_id, imgElm );
+							let imgElm = createImage( img.src, obalkyknihcz.coverText, type ),
+								authorityLink = obalkyknihcz.authorityLinkUrl + "?auth_id=" + auth_id,
+								anchorElm = createAnchor( authorityLink, imgElm, '_blank' );
 							$( cover.target ).empty().append( createDiv( "cover", anchorElm ) );
-						}
-					}
-				});
-			}
-		);
-	}
 
-	/**
-	 * @param {CoverPrototype} cover
-	 */
-	function displayAuthorityThumbnailCoverWithoutLinks( cover ) {
-		console.log( cover );
-		$.getJSON(
-			"/AJAX/JSON?method=getObalkyKnihAuthorityID",
-			{ id: cover.bibInfo.auth_id },
-			function( data ) {
-				console.log( data );
-				$.ajax({
-					url: data.data,
-					dataType: "image",
-					success: function( img ) {
-						if ( img ) {
-							var imgElm = createImage( img.src, obalkyknihcz.coverText, "medium" );
-							$( cover.target ).empty().append( createDiv( "cover", imgElm ) );
+							if (isCore) {
+								// Load info text (about the source)
+                                let infoDivElm = document.createElement( "div" ),
+                                    infoText = document.createTextNode( VuFind.translate( "Source" ) ),
+                                    infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
+                                    infoAnchorElm = document.createElement( "a" ),
+                                    infoAnchorTxt = document.createTextNode( VuFind.translate( "obalkyknihcz_title" ) );
+
+                                $( cover.target ).append( infoDivElm );
+
+                                infoDivElm.classList.add("obalky-knih-link", "col-md-12");
+
+                                infoAnchorElm.setAttribute("href", authorityLink);
+                                infoAnchorElm.setAttribute("target", "_blank");
+                                infoAnchorElm.classList.add("title");
+
+                                infoAnchorElm.appendChild(infoAnchorTxt);
+                                infoDivElm.appendChild(infoText);
+                                infoDivElm.appendChild(infoTextSep);
+                                infoDivElm.appendChild(infoAnchorElm);
+							}
 						}
 					}
 				});
@@ -565,7 +570,7 @@
 	 * @returns {string}
 	 */
 	function queryPart( bibInfo ) {
-		var query = "",
+		let query = "",
 			sep   = "";
 
 		$.each( bibInfo, function( name, value ) {
@@ -596,7 +601,7 @@
 	 * This all is because we need to reduce amount of XHR calls.
 	 *
 	 * We need to separate (and group) these actions:
-	 * - `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`
+	 * - `displayAuthorityCover`
 	 * - `displaySummary` and `displaySummaryShort`
 	 *
 	 * If these will be grouped and thus perform just one XHR call per group
@@ -613,8 +618,8 @@
 		/**
 		 * @type {{authority: CoverPrototype[], summary: CoverPrototype[]}}
 		 */
-		var tmp = { authority: [], summary: [] };
-
+		let tmp = { authority: [], summary: [] };
+        console.warn(action);
 		/**
 		 * @private Processes (split) covers.
 		 * @param {CoverPrototype} cvr
@@ -624,18 +629,16 @@
 
 				// These actions will be processed normally
 				case "fetchImage":
-				case "fetchImageWithoutLinks":
 				case "displayThumbnail":
-				case "displayThumbnailWithoutLinks":
+                case "displaySmallCover":
 				case "displayCover":
-				case "displayCoverWithoutLinks":
-				case "displayThumbnailCoverWithoutLinks":
+                case "displayCoreCover":
 					processCover( cvr );
 					break;
 
 				// These will be grouped
 				case "displayAuthorityCover":
-				case "displayAuthorityThumbnailCoverWithoutLinks":
+                case "displayAuthorityCoreCover":
 					tmp.authority.push( cvr );
 					break;
 
@@ -647,13 +650,13 @@
 		}
 
 		/**
-		 * @private Processes actions `displayAuthorityCover` and `displayAuthorityThumbnailCoverWithoutLinks`.
+		 * @private Processes actions `displayAuthorityCover`.
 		 * @returns {Promise}
 		 */
 		function processAuthRequests() {
 			console.log( "X3", tmp.authority );
 
-			var deferred = $.Deferred(),
+			let deferred = $.Deferred(),
 				auth_ids = [];
 
 			// Collect ID of authorities
@@ -688,7 +691,7 @@
 		function processSummRequests() {
 			console.log( "X4", tmp.summary );
 
-			var deferred = $.Deferred(),
+			let deferred = $.Deferred(),
 				bibInfo   = [];
 
 			// Collects all bibInfos
@@ -723,11 +726,11 @@
 					});
 				}
 
-				var meta          = [],
+				let meta          = [],
 					currentCovers = [];
 
 				$.each( metadata.data, function( i, d ) {
-					var md = BookMetadataPrototype.parseFromObject( d );
+					let md = BookMetadataPrototype.parseFromObject( d );
 
 					meta.push( md );
 					currentCovers.push( findCover( md.bibinfo ) );
@@ -735,10 +738,10 @@
 
 				console.log( meta, currentCovers );
 
-				var currentCover = findCover( meta.bibinfo );
+				let currentCover = findCover( meta.bibinfo );
 				console.log( currentCover );
 
-				var recId    = currentCover.record,
+				let recId    = currentCover.record,
 					cvrElm   = document.getElementById( "cover_" + recordId ),
 					summElm  = document.getElementById( "summary_" + recordId ),
 					ssummElm = document.getElementById( "short_summary_" + recordId );
@@ -746,17 +749,17 @@
 				// TODO We need to use cover and annotation!
 				try {
 					// TODO Create image for the cover...
-					console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recId, cvrElm );
+					//console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recId, cvrElm );
 				} catch( e ) {}
 
 				try {
 					// TODO Create summary...
-					console.warn( "XXX Finish creating of summary!", meta, currentCover, recId, summElm );
+					//console.warn( "XXX Finish creating of summary!", meta, currentCover, recId, summElm );
 				} catch( e ) {}
 
 				try {
 					// TODO Create short summary....
-					console.warn( "XXX Finish creating of short summary!", meta, currentCover, recId, ssummElm );
+					//console.warn( "XXX Finish creating of short summary!", meta, currentCover, recId, ssummElm );
 				} catch( e ) {}
 
 				deferred.resolve( true );
@@ -785,7 +788,7 @@
 
 			// Process all actions and split them as we need
 			$( this ).each(function( idx, elm ) {
-				var cvr = CoverPrototype.parseFromElement( elm );
+				let cvr = CoverPrototype.parseFromElement( elm );
 
 				if ( XHR_OPTIMALIZATIONS === true ) {
 					splitCovers( cvr );
@@ -796,7 +799,7 @@
 
 			// Process actions with grouped Ajax request
 			if ( XHR_OPTIMALIZATIONS === true ) {
-				var promises = $.when( processAuthRequests(), processSummRequests() );
+				let promises = $.when( processAuthRequests(), processSummRequests() );
 				promises.done( resolvePromises );
 			}
 		}
@@ -806,7 +809,7 @@
 
 			// Process all actions and split them as we need
 			$( this ).each(function( idx, elm ) {
-				var cvr = new CoverPrototype( action, advert, bibInfo, record, elm );
+				let cvr = new CoverPrototype( action, advert, bibInfo, record, elm );
 
 				if ( XHR_OPTIMALIZATIONS === true ) {
 					splitCovers( cvr );
@@ -817,7 +820,7 @@
 
 			// Process actions with grouped Ajax request
 			if ( XHR_OPTIMALIZATIONS === true ) {
-				var promises = $.when( processAuthRequests(), processSummRequests() );
+				let promises = $.when( processAuthRequests(), processSummRequests() );
 				promises.done( resolvePromises );
 			}
 		}
@@ -828,7 +831,7 @@
 	// Default plugin options
 
 	// Set default cache URL
-	var cacheUrl = "https://cache.obalkyknih.cz";
+	let cacheUrl = "https://cache.obalkyknih.cz";
 	Object.defineProperty( obalkyknihcz, "cacheUrl", {
 		get: function() { return cacheUrl; },
 		set: function( v ) { cacheUrl = v; }
@@ -836,13 +839,14 @@
 
 	// Other properties
 	Object.defineProperties( obalkyknihcz, {
-		"coverUrl" : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
-		"tocUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
-		"pdfUrl"   : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
-		"linkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view"; } },
-		"coverText": { get: function() { return VuFind.translate( "Cover for the item" ); } },
-		"tocText"  : { get: function() { return VuFind.translate( "Table of contents" ); } },
-		"noImgUrl" : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
+		"coverUrl"          : { get: function() { return obalkyknihcz.cacheUrl + "/api/cover"; } },
+		"tocUrl"            : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/thumbnail"; } },
+		"pdfUrl"            : { get: function() { return obalkyknihcz.cacheUrl + "/api/toc/pdf"; } },
+		"linkUrl"           : { get: function() { return "https://www.obalkyknih.cz/view"; } },
+        "authorityLinkUrl"  : { get: function() { return "https://www.obalkyknih.cz/view_auth"; } },
+		"coverText"         : { get: function() { return VuFind.translate( "Cover for the item" ); } },
+		"tocText"           : { get: function() { return VuFind.translate( "Table of contents" ); } },
+		"noImgUrl"          : { get: function() { return "themes/bootstrap3/images/noCover.jpg"; } }
 	});
 
 	// Extend it with our prototype objects
@@ -858,6 +862,7 @@
 	 * @property {string} tocUrl
 	 * @property {string} pdfUrl
 	 * @property {string} linkUrl
+	 * @property {string} authorityLinkUrl
 	 * @property {string} coverText
 	 * @property {string} tocText
 	 * @property {BookMetadataPrototype} BookMetadata
@@ -877,7 +882,7 @@
 		/**
 		 * @type {Image} image
 		 */
-		var image;
+		let image;
 
 		return {
 
@@ -895,7 +900,7 @@
 				 */
 				function done( status ) {
 					if ( image ) {
-						var statusText = status === 200 ? "success" : "error",
+						let statusText = status === 200 ? "success" : "error",
 							tmp = image;
 
 						image = image.onreadystatechange = image.onerror = image.oload = null;

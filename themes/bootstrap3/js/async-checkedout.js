@@ -75,9 +75,9 @@ function updateTransactions(response) {
     if (typeof obalkyLocal !== 'undefined') {
 	for ( var id in obalkyLocal) {
 	    if (obalkyLocal.hasOwnProperty(id)) {
-		var obalka = obalkyLocal[id];
+			var obalka = obalkyLocal[id];
 
-		jQuery( id ).obalkyknihcz( "fetchImage", obalka.bibInfo, obalka.advert, id );
+			jQuery( id ).obalkyknihcz( "displaySmallCover", '', obalka.bibInfo, obalka.advert, id );
 	    }
 	}
     }

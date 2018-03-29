@@ -48,8 +48,8 @@ function updateHolds(response) {
 		response = response.toSource();
 	    
 	    console.error("async-holdingsils.js produced an error while doing AJAX:\n" + response, arguments);
-	console.error("cat_username from the response was not found on this page .. cannot update holds! " + response, arguments);
-	return;
+		console.error("cat_username from the response was not found on this page .. cannot update holds! " + response, arguments);
+		return;
     }
     
     // Overwrite current div with the new one from renderer
@@ -73,9 +73,9 @@ function updateHolds(response) {
     if (typeof obalkyLocal !== 'undefined') {
 	for ( var id in obalkyLocal) {
 	    if (obalkyLocal.hasOwnProperty(id)) {
-		var obalka = obalkyLocal[id];
+			var obalka = obalkyLocal[id];
 
-		jQuery( id ).obalkyknihcz( "fetchImage", obalka.bibInfo, obalka.advert, id );
+			jQuery( id ).obalkyknihcz( "displaySmallCover", '', obalka.bibInfo, obalka.advert, id );
 	    }
 	}
     }

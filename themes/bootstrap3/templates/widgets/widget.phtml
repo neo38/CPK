@@ -10,7 +10,7 @@
 
     </div>
     <div class="list-group">
-      <? foreach ($this->widget->getContents() as $item): $id = $this->record($item->getRecordDriver())->getRelevantRecord($item->getValue()); ?>
+      <? foreach ($this->widget->getContents() as $item): $id = $this->record($item->getRecordDriver())->getRelevantRecord($item->getValue()); $isAuthority = ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority); ?>
       <a href="/Record/<?=$id?>" class="list-group-item clearfix"">
         <div class='row'>
           <? if ($this->widget->getShowCover()): ?>
@@ -19,22 +19,34 @@
               $recordId =  preg_replace("/:/", "", $recordId);
               $formats = $item->getRecordDriver()->getFormats();
               ?>
-              <div class="col-xs-3 col-sm-2 col-md-3  cover_<?=$recordId?>" id="<?=$recordId?>">
+              <div class="col-xs-3 col-sm-2 col-md-3 cover_<?=$recordId?>" id="<?=$recordId?>">
                 <?php if ($bibinfo = $this->record($item->getRecordDriver())->getObalkyKnihJSONV3()): ?>
-                  <?php if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                  <div data-obalkyknihcz="displayAuthorityThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getPersonalName(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+                  <?php if ($isAuthority): ?>
+                  <div
+                      data-obalkyknihcz="displayAuthorityCover"
+                      data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getPersonalName(), ENT_QUOTES )?>"
+                      data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+                      data-recordId="<?=$recordId?>"
+                      data-format="<?= (! empty($formats[0]) ? $this->record($item->getRecordDriver())->getFormatClass($formats[0]) : 'authority-unknown') ?>">
+                  </div>
                   <?php else: ?>
-                  <div data-obalkyknihcz="displayThumbnailWithoutLinks" data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getTitle(), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+                  <div
+                      data-obalkyknihcz="displayCover"
+                      data-advert="<?=htmlspecialchars( $item->getRecordDriver()->getTitle(), ENT_QUOTES )?>"
+                      data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+                      data-recordId="<?=$recordId?>"
+                      data-format="<?= (! empty($formats[0]) ? $this->record($item->getRecordDriver())->getFormatClass($formats[0]) : 'unknown') ?>">
+                  </div>
                   <?php endif; ?>
                 <? endif;?>
 
-                    <? if (! empty($formats)): ?>
-                        <div class="iconlabel"><i style='font-size: 300%; color: #CCCCCC;' class="pr-format-<?=$this->record($item->getRecordDriver())->getFormatClass($formats[0])?>"></i></div>
-                    <? elseif ($summThumb = $this->record($item->getRecordDriver())->getThumbnail('small')): ?>
-                        <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
-                    <? else: ?>
-                        <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
-                    <? endif; ?>
+                <div class="iconlabel">
+                  <? if (! empty($formats)): ?>
+                    <i class="cover-pr-icon-medium pr-format-<?= $this->record($item->getRecordDriver())->getFormatClass($formats[0]) ?>"></i>
+                  <? else: ?>
+                    <i class="cover-pr-icon-medium pr-format-<?= $isAuthority ? 'authority-unknown' : 'unknown' ?>"></i>
+                  <? endif; ?>
+                </div>
 
               </div>
               <div class="col-xs-9 col-sm-10 col-md-9 content">
@@ -42,11 +54,7 @@
               <div class="col-xs-12 content">
           <? endif; ?>
             <h4 class="list-group-item-heading">
-              <? if ($item->getRecordDriver() instanceof \CPK\RecordDriver\SolrAuthority): ?>
-                <?= $item->getRecordDriver()->getPersonalName() ?>
-              <? else: ?>
-                <?= $item->getRecordDriver()->getTitle() ?>
-              <? endif; ?>
+              <?= $isAuthority ? $item->getRecordDriver()->getPersonalName() : $item->getRecordDriver()->getTitle() ?>
             </h4>
             <p class="list-group-item-text">
               <? if ($this->widget->getDescription() == 'author'): ?>

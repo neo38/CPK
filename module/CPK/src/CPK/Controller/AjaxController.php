@@ -1939,8 +1939,7 @@ class AjaxController extends AjaxControllerBase
 
             if (! empty($auth_id)) {
                 try {
-                    $cacheUrl = !isset($this->getConfig()->ObalkyKnih->cacheUrl)
-                        ? 'https://cache.obalkyknih.cz' : $this->getConfig()->ObalkyKnih->cacheUrl;
+                    $cacheUrl = $this->getConfig()->ObalkyKnih->cacheUrl ?? 'https://cache.obalkyknih.cz';
                     $metaUrl = $cacheUrl . "/api/auth/meta";
                     $client = new \Zend\Http\Client($metaUrl);
                     $client->setParameterGet(array(
@@ -1987,9 +1986,7 @@ class AjaxController extends AjaxControllerBase
             return null; // TODO what to do when server is not responding
         }
 
-
         $responseBody = $response->getBody();
-
         $phpResponse = json_decode($responseBody, true);
 
         if (isset($phpResponse[0]['annotation'])) {

@@ -21,18 +21,24 @@
                     <? $recordId =  preg_replace("/:/", "", $recordId)?>
               		<a href='<?=$this->recordLink()->getUrl($similarRecordDriver)?><?="?referer=".$this->referer?>' title='<?=$this->escapeHtml($similarRecordDriver->getTitle())?> (<?=$this->translate($format)?>)' class="coverThumbnail cover_<?=$recordId?>" tabindex='-1'>
                         <? if ($bibinfo = $this->record($similarRecordDriver)->getObalkyKnihJSONV3()): ?>
-                        <div data-obalkyknihcz="displayThumbnailCoverWithoutLinks" data-advert="<?=htmlspecialchars( $lookfor, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+                        <div
+                            data-obalkyknihcz="displayCover"
+                            data-advert="<?=htmlspecialchars( $lookfor, ENT_QUOTES )?>"
+                            data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+                            data-recordId="<?=$recordId?>"
+                            data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+                        </div>
                         <? endif;?>
 
+                      <div class="iconlabel">
                         <? if (! empty($formats)): ?>
-                            <div class="iconlabel"><i style='font-size: 300%; color: #CCCCCC;' class="pr-format-<?=$this->record($similarRecordDriver)->getFormatClass($format)?>"></i></div>
-                        <? elseif ($summThumb = $this->record($similarRecordDriver)->getThumbnail('small')): ?>
-                            <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
+                          <i class="cover-pr-icon-thumbnail pr-format-<?= $this->record($similarRecordDriver)->getFormatClass($formats[0]) ?>"></i>
                         <? else: ?>
-                            <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
+                          <i class="cover-pr-icon-thumbnail pr-format-unknown' ?>"></i>
                         <? endif; ?>
-
+                      </div>
                     </a>
+
               </div>
               <? endif; ?>
               <div class="col-xs-12 col-sm-12 col-md-12 col-lg-9 similar-item content">

@@ -20,11 +20,24 @@ foreach ($libraryIdentity['transactions'] as $resource):
       <? $recordId =  preg_replace("/[\.:]/", "", $recordId)?>
       <div id="cover_<?=$recordId?>" class="coverThumbnail">
         <? if (! $isAJAX && $bibinfo = $this->record($resource)->getObalkyKnihJSONV3()): ?>
-        <div data-obalkyknihcz="displayThumbnail" data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=$recordId?>"></div>
+        <div
+            data-obalkyknihcz="fetchSmallCover"
+            data-advert="<?=htmlspecialchars( $this->record( $resource )->getObalkyKnihAdvert( 'checkedout' ), ENT_QUOTES )?>"
+            data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+            data-recordId="<?=$recordId?>"
+            data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+        </div>
+        <div class="iconlabel">
+          <? if (! empty($formats)): ?>
+            <i class="cover-pr-icon-medium pr-format-<?= $this->record($this->driver)->getFormatClass($formats[0]) ?>"></i>
+          <? else: ?>
+            <i class="cover-pr-icon-medium pr-format-unknown' ?>"></i>
+          <? endif; ?>
+        </div>
         <? endif;?>
       </div>
     </div>
-    <div class="col-md-9">
+    <div class="col-md-8">
       <?
         // If this is a non-missing Solr record, we should display a link:
         if (is_a($resource, 'VuFind\\RecordDriver\\SolrDefault') && !is_a($resource, 'VuFind\\RecordDriver\\Missing')) {

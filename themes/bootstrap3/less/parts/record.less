@@ -224,6 +224,17 @@ body .well.similar-item {
   .similar-item {
     text-align: center;
   }
+  .similar-item.content {
+    padding-top: 10px;
+  }
+}
+@media only screen and (min-width: 1200px) {
+  .similar-item.content {
+    padding-left: 14px;
+  }
+  .similar-item .iconlabel {
+    margin-left: 5px;
+  }
 }
 
 @media only screen and (min-width: 1199px) {
@@ -233,3 +244,31 @@ body .well.similar-item {
   }
 }
 
+.cover-pr-icon-core {
+  color: @grey-350;
+  font-size: 140px;
+}
+
+.cover-pr-icon-medium {
+  color: @grey-350;
+  font-size: 70px;
+}
+
+.cover-pr-icon-thumbnail {
+  color: @grey-350;
+  font-size: 52px;
+}
+
+.cover-pr-icon-icon {
+  color: @grey-350;
+  font-size: 16px;
+}
+
+.iconlabel {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+#cover {
+  margin-left: -18px;
+}

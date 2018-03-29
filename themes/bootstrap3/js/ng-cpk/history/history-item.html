@@ -1,18 +1,20 @@
 <div id="record{{ resource.uniqueId }}" class="row well"
 	style="margin-bottom: 2px;">
 	<div class="col-sm-2 text-center">
-	    <strong class="pull-left order">{{ resource.rowNo }}.</strong>
 	    <div id="cover_{{ resource.uniqueId }}">
-		  <img ng-if="resource.thumbnail" src="{{ resource.thumbnail }}" class="recordcover">
+			<img ng-if="resource.thumbnail" src="{{ resource.thumbnail }}" class="recordcover">
+			<div ng-if="!resource.thumbnail" class="iconlabel">
+				<i class="cover-pr-icon-medium pr-format-{{ resource.formats[0]['format'] }}"></i>
+			</div>
 		</div>
 	</div>
-	<div class="col-sm-9">
+	<div class="col-sm-10">
 	  <a data-ng-if="resource.titleLink" href="{{ resource.titleLink }}" class="title">{{ resource.title }}</a>
 	  <div data-ng-if="!resource.titleLink">
 	    <a ng-if="resource.id" class="title" ng-href="/Record/{{ resource.id | urlencode }}" title="{{ resource.author }}">{{ resource.title }}</a>
 	    <span ng-if="! resource.id" title="{{ resource.author }}">{{ resource.title }}</span>
 	  </div>
-	  <div data-ng-if="resource.authorLink">
+	  <div data-ng-if="resource.authorLink">git mer
 	    {{ 'by' | translate }}:
 	    <a href="{{ resource.authorLink }}">{{ resource.author }}</a>
 	  </div>

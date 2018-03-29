@@ -38,35 +38,35 @@
 	// Public
 	
 	function pageSelected(page) {
-	    
+
 	    // Show loader
 	    loaderDiv.removeAttribute('hidden');
 	    
 	    // Clear the page
 	    vm.historyPage = [];
-	    
+
 	    currentPage = page;
 	    
 	    updatePaginatorActivePage();
 	    
 	    $q.resolve(getMyHistoryPage()).then(onGotMyHistoryPage).catch(function(err) {
-		$log.error(err);
+			$log.error(err);
 	    });
 	    
 	    function onGotMyHistoryPage(result) {
-		
-		var historyPage = result.historyPage;
-		
-		// We need to refresh the view with async job .. use Promise
-		new Promise(function(resolve) {
-		    
-		    loaderDiv.setAttribute('hidden', 'hidden');
-			
-		    vm.historyPage = historyPage;
-		    
-		    return resolve();
-		    
-		}).then($scope.$applyAsync).then(downloadCovers(result['obalky']));
+
+			var historyPage = result.historyPage;
+
+			// We need to refresh the view with async job .. use Promise
+			new Promise(function(resolve) {
+
+				loaderDiv.setAttribute('hidden', 'hidden');
+
+				vm.historyPage = historyPage;
+
+				return resolve();
+
+			}).then($scope.$applyAsync).then(downloadCovers(result['obalky']));
 	    }
 	}
 	
@@ -168,8 +168,10 @@
 	    
 	    // Execute non-blocking Q
 	    $q.resolve(getMyHistoryPage()).then(onGotMyHistoryPage).catch(function(err) {
-		loaderDiv.innerHTML = '<span class="label label-danger">' + err.message + '</span>';
+			loaderDiv.innerHTML = '<span class="label label-danger">' + err.message + '</span>';
 	    });
+
+        loaderDiv.removeAttribute('hidden');
 	    
 	    function onGotMyHistoryPage(result) {
 		
@@ -209,7 +211,7 @@
 					if (cvrs.hasOwnProperty(id)) {
 						console.log( id, cvrs[id] );
 						try {
-							jQuery( id ).obalkyknihcz( "fetchImage", cvrs[id].advert, cvrs[id].bibInfo, id );
+							jQuery( id ).obalkyknihcz( "displaySmallCover", cvrs[id].advert, cvrs[id].bibInfo, id );
 						} catch( e ) { console.log( e); }
 					}
 				}
@@ -340,6 +342,21 @@
 	function linker(scope, elements, attrs) {
 	    onHistoryUsernameLinked(elements.context, attrs.ngHistoryUsername);
 	}
+    }
+
+    function downloadCovers(covers) {
+        if (typeof covers !== 'undefined') {
+            for ( var id in covers) {
+                if (covers.hasOwnProperty(id)) {
+                    var cover = covers[id];
+
+                    try {
+                        console.log(id);console.log(cover);
+                        jQuery( id ).obalkyknihcz( "displaySmallCover", cover.advert, cover.bibInfo, id );
+                    } catch( e ) { console.log( e); }
+                }
+            }
+        }
     }
     
     /**

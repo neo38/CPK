@@ -11,15 +11,20 @@ $advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <div class="col-sm-3">
     <div class="text-center #cover" id="cover">
-
-        <? if (! empty($formats)): ?>
-            <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-format-<?=$this->record($this->driver)->getFormatClass($formats[0])?>"></i></div>
-        <? elseif ($summThumb = $this->record($this->driver)->getThumbnail()): ?>
-            <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
-        <? else: ?>
-            <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
-        <? endif; ?>
-        <div data-obalkyknihcz="displayAuthorityCover" data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>" data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>" data-recordId="<?=""?>"></div>
+        <div
+            data-obalkyknihcz="displayAuthorityCover"
+            data-advert="<?=htmlspecialchars( $advert, ENT_QUOTES )?>"
+            data-bibinfo="<?=htmlspecialchars( $bibinfo, ENT_QUOTES )?>"
+            data-recordId="<?=$id?>"
+            data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'authority-unknown') ?>">
+        </div>
+        <div class="iconlabel">
+          <? if (! empty($formats)): ?>
+            <i class="cover-pr-icon-medium pr-format-<?= $this->record($this->driver)->getFormatClass($formats[0]) ?>"></i>
+          <? else: ?>
+            <i class="cover-pr-icon-medium pr-format-unknown' ?>"></i>
+          <? endif; ?>
+        </div>
         <? /* Display qrcode if appropriate: */ ?>
       <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
       <? if($QRCode): ?>
