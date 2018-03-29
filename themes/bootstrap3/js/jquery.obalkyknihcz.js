@@ -13,9 +13,10 @@
  * @todo Append just class according to size type to the image - do not use "width" or "height" attributes!!!
  * @todo [PHP] We need ZF view helpers to render all.
  *
- * @fixme responsive
- * @fixme (resit v MZK siti) user 702 - Nefunguje nacitani obalek pri strankovani
- * @fixme Obálky čísel periodik https://bugzilla.knihovny.cz/show_bug.cgi?id=250
+ * @todo responsive
+ * @todo (resit v MZK siti) user 702 - Nefunguje nacitani obalek pri strankovani
+ * 
+ * @todo Obálky čísel periodik https://bugzilla.knihovny.cz/show_bug.cgi?id=250
  */
 
 (function( $, document ) {

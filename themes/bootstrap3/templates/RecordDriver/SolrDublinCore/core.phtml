@@ -6,6 +6,8 @@ $maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
 $bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3();
 $advert = $this->record( $this->driver )->getObalkyKnihAdvert( 'record' );
 $formats = $this->driver->getFormats();
+$recordId =  preg_replace("/\./", "", $id);
+$recordId =  preg_replace("/:/", "", $recordId);
 ?>
 <div class="well">
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">

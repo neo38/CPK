@@ -863,6 +863,16 @@ class SolrMarc extends ParentSolrMarc
             $prefix = 'BOA001';
             $bibinfo['nbn'] = $prefix . '-' . str_replace('-', '', $this->getUniqueID());
         }
+
+        $oclc = $this->getMarcRecord()->getField('035');
+        if (($oclc instanceof \File_MARC_Data_Field)) {
+            $oclc = $oclc->__toString();
+            if (strpos($oclc, '(') > 0) {
+                $oclc = strstr( $oclc, '(' );
+                $bibinfo['oclc'] = $oclc;
+            }
+        }
+
         return $bibinfo;
     }
 

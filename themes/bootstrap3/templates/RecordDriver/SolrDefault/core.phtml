@@ -3,6 +3,8 @@
     $id = $this->driver->getUniqueID();
     $source = explode(".", $id)[0];
     $formats = $this->driver->getFormats();
+    $recordId =  preg_replace("/\./", "", $id);
+    $recordId =  preg_replace("/:/", "", $recordId);
 ?>
 
 <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
