@@ -2,12 +2,12 @@
 namespace CPK\RecordDriver;
 
 use VuFind\RecordDriver\SolrMarc as ParentSolrMarc;
-use Zend\Http\Client\Adapter\Exception\TimeoutException as TimeoutException;
 
 class SolrMarc extends ParentSolrMarc
 {
 
     protected $ilsConfig = null;
+    protected $obalkyKnihBooksApiUrl = 'http://cache.obalkyknih.cz/api/books';
 
     /**
      * These Solr fields should be used for snippets if available (listed in order
@@ -1004,5 +1004,32 @@ class SolrMarc extends ParentSolrMarc
             }
         }
         return $mpts;
+    }
+
+    /**
+     * Gets info of periodic books
+     *
+     * @return array|boolean
+     */
+    public function hasMoreCovers() {
+        $bookInfo = $this->getBibinfoForObalkyKnihV3();
+
+        if (isset($bookInfo['isbn'])) {
+            $query = 'isbn=' . $bookInfo['isbn'];
+        } elseif (isset($bookInfo['ean'])) {
+            $query = 'ean=' . $bookInfo['ean'];
+        } elseif (isset($bookInfo['nbn'])) {
+            $query = 'nbn=' . $bookInfo['nbn'];
+        } else {
+            return false;
+        }
+
+        if (! ($cacheContent = file_get_contents($this->obalkyKnihBooksApiUrl . '?' . $query))) {
+            return false;
+        }
+
+        $coverInfo = json_decode($cacheContent, true);
+
+        return isset($coverInfo[0]) && $coverInfo[0]['succ_cover_count'] > 0;
     }
 }

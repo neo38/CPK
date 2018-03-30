@@ -17,6 +17,7 @@
  * @todo (resit v MZK siti) user 702 - Nefunguje nacitani obalek pri strankovani
  * 
  * @todo Obálky čísel periodik https://bugzilla.knihovny.cz/show_bug.cgi?id=250
+ * @fixme neni ikona pre Similar - Osobní finance. 10/2004 https://beta.knihovny.cz/Record/vkol.SVK01-001032551?referer=aHR0cHM6Ly9iZXRhLmtuaWhvdm55LmN6L1NlYXJjaC9SZXN1bHRzLz9ib29sMCU1QiU1RD1BTkQmdHlwZTAlNUIlNUQ9QWxsRmllbGRzJmxvb2tmb3IwJTVCJTVEPTE4MDUtOTAxNSZqb2luPUFORCZzZWFyY2hUeXBlVGVtcGxhdGU9YWR2YW5jZWQmZGF0YWJhc2U9U29sciZsaW1pdD0yMCZzb3J0PXJlbGV2YW5jZSZwYWdlPTE
  */
 
 (function( $, document ) {
@@ -208,12 +209,13 @@
 		}
 
 		// Collect data
-		cover.target      = elm.parentElement;
-		cover.action      = elm.getAttribute( "data-obalkyknihcz" );
-		cover.advert      = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
-		cover.bibInfo     = bi;
-		cover.record      = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
-        cover.format      = elm.hasAttribute( "data-format" ) ? elm.getAttribute( "data-format" ) : "";
+		cover.target        = elm.parentElement;
+		cover.action        = elm.getAttribute( "data-obalkyknihcz" );
+		cover.advert        = elm.hasAttribute( "data-advert" ) ? elm.getAttribute( "data-advert" ) : "";
+		cover.bibInfo       = bi;
+		cover.record        = elm.hasAttribute( "data-recordId" ) ? elm.getAttribute( "data-recordId" ) : "";
+        cover.format        = elm.hasAttribute( "data-format" ) ? elm.getAttribute( "data-format" ) : "";
+        cover.hasMoreCovers = elm.hasAttribute( "data-hasMoreCovers" ) ? elm.getAttribute( "data-hasMoreCovers" ) : "";
 
 		return cover;
 	};
@@ -324,7 +326,7 @@
 	 * @param {CoverPrototype} cover
 	 * @param {string} type (Optional.)
 	 */
-	function fetchImage( cover, type ) {console.log(type);
+	function fetchImage( cover, type ) {
 		type = type === undefined ? "medium" : type;
 		$.ajax({
 			url: getImageUrl( obalkyknihcz.coverUrl, cover.bibInfo, type, cover.advert ),
@@ -394,24 +396,28 @@
 						});
 
                         // Load info text (about the source)
-                        let infoDivElm = document.createElement( "div" ),
-                            infoText = document.createTextNode( VuFind.translate( "Source" ) ),
-                            infoTextSep = document.createTextNode( VuFind.translate( ": " ) ),
-                            infoAnchorElm = document.createElement( "a" ),
-                            infoAnchorTxt = document.createTextNode( VuFind.translate( "obalkyknihcz_title" ) );
+						let infoDivElm = document.createElement("div");
+						let infoText = document.createTextNode(VuFind.translate("Source"));
+                        let infoTextSep = document.createTextNode( VuFind.translate( ": " ) );
+						let infoAnchorElm = document.createElement("a");
+						let infoAnchorTxt = document.createTextNode(
+							VuFind.translate(cover.hasMoreCovers ? "Show older periodic covers" : "obalkyknihcz_title")
+						);
 
-                        $( cover.target ).append( infoDivElm );
+						$(cover.target).append(infoDivElm);
 
-                        infoDivElm.classList.add("obalky-knih-link", "col-md-12");
+						infoDivElm.classList.add("obalky-knih-link", "col-md-12");
 
-                        infoAnchorElm.setAttribute("href", getCoverTargetUrl(cover.bibInfo));
-                        infoAnchorElm.setAttribute("target", "_blank");
-                        infoAnchorElm.classList.add("title");
+						infoAnchorElm.setAttribute("href", getCoverTargetUrl(cover.bibInfo));
+						infoAnchorElm.setAttribute("target", "_blank");
+						infoAnchorElm.classList.add("title");
 
-                        infoAnchorElm.appendChild(infoAnchorTxt);
-                        infoDivElm.appendChild(infoText);
-                        infoDivElm.appendChild(infoTextSep);
-                        infoDivElm.appendChild(infoAnchorElm);
+						infoAnchorElm.appendChild(infoAnchorTxt);
+						if (cover.hasMoreCovers == false) {
+                            infoDivElm.appendChild(infoText);
+                            infoDivElm.appendChild(infoTextSep);
+                        }
+						infoDivElm.appendChild(infoAnchorElm);
                     }
 
                 }
@@ -482,7 +488,7 @@
 			{ id: auth_id },
 			function( data ) {
 				$.ajax({
-					url: data.data,
+					url: data.data.cover_medium_url,
 					dataType: "image",
 					success: function( img ) {
 						if ( img ) {
@@ -513,10 +519,15 @@
                                 infoDivElm.appendChild(infoAnchorElm);
 							}
 						}
+					},
+					fail: function( jqXHR, textStatus, errorThrown ) {
+                        console.error('getJSON request failed! ' + textStatus);
 					}
 				});
 			}
-		);
+		).fail(function( jqXHR, textStatus, errorThrown ) {
+            console.error('getJSON request failed! ' + textStatus);
+        });
 	}
 
 	/**
@@ -655,8 +666,6 @@
 		 * @returns {Promise}
 		 */
 		function processAuthRequests() {
-			console.log( "X3", tmp.authority );
-
 			let deferred = $.Deferred(),
 				auth_ids = [];
 
@@ -673,7 +682,6 @@
 
 			// Get multiple authorities data by their IDs separated by comma
 			$.getJSON( "/AJAX/JSON?method=getMultipleAuthorityCovers", { id: auth_ids }, function( data ) {
-				console.log( "X3A", data );
 
 				// TODO Use obtained covers!
 
@@ -690,7 +698,6 @@
 		 * @returns {Promise}
 		 */
 		function processSummRequests() {
-			console.log( "X4", tmp.summary );
 
 			let deferred = $.Deferred(),
 				bibInfo   = [];
@@ -708,7 +715,6 @@
 			 * @param {Object} metadata
 			 */
 			function resolveMetadata( metadata ) {
-				console.log( "X4A", metadata );
 
 				if ( ! ( !! metadata  ) ) {
 					return;
@@ -737,10 +743,7 @@
 					currentCovers.push( findCover( md.bibinfo ) );
 				});
 
-				console.log( meta, currentCovers );
-
 				let currentCover = findCover( meta.bibinfo );
-				console.log( currentCover );
 
 				let recId    = currentCover.record,
 					cvrElm   = document.getElementById( "cover_" + recordId ),

@@ -5,6 +5,7 @@
     $formats = $this->driver->getFormats();
     $recordId =  preg_replace("/\./", "", $id);
     $recordId =  preg_replace("/:/", "", $recordId);
+    $hasMoreCovers = $this->driver->hasMoreCovers();
 ?>
 
 <? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
@@ -23,7 +24,8 @@
                      data-advert="<?=htmlspecialchars($this->record($this->driver)->getObalkyKnihAdvert("record"), ENT_QUOTES)?>"
                      data-bibinfo="<?=htmlspecialchars($bibinfo, ENT_QUOTES)?>"
                      data-recordId="<?=$id?>"
-                     data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>">
+                     data-format="<?= (! empty($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown') ?>"
+                     data-hasMoreCovers="<?= $hasMoreCovers ?>">
                 </div>
               <div class="iconlabel">
                 <i class="cover-pr-icon-core pr-format-<?= isset($formats[0]) ? $this->record($this->driver)->getFormatClass($formats[0]) : 'unknown' ?>"></i>
