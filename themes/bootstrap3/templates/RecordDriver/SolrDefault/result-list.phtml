@@ -339,7 +339,7 @@
       <? endif; ?>
 
 	    <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-        <? if ($this->driver->hasPublications() && $recordSource !== 'osobnosti'): ?>
+        <? if ($this->driver->hasPublications()): ?>
           <div>
           <a title="<?=$this->transEsc('Show publications of this person')?>" href="<?=$this->driver->getPublicationsUrl()?>"><?=$this->translate('Show publications of this person')?></a>
           </div>
@@ -347,7 +347,7 @@
       <? endif; ?>
 
       <? if ($this->driver instanceof CPK\RecordDriver\SolrAuthority): ?>
-        <? if ($this->driver->publicationsAboutAvailable() && $recordSource !== 'osobnosti'): ?>
+        <? if ($this->driver->publicationsAboutAvailable()): ?>
           <div>
             <a title="<?=$this->transEsc('Show publications about this person')?>" href="<?=$this->driver->getAboutPublicationsUrl()?>"><?=$this->translate('Show publications about this person')?></a>
           </div>

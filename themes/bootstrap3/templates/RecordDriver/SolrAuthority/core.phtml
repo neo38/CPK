@@ -97,7 +97,7 @@
         <td><?=$this->transEsc('Authority')?></td>
       </tr>
 
-	  <? if ($this->driver->hasPublications() && $recordSource !== 'osobnosti'): ?>
+	  <? if ($this->driver->hasPublications()): ?>
       <tr>
         <th><?=$this->transEsc('Publications')?>: </th>
         <td>
@@ -108,7 +108,7 @@
       </tr>
 	  <? endif; ?>
 
-    <? if ($this->driver->publicationsAboutAvailable() && $recordSource == 'osobnosti'): ?>
+    <? if ($this->driver->publicationsAboutAvailable()): ?>
       <tr>
         <th><?=$this->transEsc('Publications')?>: </th>
         <td>
