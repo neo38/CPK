@@ -1069,7 +1069,7 @@ class AjaxController extends AjaxControllerBase
         // obalky
         $bookid = $this->params()->fromPost('obalkyknihbookid');
         // //////////////////////////////////////////
-        $addReviewUrl = $this->getObalkyKnihApiUrl( '/?add_review=true' );
+        $addReviewUrl = $this->getObalkyKnihApiUrl('/?add_review=true');
         $client = new \Zend\Http\Client($addReviewUrl);
         $client->setMethod('POST');
         $client->setParameterGet(
@@ -1936,7 +1936,7 @@ class AjaxController extends AjaxControllerBase
 
             if (! empty($auth_id)) {
                 try {
-                    $metaUrl = $this->getObalkyKnihApiUrl( '/api/auth/meta' );
+                    $metaUrl = $this->getObalkyKnihApiUrl('/api/auth/meta');
                     $client = new \Zend\Http\Client($metaUrl);
                     $client->setParameterGet(array(
                         'auth_id' => $auth_id
@@ -1960,24 +1960,24 @@ class AjaxController extends AjaxControllerBase
 
     public function getMultipleAuthorityCoversAjax()
     {
-        $keys = $this->params()->fromQuery( 'id' );
-        $data = $this->getMultipleAuthorityCovers( $keys );
+        $keys = $this->params()->fromQuery('id');
+        $data = $this->getMultipleAuthorityCovers($keys);
 
-        if ( isset( $data[ 'data' ] ) ) {
-            return $this->output( [ 'data' => $data, self::STATUS_NOT_OK ] );
+        if (isset($data[ 'data' ])) {
+            return $this->output([ 'data' => $data, self::STATUS_NOT_OK ]);
         } else {
-            return $this->output( $data, self::STATUS_OK );
+            return $this->output($data, self::STATUS_OK);
         }
     }
 
-    private function getMultipleAuthorityCovers( $ids )
+    private function getMultipleAuthorityCovers($ids)
     {
         if (empty($ids)) {
             return [];
         }
 
         try {
-            $metaUrl = $this->getObalkyKnihApiUrl( '/api/auth/meta' );
+            $metaUrl = $this->getObalkyKnihApiUrl('/api/auth/meta');
             $client = new \Zend\Http\Client($metaUrl);
             $client->setParameterGet(['auth_id' => $ids]);
             $response = $client->send();
@@ -1992,17 +1992,17 @@ class AjaxController extends AjaxControllerBase
 
     public function getMultipleSummariesAjax()
     {
-        $bibinfo = $this->params()->fromPost( 'multi' );
-        $summaries = $this->getMultipleSummaries( $bibinfo );
+        $bibinfo = $this->params()->fromPost('multi');
+        $summaries = $this->getMultipleSummaries($bibinfo);
 
-        return $this->output( $summaries, self::STATUS_OK );
+        return $this->output($summaries, self::STATUS_OK);
     }
 
-    private function getMultipleSummaries( $bibInfo )
+    private function getMultipleSummaries($bibInfo)
     {
         try {
             $isbnJson = json_encode($bibInfo);
-            $apiUrl = $this->getObalkyKnihApiUrl( '/api/books' );
+            $apiUrl = $this->getObalkyKnihApiUrl('/api/books');
             $client = new \Zend\Http\Client($apiUrl);
             $client->setParameterGet(['multi' => $isbnJson]);
             $response = $client->send();
@@ -2021,9 +2021,9 @@ class AjaxController extends AjaxControllerBase
      * @param string $action
      * @return string
      */
-    private function getObalkyKnihApiUrl( $action )
+    private function getObalkyKnihApiUrl($action)
     {
-        $cacheUrl = ! isset( $this->getConfig()->ObalkyKnih->cacheUrl )
+        $cacheUrl = ! isset($this->getConfig()->ObalkyKnih->cacheUrl)
                 ? 'https://cache.obalkyknih.cz'
                 : $this->getConfig()->ObalkyKnih->cacheUrl;
 
@@ -2038,7 +2038,7 @@ class AjaxController extends AjaxControllerBase
     private function getSummaryObalkyKnih($isbnArray)
     {
         $isbnJson = json_encode($isbnArray);
-        $apiBooksUrl = $this->getObalkyKnihApiUrl( '/api/books' );
+        $apiBooksUrl = $this->getObalkyKnihApiUrl('/api/books');
         $client = new \Zend\Http\Client($apiBooksUrl);
         $client->setParameterGet(array(
             'multi' => '[' . $isbnJson . ']'
@@ -2191,7 +2191,7 @@ class AjaxController extends AjaxControllerBase
         $params->addFacet($facet, null, $operator === 'OR');
         $requestQuery = $this->getRequest()->getQuery();
         $requestQuery['filter'] = explode("|", \LZCompressor\LZString::decompressFromBase64(specialUrlDecode($requestQuery['filter'])));
-        if( empty($requestQuery['filter'][0])) {
+        if (empty($requestQuery['filter'][0])) {
             unset($requestQuery['filter']);
         }
         $params->initFromRequest($requestQuery);

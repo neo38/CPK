@@ -25,11 +25,17 @@
   padding-left: 0px;
   padding-right: 0px;
   padding-bottom: 0px;
+
+  .result-list-item-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
 }
 
 .records-in-libraries-divider{
-	margin-top: 10px;
-	margin-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .list-group, .tt-dropdown-menu {
@@ -45,16 +51,22 @@
 }
 
 //formats
-.format-list{
-  margin:5px 0px;
-}
-.format-text{
-  font-size:12px;
-}
-.iconlabel{
-  display: inline-block;
+.format-list {
+  margin: 20px 0px 0px 0px;
+  min-height: 20px;
+
+  .iconlabel {
+    position: absolute;
+    bottom: 0;
+  }
 }
 
+.format-text {
+  font-size:12px;
+}
+.iconlabel {
+  display: inline-block;
+}
 
 //list of search results
 .root-title{
@@ -66,7 +78,7 @@
   font-size: 16px;
 }
 
-.btn-group > .btn + .dropdown-toggle{
+.btn-group > .btn + .dropdown-toggle {
   margin-top:10px;
   margin-bottom:10px;
   background-color:#dedede;
@@ -167,6 +179,7 @@
 
 .search-result-container {
     border-right: 1px solid @border-color;
+    min-height: 220px;
 }
 
 .records-in-libraries-title {
@@ -318,6 +331,7 @@
 
 .search-results-favorite-button {
   width: auto;
+  padding-top: 35px !important;
 }
 
 .search-results-favorite-button .list-group-item {
@@ -365,4 +379,5 @@
 
 #result-list-placeholder .cover_thumbnail img { max-width: 100px; }
 .coverThumbnail .cover_thumbnail img { max-width: 100px; }
+
 
