@@ -750,22 +750,6 @@
                     summElm  = document.getElementById( "summary_" + recordId ),
                     ssummElm = document.getElementById( "short_summary_" + recordId );
 
-                // TODO We need to use cover and annotation!
-                try {
-                    // TODO Create image for the cover...
-                    //console.warn( "XXX Finish creating of image for the cover!", meta, currentCover, recId, cvrElm );
-                } catch( e ) {}
-
-                try {
-                    // TODO Create summary...
-                    //console.warn( "XXX Finish creating of summary!", meta, currentCover, recId, summElm );
-                } catch( e ) {}
-
-                try {
-                    // TODO Create short summary....
-                    //console.warn( "XXX Finish creating of short summary!", meta, currentCover, recId, ssummElm );
-                } catch( e ) {}
-
                 deferred.resolve( true );
             }
 
