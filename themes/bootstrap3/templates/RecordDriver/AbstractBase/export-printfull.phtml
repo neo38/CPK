@@ -60,7 +60,7 @@ if (is_array($issns)) {
 }
 
 $subjects = $this->driver->tryMethod('getAllSubjectHeadings');
-if (is_array($subjects)) {
+if (is_array($subjects) && ! empty($subjects)) {
     echo $this->transEsc('Subjects') . ":\r\n";
     foreach ($subjects as $subject) {
         echo '  ' . $subject[0] . "\r\n";
