@@ -69,13 +69,11 @@ class SolrMarc extends ParentSolrMarc
         $patentInfo['id'] = $this->getFieldArray('013', array('a'))[0];
         $patentInfo['publish_date'] = $this->getFieldArray('013', array('d'))[0];
 
-        if(empty($patentInfo)) {
+        if (empty($patentInfo['country']) && empty($patentInfo['id']) && empty($patentInfo['publish_date'])) {
             return false;
         }
 
-        $patentInfoText = $this->renderPatentInfo($patentInfo);
-
-        return $patentInfoText;
+        return $this->renderPatentInfo($patentInfo);
     }
 
     /**
@@ -85,19 +83,33 @@ class SolrMarc extends ParentSolrMarc
      * @return string rendered string
      */
     public function renderPatentInfo($patentInfo) {
-        $patentInfoText = '';
-        $patentInfoText .= $this->translate('Patent') . ': ' . $patentInfo['country'] . ', ';
+        $patentInfoData = [];
+        $patentInfoText = $this->translate('Patent') . ': ';
+
+        if (! empty($patentInfo['country'])) {
+            array_push($patentInfoData, $patentInfo['country']);
+        }
+
         switch ($patentInfo['type']) {
             case 'B6':
-                $patentInfoText .= $this->translate('patent_file'); break;
+                array_push($patentInfoData, $this->translate('patent_file')); break;
             case 'A3':
-                $patentInfoText .= $this->translate('app_invention'); break;
+                array_push($patentInfoData, $this->translate('app_invention')); break;
             case 'U1':
-                $patentInfoText .= $this->translate('utility_model'); break;
+                array_push($patentInfoData, $this->translate('utility_model')); break;
             default:
-                $patentInfoText .= $this->translate('unknown_patent_type'); break;
+                array_push($patentInfoData, $this->translate('unknown_patent_type')); break;
         }
-        $patentInfoText .= ', ' . $patentInfo['id'] . ', ' . $patentInfo['publish_date'] . "\r\n";
+
+        if (! empty($patentInfo['id'])) {
+            array_push($patentInfoData, $patentInfo['id']);
+        }
+
+        if (! empty($patentInfo['publish_date'])) {
+            array_push($patentInfoData, $patentInfo['publish_date']);
+        }
+
+        $patentInfoText .= implode(', ', $patentInfoData) . PHP_EOL;
         return $patentInfoText;
     }
 
