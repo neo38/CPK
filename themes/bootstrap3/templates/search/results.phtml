@@ -216,12 +216,14 @@ $this->headScript()->appendFile("markerclusterer.js");
     <div class='row' id='search-result-list'>
       <div class='col-sm-12 pull-right'>
           <div class="result-list-toolbar hidden-print" style='font-size: 120%;'>
+            <a data-toggle='modal' onclick='$( "#addResultsToFavoritesModal" ).modal( "show" );' data-target='addResultsToFavoritesModal' title='<?=$this->translate('Add to favorites')?>'><i class="pr-interface-favoritestar"> </i> <?=$this->translate('Add to favorites')?></a>
+              |
               <a href="<?=$this->url('search-history')?>" title='<?=$this->transEsc('Search History')?>'><i class="pr-interface-search"></i> <?=$this->transEsc('Search History')?></a>
-              &nbsp;|&nbsp;
+              |&nbsp;
               <a href="<?=$this->url('search-email')?>" class="mailSearch modal-link mail-record-link" id="mailSearch<?=$this->escapeHtmlAttr($this->results->getSearchId())?>" title="<?=$this->transEsc('Email this Search')?>">
                   <i class="icon-poslat-emailem"></i> <?=$this->transEsc('Email this Search')?>
               </a>
-              &nbsp;|&nbsp;
+              |&nbsp;
               <a id='rss-link' href="<?=$this->results->getUrlQuery()->setViewParam('rss')?>" title='<?=$this->translate('RSS')?>'>
                   <i class="fa fa-feed pointer"></i> <?=$this->translate('RSS')?>
               </a>
@@ -231,6 +233,49 @@ $this->headScript()->appendFile("markerclusterer.js");
       </div>
     </div>
 </div>
+
+<!-- Modal -->
+<div id="addResultsToFavoritesModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><?= $this->translate('Add to favorites') ?></h4>
+      </div>
+      <div class="modal-body">
+
+        <div id='addResultsToFavoritesModalFlasher' style='display: none;'></div>
+
+        <h5><?= $this->translate('Select number of results to save') ?></h5>
+
+        <select class='form-control' id='numberOfRecordsToAdd'>
+          <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
+            <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>><?=$limit?></option>
+          <? endforeach; ?>
+        </select>
+
+        <h5><?= $this->translate('Favorites list title') ?></h5>
+
+        <input
+            type='text'
+            id='newFavoritesListTitle'
+            value='<?= $this->translate('Search query') . ' ' . $lookfor ?>'
+            class='form-control'
+            placeholder='<?= $this->translate('Search query') . ' ' . $lookfor ?>'>
+      </div>
+
+      <div class="modal-footer">
+        <button id='addResultsToFavorites' type="button" class="btn btn-primary">
+            <?= $this->translate('Add to favorites') ?>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
     jQuery( document ).ready( function( $ ) {
         <? if ($this->extraResults && $this->referer): ?>

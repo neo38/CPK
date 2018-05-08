@@ -2615,4 +2615,110 @@ class AjaxController extends AjaxControllerBase
 
         return (! empty($intersection)) ? $intersection : $htmlLinks;
     }
+
+    public function addResultsToFavoritesAjax()
+    {
+        $numberOfRecords = $this->params()->fromPost('numberOfRecords');
+        $searchId        = $this->params()->fromPost('searchId');
+        $title           = $this->params()->fromPost('title');
+
+        if (! $user = $this->getAuthManager()->isLoggedIn()) {
+            return $this->output($this->translate('You have to log in first!'), self::STATUS_ERROR);
+        }
+
+        if (empty($title)) {
+            return $this->output($this->translate('Missing Favorites list title'), self::STATUS_ERROR);
+        }
+
+        /*
+         @FIXME Call restoreAdvancedSearch() from CPK\Controller\AbstractSearch
+         and remove $this->restoreAdvancedSearch() to avoid code duplication.
+         Following code has had to run
+         $searchResults = $this->getServiceLocator()->get('searchController')->restoreAdvancedSearch($searchId);
+         */
+        $searchResults = $this->restoreAdvancedSearch($searchId);
+
+        $searchResults->getParams()->setLimit($numberOfRecords);
+        $searchResults->performSearch();
+
+        $records = $searchResults->getResults();
+
+        $this->setDbTableManager(
+            $this->getServiceLocator()->get('VuFind\DbTablePluginManager')
+        );
+
+        $table = $this->getDbTable('UserList');
+
+        $list = $table->getNew($user);
+        $list->title = $title;
+        $list->save($user);
+
+        $params = [
+            'list' => $list->id
+        ];
+
+        $recLoader = $this->getRecordLoader();
+
+        $results = [];
+
+        foreach ($records as $record) {
+            $record = $recLoader->load($record->getUniqueID(), 'Solr', false);
+
+            $result = $record->saveToFavorites($params, $user);
+
+            array_push($results, $result);
+        }
+
+        return $this->output($results, self::STATUS_OK);
+    }
+
+    /**
+     * Either assign the requested search object to the view or display a flash
+     * message indicating why the operation failed.
+     *
+     * @param string $searchId ID value of a saved advanced search.
+     *
+     * @return bool|object     Restored search object if found, false otherwise.
+     */
+    protected function restoreAdvancedSearch($searchId)
+    {
+        // Look up search in database and fail if it is not found:
+        $searchTable = $this->getTable('Search');
+        $search = $searchTable->select(['id' => $searchId])->current();
+        if (empty($search)) {
+            $this->flashMessenger()->addMessage('advSearchError_notFound', 'error');
+            return false;
+        }
+
+        // Fail if user has no permission to view this search:
+        $user = $this->getUser();
+        $sessId = $this->getServiceLocator()->get('VuFind\SessionManager')->getId();
+        if ($search->session_id != $sessId
+            && ($user === false || $search->user_id != $user->id)
+        ) {
+            $this->flashMessenger()->addMessage('advSearchError_noRights', 'error');
+            return false;
+        }
+
+        // Restore the full search object:
+        $minSO = $search->getSearchObject();
+        $savedSearch = $minSO->deminify($this->getResultsManager());
+
+        // Fail if this is not the right type of search:
+        if ($savedSearch->getParams()->getSearchType() != 'advanced') {
+            try {
+                $savedSearch->getParams()->convertToAdvancedSearch();
+            } catch (\Exception $ex) {
+                $this->flashMessenger()
+                    ->addMessage('advSearchError_notAdvanced', 'error');
+                return false;
+            }
+        }
+
+        // Activate facets so we get appropriate descriptions in the filter list:
+        $savedSearch->getParams()->activateAllFacets('Advanced');
+
+        // Make the object available to the view:
+        return $savedSearch;
+    }
 }
