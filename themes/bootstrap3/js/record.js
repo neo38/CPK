@@ -399,9 +399,9 @@ function recordDocReady() {
 
 /**
  * Dispay citation
- * 
+ *
  * @author	Martin Kravec <martin.kravec@mzk.cz>
- * 
+ *
  * @return	{undefined}
  */
 function displayCitationLink() {
@@ -412,9 +412,9 @@ function displayCitationLink() {
 
 /**
  * Get citation
- * 
+ *
  * @author	Martin Kravec <martin.kravec@mzk.cz>
- * 
+ *
  * @param	{string}	recordId
  * @param	{function}	callback
  * @return	{undefined}
@@ -460,9 +460,9 @@ function selectText( containerid ) {
 
 /**
  * Insert citation
- * 
+ *
  * @author	Martin Kravec <martin.kravec@mzk.cz>
- * 
+ *
  * @return	{undefined}
  */
 function insertCitation( citation ) {
@@ -476,11 +476,11 @@ jQuery( document ).ready( function( $ ) {
 		var recordId = $( this ).attr( 'id' ).replace( 'record_', '' );
 		getCitation( recordId, $( this ).val(), insertCitation);
 	});
-	
+
 	$( '.selectOnClick' ).on( 'click', function() {
 		$( this ).select();
 	});
-	
+
 	/* Record email form client-side validation */
 	$( '#email-record' ).validate({ // initialize the plugin
         rules: {
@@ -504,4 +504,22 @@ jQuery( document ).ready( function( $ ) {
               }
           }
     });
+
+    /* Generate html to show fragment that was found in fulltext  */
+    var recordTitle = $('h2.record-title');
+    var snippet = sessionStorage.getItem(recordTitle.text().trim());
+    if (snippet && snippet !== 'undefined') {
+        var snippetHtml = "<span class='snippetQuote'><p><strong>" + VuFind.translate('found_in_fulltext')
+                        + ":</strong></p>" + snippet + "</span>";
+        var obalkySum = recordTitle.siblings('p.obalkysumm');
+        var table = recordTitle.siblings('table.table');
+
+        if (obalkySum.length) {
+            obalkySum.after(snippetHtml);
+        } else if (table.length) {
+            table.prev().after(snippetHtml);
+        } else {
+            recordTitle.next().after(snippetHtml);
+        }
+    }
 });

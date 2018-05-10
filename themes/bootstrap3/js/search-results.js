@@ -7,7 +7,6 @@ jQuery( document ).ready( function( $ ) {
     if(typeof Storage == "undefined") {
         console.error( 'localStorage and sessionStorage  are NOT supported in this browser' );
     }
-    console.log(localStorage.getItem('facetsApplied'));
     localStorage.setItem("facetsApplied", parseInt('0'));
 
     /*
@@ -910,6 +909,7 @@ jQuery( document ).ready( function( $ ) {
 	 * will correctly handle showing or hiding some elements in form.
 	 */
 	ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
+
 	$( '#editable-advanced-search-form .group' ).each( function(){
 		ADVSEARCH.updateQueriesDOMState( '#' + $( this ).attr( 'id' ) );
 	});
@@ -1398,12 +1398,14 @@ jQuery( document ).ready( function( $ ) {
 		ADVSEARCH.updateSearchResults( undefined, undefined, newSearchTypeTemplate );
 	});
 
-	//Show/hide 'To favorites' button on result book
-	$( 'body' ).find('.result').hover(function () {
-        $( this ).find( '.search-results-favorite-button' ).removeClass( 'hidden' );
-    }, function () {
-        $( this ).find( '.search-results-favorite-button' ).addClass( 'hidden' );
-    });
+	// Show\hide 'To favorites' button on result book
+	$( 'body' ).find('.result').hover(
+	    function () {
+            $( this ).find( '.search-results-favorite-button' ).removeClass( 'hidden' );
+        },
+        function () {
+            $( this ).find( '.search-results-favorite-button' ).addClass( 'hidden' );
+	    });
 
 	/*
 	* Load search results from selected database
@@ -1642,6 +1644,23 @@ jQuery( document ).ready( function( $ ) {
               email: VuFind.translate( 'Wrong email format' )
             }
           }
+    });
+
+    /* Store fragments, found in fulltext, in sessionStorage */
+    $('body').on('mousedown', 'div.root-title a', function (e) {
+        var snippetKey = $(this).text().trim();
+        var snippetValue = $(this).parents('.search-result-container').find('.snippetQuote').html();
+
+        sessionStorage.setItem(snippetKey, snippetValue);
+
+        if (e.ctrlKey) {
+            window.open($(this).attr('href'), '_blank');
+            return false;
+        }
+
+        if (e.which == 2) {
+            window.open($(this).attr('href'), '_blank');
+        }
     });
 });
 

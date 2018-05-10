@@ -92,15 +92,6 @@
       </tr>
       <? endif; ?>
 
-      <? if ($this->snippet): ?>
-          <? if (!empty($this->snippet['caption'])): ?>
-          <strong><?=$this->transEsc($this->snippet['caption']) ?>:</strong>
-          <? endif; ?>
-          <? if (!empty($this->snippet['snippet'])): ?>
-          <span class='snippetQuote'><span class="quotestart">&#8220;</span>...<?=$this->highlight($this->snippet['snippet']) ?>...<span class="quoteend">&#8221;</span></span><br/>
-          <? endif; ?>
-      <? endif; ?>
-
       <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
       <? if (isset($authors['main']) && !empty($authors['main'])): ?>
       <tr>
