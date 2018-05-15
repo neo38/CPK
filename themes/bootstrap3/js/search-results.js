@@ -117,15 +117,13 @@ jQuery( document ).ready( function( $ ) {
         updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab) {
             var data = {};
 
-			/* If we need to add some new paramts to URL we can use extraData argument */
+			/* If we need to add some new params to URL we can use extraData argument */
             if (extraData !== undefined) {
                 for (var key in extraData) {
                     if (extraData.hasOwnProperty(key)) {
                         data[key] = extraData[key];
                     }
                 }
-                console.log('Added extraData:');
-                console.log(data);
             }
 
             var reloadResults = true;
@@ -179,12 +177,10 @@ jQuery( document ).ready( function( $ ) {
                 }
 
                 data['searchTypeTemplate'] = 'basic';
+                data['sort'] = $("input[name='sort']").val();
 
                 var database = $('#set-database li.active a').attr('data-value');
                 data['database'] = database;
-
-                //console.log( 'Data fromautocomplete: ' );
-                //console.log( data );
 
             } else {
 				/* If search started in advanced search, gather data from
@@ -214,6 +210,7 @@ jQuery( document ).ready( function( $ ) {
                 var database = $('#set-database li.active a').attr('data-value');
                 data['database'] = database;
 
+                data['sort'] = $("input[name='sort']").val();
             }
 
             if (dataFromWindowHistory !== undefined) {
@@ -360,6 +357,7 @@ jQuery( document ).ready( function( $ ) {
             var daterange = data['daterange'];
             $("input[name='daterange']").val(daterange);
 
+            $("input[name='sort']").val(data['sort']);
 			/* 
 			 * If we want to just switch template between basic and advanced search,
 			 * we need to again to gather data from forms 
@@ -378,23 +376,10 @@ jQuery( document ).ready( function( $ ) {
 			/* 
 			 * Live update url.
 			 */
-
             if (data['filter'][0] != null) {
-                //console.log( 'Filters:' );
-                //console.log( data['filter'] );
-
-                //console.log( 'Filters as string:' );
                 var filtersAsString = data['filter'].join('|');
-                //console.log( filtersAsString );
-
-                //console.log( 'Compressed filters:' );
                 var compressedFilters = specialUrlEncode(LZString.compressToBase64(filtersAsString));
-                //console.log( compressedFilters );
-
-                //console.log( 'DeCompressed filters:' );
                 var deCompressedFilters = LZString.decompressFromBase64(specialUrlDecode(compressedFilters));
-                //console.log( deCompressedFilters.split( "|" ) );
-
             }
 
             var dataForAjax = data;
@@ -402,12 +387,6 @@ jQuery( document ).ready( function( $ ) {
             if (data['filter'].length > 0) {
                 data['filter'] = compressedFilters;
             }
-
-            //console.log('dataForAjax now:');
-            //console.log(dataForAjax)
-
-            //console.log('data now:');
-            //console.log(data)
 
             if (dataFromWindowHistory == undefined) {
                 ADVSEARCH.updateUrl(data);
@@ -574,6 +553,7 @@ jQuery( document ).ready( function( $ ) {
                             console.error(response.data);
                             console.error(response);
                         }
+
                         $('#submit-edited-advanced-search', '.ajax-update-limit', '.ajax-update-sort').removeAttr('selected');
 
 						/*
@@ -614,17 +594,9 @@ jQuery( document ).ready( function( $ ) {
                             });
                         }
 
-                        if (responseData.edsMaxLimit) {
-                            console.log(JSON.parse(responseData.edsMaxLimit).data);
-                        }
-
-                        if (responseData.edsDefaultSorts) {
-                            console.log(JSON.parse(responseData.edsDefaultSorts).data);
-                        }
-
                         if (sorts) {
                             var $sortsSelect = $('.apply-sort').parent().parent();
-                            $sortsSelect .empty();
+                            $sortsSelect.empty();
                             sorts.forEach(function(sort){
                                 $sortsSelect .append("<li><a href='#' class='apply-sort' data-sort='"+sort.key+"'>"+sort.value+"</a></li>");
                             });
@@ -754,8 +726,6 @@ jQuery( document ).ready( function( $ ) {
             var title = 'New search query';
             var url = '/Search/Results/?' + jQuery.param(data)
             window.history.replaceState(stateObject, title, url);
-            ////console.log( 'Replacing state: ' );
-            ////console.log( stateObject );
         },
 
         /**
@@ -826,15 +796,10 @@ jQuery( document ).ready( function( $ ) {
          */
         updateSearchTypeTemplates: function (data) {
 
-            ////console.log( 'Data: ' );
-            ////console.log( data );
-
             if (data.hasOwnProperty('lookfor0')) {
 				/* Search was made in advanced search */
 
 				/* Fill autocomplete search form */
-                ////console.log( 'Filling autocomplete with' );
-                ////console.log( data.lookfor0[0] );
                 if (data.lookfor0[0] != "FT Y OR FT N") {
                     $('#searchForm_lookfor').val(data.lookfor0[0]);
                 }
@@ -843,17 +808,11 @@ jQuery( document ).ready( function( $ ) {
 
 				/* Fill adv. search form */
                 ADVSEARCH.clearAdvancedSearchTemplate();
-                ////console.log( 'Clearing advanced search form' );
-
-                ////console.log( 'Filling advanced search form with ' );
-                ////console.log( data.lookfor0[0] );
 
                 if (data.lookfor0[0] != "FT Y OR FT N") {
                     $('#query_0 .query-string').val(data.lookfor0[0]);
                 }
 
-                ////console.log( 'Filling autocomplete with' );
-                ////console.log( data.lookfor0[0] );
                 if (data.lookfor0[0] != "FT Y OR FT N") {
                     $('#searchForm_lookfor').val(data.lookfor0[0]);
                 }
