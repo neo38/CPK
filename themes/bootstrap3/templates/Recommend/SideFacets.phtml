@@ -34,21 +34,7 @@
 $queryParams = $results->getUrlQuery()->getParamArray();
 unset($queryParams['filter']);
 
-$i = '?';
-$removeFilterUrl = '/Search/Results';
-foreach ($queryParams as $key => $value) {
-
-    if (is_array($value)) {
-        $value = $value[0];
-        $key .= "[]";
-    }
-    $removeFilterUrl .= $i . $key . '=' . urlencode($value);
-
-    if ($i === '?')
-        $i = '&';
-}
-
-
+$removeFilterUrl = '/Search/Results?' . http_build_query($queryParams);
 ?>
 
 <? if ($results->getResultTotal() > 0): ?>
@@ -448,6 +434,10 @@ JS;
                 $compressedFacetFilters = specialUrlEncode(\LZCompressor\LZString::compressToBase64($appliedFacetFiltersAsString));
 
                 $addURL .= '&filter='.$compressedFacetFilters;
+
+                if($this->searchClassId === 'EDS') {
+                  $addURL .= '&database=EDS';
+                }
               ?>
               <? if ($allowExclude): ?>
                 <div class="list-group-item facet<?=$thisFacet['operator'] ?><? if ($i >= $facets_before_more): ?> <?=$moreClass ?><?endif ?>">
@@ -512,6 +502,24 @@ $(function () {
 $('[data-toggle="tooltip"]').tooltip()
 })
 
+$(document).off("click", ".jstree-anchor").on("click", ".jstree-anchor", function() {
+
+    var useFacet = 0;
+    if ( $( this ).hasClass( 'jstree-clicked' ) ) {
+        useFacet = 1;
+    }
+
+    dataLayer.push({
+        'event': 'action.facet',
+        'actionContext': {
+            'eventCategory': 'facet',
+            'eventAction': $(this).find('.main').attr('data-facet').split(':')[0],
+            'eventLabel': $(this).find('.main').attr('data-facet').split(':')[1],
+            'eventValue': useFacet,
+            'nonInteraction': false
+        }
+    });
+});
 </script>
 
 <?=$this->render("Recommend/SideFacets/timelineModal.phtml")?>
