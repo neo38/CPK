@@ -10,12 +10,9 @@
       '<li class="active">'.$this->translate('Add user').'</li>';
 
   $this->layout()->title = $this->translate('Add user');
+  $this->headScript()->appendFile("admin/add-user-with-permissions.js");
 ?>
-<script>
-jQuery( document ).ready( function( $ ) {
-	$('[data-toggle="tooltip"]').tooltip();
-});
-</script>
+
 <div class="row clearfix">
   <ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs ?></ul>
 
