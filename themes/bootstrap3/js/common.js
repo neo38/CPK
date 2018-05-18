@@ -422,7 +422,7 @@ function keyboardShortcuts() {
     }
 }
 
-jQuery( document ).ready( function( $ ){
+jQuery( document ).ready( function( $ ) {
   // Setup search autocomplete
   setupAutocomplete();
   // Setup highlighting of backlinks
@@ -607,5 +607,8 @@ jQuery( document ).ready( function( $ ){
         currentMenu.slideDown()
       }
     }
-  })
+  });
+
+  /* Inicialize questionmark helps when available */
+  $( '.questionmark-help .modal' ).appendTo( 'body' );
 });
