@@ -405,8 +405,7 @@ function recordDocReady() {
  * @return	{undefined}
  */
 function displayCitationLink() {
-	jQuery( '#citace-pro > a' ).addClass( 'citations-link' );
-	jQuery( '#citace-pro > a' ).removeClass( 'disabled-link' );
+	jQuery( '#citace-pro > a' ).addClass( 'citations-link' ).removeClass('disabled-link');
 	jQuery( '#citation-link-spinner' ).addClass( 'hidden' );
 }
 
@@ -416,6 +415,7 @@ function displayCitationLink() {
  * @author	Martin Kravec <martin.kravec@mzk.cz>
  * 
  * @param	{string}	recordId
+ * @param citationValue
  * @param	{function}	callback
  * @return	{undefined}
  */
@@ -469,6 +469,30 @@ function insertCitation( citation ) {
 	var html = "<span id=\"selectable\" onclick=\"selectText('selectable')\">"+citation+"</span>";
 	jQuery( '#citation-placeholder' ).html( html );
 	$( '#citation-style-selector' ).removeClass( 'hidden' );
+}
+
+// /**
+//  * Removes active state from Buy Link when there are no buyLinks
+//  *
+//  * @param {array} buyLinks
+//  * @return {void}
+//  */
+// function disableBuyTab(buyLinks) {
+//     if (buyLinks.data[0]['buyLinksCount'] === 0)
+//         $('#buy').parent().removeClass('active').addClass('disabled');
+// }
+
+/**
+ * Disables tab
+ *
+ * @param tabId Id tab which will be disabled
+ */
+function disableTab(tabId) {
+    // disable redirect event on click to link
+    tabId.click(function (event) {
+        event.preventDefault();
+    });
+    tabId.parent().removeClass('active').addClass('disabled');
 }
 
 jQuery( document ).ready( function( $ ) {
@@ -583,6 +607,71 @@ jQuery( document ).ready( function( $ ) {
     });
   });
 
+    dataLayer.push({
+        'page': {
+            'type': 'detail'
+        }
+    });
+
+    let urlPath = document.location.pathname;
+    let uniqueId = urlPath.substr(urlPath.lastIndexOf('/') + 1);
+    let source = uniqueId.split('.')[0];
+
+    if (source !== 'library') {
+        dataLayer.push({
+            'page': {
+                'category': 'record'
+            }
+        });
+
+        if (source !== "auth") {
+            dataLayer.push({
+                'page': {
+                    'library': source
+                }
+            });
+        }
+    } else {
+        dataLayer.push({
+            'page': {
+                'category': 'library'
+            }
+        });
+    }
+
+    getCitation(uniqueId, false, insertCitation);
+
+    let body = $('body');
+
+    if (document.referrer.search("/Search/") !== -1) {
+        body.find('#back-to-search-link-ID').removeClass('hide').attr('href', document.referrer);
+    } else {
+        body.find('#back-to-search-link-ID').addClass('hide');
+    }
+
+    // select default record group
+    $('#record-group li a').each(function () {
+        let title = $(this).attr('title');
+        if ($(this).attr('id').toLowerCase().indexOf(source.toLowerCase()) >= 0) {
+            $('#first-record-group').text(title);
+        }
+    });
+
+    $('#subjects-tr').on('click', '#show-all-subjects', function () {
+        $('#subjectsModal').modal('show');
+    });
+
+    body.on('click', '.want-it', function () {
+        $('html,body').animate({
+            scrollTop: $('#records-in-groups-container').offset().top
+        }, 1000);
+    });
+
+    body.on('click', '.eds-want-it', function () {
+        $('html,body').animate({
+            scrollTop: $('#edsavailability').offset().top
+        }, 1000);
+    });
 });
 
 /**
