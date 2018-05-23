@@ -215,13 +215,13 @@ $removeFilterUrl = '/Search/Results?' . http_build_query($queryParams);
                   <label for="<?=$this->escapeHtmlAttr($title)?>from">
                     <?=$this->transEsc('date_from')?>:
                   </label>
-                  <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>from" id="<?=$this->escapeHtmlAttr($title)?>from" value="<?=$low?>" placeholder="<?=$min?>" <?=$extraInputAttribs?>/>
+                  <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>_from" id="<?=$this->escapeHtmlAttr($title)?>_from" value="<?=$low?>" placeholder="<?=$min?>" <?=$extraInputAttribs?>/>
                 </div>
                 <div class="col-sm-6">
                   <label for="<?=$this->escapeHtmlAttr($title)?>to">
                     <?=$this->transEsc('date_to')?>:
                   </label>
-                  <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>to" id="<?=$this->escapeHtmlAttr($title)?>to" value="<?=$high?>" placeholder="<?=$max?>" <?=$extraInputAttribs?>/>
+                  <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>_to" id="<?=$this->escapeHtmlAttr($title)?>_to" value="<?=$high?>" placeholder="<?=$max?>" <?=$extraInputAttribs?>/>
                 </div>
               </div>
               <? if ($rangeFacets[$title]['type'] == 'date'): ?>

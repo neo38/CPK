@@ -1257,25 +1257,30 @@ jQuery( document ).ready( function( $ ) {
             ADVSEARCH.updateSearchResults( undefined, undefined );
         }
 	});
-	
-	/*
-	 * Add data range as facet
-	 */
-	$( 'body' ).on( 'click', '.apply-facet-filter-range', function( event ) {
-		event.preventDefault();
-		
-		var extraData = {};
-		extraData['publishDatefrom'] = $( '#publishDatefrom' ).val();
-		extraData['publishDateto'] = $( '#publishDateto' ).val();
-		extraData['daterange'] = 'publishDate';
-		
-		var value = 'publishDate:"['+extraData['publishDatefrom']+' TO '+extraData['publishDateto']+']"';
-		ADVSEARCH.removeFacetFilter(value, false);
-		ADVSEARCH.addFacetFilter(value, false);
-		
-		ADVSEARCH.updateSearchResults( undefined, undefined, undefined, extraData );
-	});
-	
+
+  /*
+   * Add data range as facet
+   */
+  $( 'body' ).on( 'click', '.apply-facet-filter-range', function( event ) {
+    event.preventDefault();
+    var extraData = {}, value;
+
+    extraData['publishDatefrom'] = document.getElementById( 'publishDate_int_mv_from' ).value;
+    extraData['publishDateto'] = document.getElementById( 'publishDate_int_mv_to' ).value;
+    extraData['daterange'] = 'publishDate_int_mv';
+
+    //validate input to range filter
+    if(!validateRangeFilter(extraData['publishDatefrom'], extraData['publishDateto'])) {
+      return false;
+    }
+
+    value = 'publishDate_int_mv:"['+extraData['publishDatefrom']+' TO '+extraData['publishDateto']+']"';
+
+    ADVSEARCH.removeFacetFilter(value, false);
+    ADVSEARCH.addFacetFilter(value, false);
+    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, extraData );
+  });
+
 	/*
 	 * Update search results on submiting advanced search form
 	 */
@@ -1536,6 +1541,18 @@ jQuery( document ).ready( function( $ ) {
             ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData);
         }
     });
+
+  /**
+   * Validates input years to range filter
+   * @param dateFrom
+   * @param dateTo
+   */
+  var validateRangeFilter = function (dateFrom, dateTo) {
+    var reg = new RegExp(/^\d+$/);
+    return reg.test(dateFrom)
+        && reg.test(dateTo)
+        && parseInt(dateTo) > parseInt(dateFrom);
+  };
 
 	/**
 	 * Get param from url
