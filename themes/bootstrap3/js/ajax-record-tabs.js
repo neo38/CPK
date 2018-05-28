@@ -26,9 +26,8 @@ function getBuyLinks( recordID, parentRecordID, callback ) {
 /**
  * Prints SFX JIB Results
  * 
- * @param	{string}	sfxUrl
  * @param	{string}	recordID
- * @param	{string}	institute
+ * @param   {string}    sourceInstitute
  * @param	{array}		arrayOf866
  * @return	{undefined}	
  */
@@ -88,7 +87,7 @@ function getSfxJibResult( recordID, sourceInstitute, arrayOf866 ) {
 /**
  * Gets Buy Links via AjaxController
  * 
- * @param recordUniqueID
+ * @param   {string}    recordUniqueID
  * @param	{string}	parentRecordID
  * @param 	{string}	sourceInstitute
  * @param	{function}	callback
@@ -146,7 +145,7 @@ function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
 /**
  * Get record unique id
  *
- * @param {string} recordUniqueId
+ * @param   {string}    recordUniqueId
  * @returns {promise}
  */
 function getParentRecordId( recordUniqueId ) {
@@ -164,7 +163,7 @@ function getParentRecordId( recordUniqueId ) {
 /**
  * Get number of items for record tabs
  *
- * @param {string} parentRecordId
+ * @param   {string}    parentRecordId
  * @returns {promise}
  */
 function getItemsCountForTabsInRecord( parentRecordId ) {
