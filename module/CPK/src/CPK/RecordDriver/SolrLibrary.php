@@ -293,7 +293,7 @@ class SolrLibrary extends ParentSolrMarc
         return "";
     }
 
-    public function AddInfoItemsCount()
+    public function addInfoItemsCount()
     {
         $result = 0;
         if (!empty($this->getSigla())) $result++;
@@ -301,7 +301,7 @@ class SolrLibrary extends ParentSolrMarc
         return $result;
     }
 
-    public function ContactsItemsCount()
+    public function contactsItemsCount()
     {
         $result = 0;
         if (!empty($this->getPhone())) $result++;
@@ -310,7 +310,7 @@ class SolrLibrary extends ParentSolrMarc
         return $result;
     }
 
-    public function ServicesItemsCount()
+    public function servicesItemsCount()
     {
         $result = 0;
         if (!empty($this->getService())) $result++;
@@ -319,7 +319,7 @@ class SolrLibrary extends ParentSolrMarc
         return $result;
     }
 
-    public function BranchesItemsCount()
+    public function branchesItemsCount()
     {
         $result = 0;
         if (!empty($this->getLibBranch())) $result++;

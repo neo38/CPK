@@ -100,9 +100,7 @@ class RecordController extends RecordControllerBase
         // get 856links
         $linksFrom856 = $this->get856Links();
         if ($linksFrom856 !== false)
-
             $view->linksFrom856 = $linksFrom856;
-
 
         // get number of links
         $field866 = $this->get866Data();
@@ -170,11 +168,11 @@ class RecordController extends RecordControllerBase
         $view->maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
 
         /* Handle view template */
-	    if (! empty($this->params()->fromQuery('searchTypeTemplate')) ){
-	        $view->searchTypeTemplate = $this->params()->fromQuery('searchTypeTemplate');
-	    } else {
-	        $view->searchTypeTemplate = 'basic';
-	    }
+        if ( ! empty($this->params()->fromQuery('searchTypeTemplate'))) {
+            $view->searchTypeTemplate = $this->params()->fromQuery('searchTypeTemplate');
+        } else {
+            $view->searchTypeTemplate = 'basic';
+        }
 
         $view->setTemplate($ajax ? 'record/ajaxtab' : 'record/view');
 
@@ -197,8 +195,6 @@ class RecordController extends RecordControllerBase
         // If user have preferred limit and sort settings
         if ($user = $this->getAuthManager()->isLoggedIn()) {
             $userSettingsTable = $this->getTable("usersettings");
-
-            $userSettingsTable = $this->getTable("usersettings");
             $preferredRecordsPerPage = $userSettingsTable->getRecordsPerPage($user);
             $preferredSorting = $userSettingsTable->getSorting($user);
 
@@ -220,6 +216,17 @@ class RecordController extends RecordControllerBase
 
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
+
+        // Get source of the record to print it to h3 header
+        $view->id     = $this->driver->getUniqueID();
+        $view->source = explode(".", $view->id)[0];
+
+        // Setup record data-href links for view
+        $scheme     = $this->getRequest()->getServer('REQUEST_SCHEME');
+        $serverName = $this->getRequest()->getServer('SERVER_NAME');
+
+        $view->recordDataLink    = sprintf('%s://%s/Record/%s', $scheme, $serverName, $view->id);
+        $view->edsRecordDataLink = sprintf('%s://%s/EdsRecord/%s', $scheme, $serverName, $view->id);
 
         return $view;
     }
