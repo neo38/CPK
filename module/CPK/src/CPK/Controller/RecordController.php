@@ -102,12 +102,6 @@ class RecordController extends RecordControllerBase
         if ($linksFrom856 !== false)
             $view->linksFrom856 = $linksFrom856;
 
-        // get number of links
-        $field866 = $this->get866Data();
-        $noLinksFrom856 = $linksFrom856 === false ? 0 : count($linksFrom856);
-        $noLinksFrom866 = $field866 === false ? 0 : count($field866);
-        $view->eVersionLinksCount = $noLinksFrom856 + $noLinksFrom866;
-
         $fieldsOf7xx = explode(",", $this->getConfig()->Record->fields_in_core);
         $subfieldsOf733 = [
             't',

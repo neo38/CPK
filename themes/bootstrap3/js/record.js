@@ -673,6 +673,10 @@ jQuery( document ).ready( function( $ ) {
                 disableTab( $( '#eversion' ) );
                 // Hide table inside the tab
                 $( '#e-version-table' ).addClass( 'hidden' );
+            } else {
+                databaseTranslation = VuFind.translate( 'Database' );
+                unknownTranslation = VuFind.translate( 'link_access_status_unknown' );
+                get866( uniqueId, parentRecordId.data, source, display866 );
             }
 
             // Disable Holdings tab
@@ -699,10 +703,17 @@ jQuery( document ).ready( function( $ ) {
             if (!response.data['branchesItemsCount']) {
                 disableTab( $( '#branches' ) );
             }
+
         } ).fail(function( error ) {
-            console.log( error )
+            console.log( error );
         } )
-    } );
+    } ).fail(function() {
+        console.log('Error: Unable to get parent record id');
+    });
+
+
+
+
 
     // Moved form record/view.phtml
     recordDocReady();
