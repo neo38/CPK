@@ -755,7 +755,7 @@ class XCNCIP2 extends \VuFind\ILS\Driver\AbstractBase implements
             }
         }
 
-        if ($this->agency === 'ABA008') { // NLK
+        if ($this->agency === 'ABA008' || $this->agency === 'KAG001') { // NLK or RKKA
             $parts = explode("@", $department);
             $translate = $this->translator->translate(isset($parts[0]) ? $this->source . '_location_' . $parts[0] : '');
             $parts = explode(" ", $translate, 2);
@@ -855,7 +855,7 @@ class XCNCIP2 extends \VuFind\ILS\Driver\AbstractBase implements
                 return $this->handleStutusesZlg($response);
             }
 
-            if ($this->agency === 'ABA008') { // NLK
+            if ($this->agency === 'ABA008' || $this->agency === 'KAG001') { // NLK or RKKA
                 $request = $this->requests->LUISBibItem($bibId, $nextItemToken, $this, $patron);
                 $response = $this->sendRequest($request);
                 return $this->handleStutusesNlk($response);
@@ -1360,7 +1360,7 @@ class XCNCIP2 extends \VuFind\ILS\Driver\AbstractBase implements
      */
     public function getMyFines($patron)
     {
-        if ($this->agency === 'ABA008') { // NLK
+        if ($this->agency === 'ABA008' || $this->agency === 'KAG001') { // NLK or RKKA
             throw new ILSException('driver_no_fines');
         }
 
@@ -1478,7 +1478,7 @@ class XCNCIP2 extends \VuFind\ILS\Driver\AbstractBase implements
                 }
             }
 
-            if ($this->agency === 'ABA008') { // NLK
+            if ($this->agency === 'ABA008' || $this->agency === 'KAG001') { // NLK or RKKA
                 $parts = explode("@", (string) $location[0]);
                 $location[0] = $this->translator->translate(isset($parts[0]) ? $this->source . '_location_' . $parts[0] : '');
                 $additId = empty($item_id) ? '' : (string) $item_id[0];
