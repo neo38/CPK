@@ -669,8 +669,19 @@ class MyResearchController extends AbstractBase
             };
 
             $results = $runner->run($request, 'Favorites', $setupCallback);
+
+            // Set route action for anchors
+            $services = $this->getServiceLocator();
+            $router = $services->get('router');
+            $request = $services->get('request');
+            $routeMatch = $router->match($request);
+            $baseHref = $routeMatch->getParams()['controller'] . '/' . $routeMatch->getParams()['action'];
+            if ($routeParam = $routeMatch->getParams()['id']) {
+                $baseHref .= '/' . $routeParam;
+            }
+
             return $this->createViewModel(
-                ['params' => $results->getParams(), 'results' => $results]
+                ['params' => $results->getParams(), 'results' => $results, 'baseHref' => $baseHref]
             );
         } catch (ListPermissionException $e) {
             if (!$this->getUser()) {

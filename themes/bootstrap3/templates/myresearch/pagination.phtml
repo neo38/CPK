@@ -10,10 +10,6 @@
     if (!empty($sort)) {
       $sort = '&sort='.$sort;
     }
-
-    $currentRoute = array_shift(explode("?", $_SERVER['REQUEST_URI'], 2));
-    $currentRouterAction = explode("/", $currentRoute, 4)[2];
-    $paginationTarget = $currentRouterAction == 'MyList' ? $currentRoute : $this->url('myresearch-favorites');
 ?>
 <div class='col-md-12'>
     <div class='row'>
@@ -21,7 +17,7 @@
       <div class='col-md-2'>
           <ul class="pagination" style='float: left;'>
             <? if (isset($this->previous)): ?>
-              <li><a  href="<?=$paginationTarget?>?page=<?=$this->previous?><?=$sort?>"><i class="pr-interface-arrowleft"></i>
+              <li><a href="<?=$baseHref?>?page=<?=$this->previous?><?=$sort?>"><i class="pr-interface-arrowleft"></i>
      <?=$this->transEsc('Prev')?></a></li>
             <? endif; ?>
           </ul>
@@ -32,7 +28,7 @@
             <? if (isset($this->previous)): ?>
               <? if (!isset($this->options['disableFirst']) || !$this->options['disableFirst']): ?>
                 <? if (! isset($this->pagesInRange[1])): ?>
-                  <li><a href="<?=$paginationTarget?>?page=1<?=$sort?>">1</a></li>
+                  <li><a href="<?=$baseHref?>?page=1<?=$sort?>">1</a></li>
                 <? endif; ?>
               <? endif; ?>
             <? endif; ?>
@@ -46,7 +42,7 @@
                 <? endif; ?>
 
                 <? if ($page != $this->current): ?>
-                  <li><a href="<?=$paginationTarget?>?page=<?=$page?><?=$sort?>"><?=$this->localizedNumber($page)?></a></li>
+                  <li><a href="<?=$baseHref?>?page=<?=$page?><?=$sort?>"><?=$this->localizedNumber($page)?></a></li>
                 <? else: ?>
                   <li class="active"><span><?=$page?></span></li>
                 <? endif; ?>
@@ -62,7 +58,7 @@
             <? if (isset($this->next)): ?>
               <? if (!isset($this->options['disableLast']) || !$this->options['disableLast']): ?>
                 <? if (! isset($this->pagesInRange[$this->pageCount])): ?>
-                  <li><a href="<?=$paginationTarget?>?page=<?=$this->pageCount?><?=$sort?>"><?=$this->localizedNumber($this->pageCount)?></a></li>
+                  <li><a href="<?=$baseHref?>?page=<?=$this->pageCount?><?=$sort?>"><?=$this->localizedNumber($this->pageCount)?></a></li>
                 <? endif; ?>
               <? endif; ?>
             <? endif; ?>
@@ -72,7 +68,7 @@
       <div class='col-md-2'>
           <ul class="pagination" style='float: right'>
             <? if (isset($this->next)): ?>
-              <li style='float: right;'><a href="<?=$paginationTarget?>?page=<?=$this->next?><?=$sort?>"><?=$this->transEsc('Next');?> <i class="pr-interface-arrowright"></i>
+              <li style='float: right;'><a href="<?=$baseHref?>?page=<?=$this->next?><?=$sort?>"><?=$this->transEsc('Next');?> <i class="pr-interface-arrowright"></i>
     </a></li>
             <? endif; ?>
           </ul>
