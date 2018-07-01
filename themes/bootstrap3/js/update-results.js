@@ -1,5 +1,5 @@
 jQuery( document ).ready( function( $ ) {
-    let searchPath = $( 'input[name=\'searchPath\']' ).val();
+    let searchPath = $( 'input[name="searchPath"]' ).val();
 
     $( '#searchForm_lookfor' ).keyup( function() {
         $( '#searchclear' ).toggle( Boolean( $( this ).val() ) );
@@ -24,37 +24,34 @@ jQuery( document ).ready( function( $ ) {
                     'eventAction': 'whisperer',
                     'eventLabel': $( '#searchForm_lookfor' ).val(),
                     'eventValue': undefined,
-                    'nonInteraction': false,
+                    'nonInteraction': false
                 },
             } );
         }, 2000 );
-    } );
+    });
 
     $input.on( 'keydown', function() {
         clearTimeout( typingTimer );
-    } );
+    });
     /* End google tag manager */
 
     /* Set autocomplete On page load */
-    let query = $( '.search-query' ).val();
+    let query             = $( '.search-query' ).val();
     let enabledKeepFacets = $( '.searchFormKeepFilters' ).is( ':checked' );
+
     /* Set up limit and sort search letiables for making search query */
-    let limit = $( 'input[name=\'limit\']' ).val();
-    let sort = $( 'input[name=\'sort\']' ).val();
+    let limit   = $( 'input[name="limit"]' ).val();
+    let sort    = $( 'input[name="sort"]' ).val();
     let filters = '';
 
     if (enabledKeepFacets) {
-        filters = '';
         $( '.hidden-filter' ).each( function() {
             filters += '&filter[]=' + encodeURIComponent( $( this ).val() );
-        } );
-    }
-    else {
-        filters = '';
+        });
     }
     /* Set up URL for search  */
-    let urlWithoutFacets = `${searchPath}?lookfor=${encodeURIComponent(
-        query )}&type=AllFields&searchTypeTemplate=basic&page=1&database=Solr&limit=${limit}&sort=${sort}${filters}`;
+    let urlWithoutFacets = `${searchPath}?lookfor=${encodeURIComponent( query )}&type=AllFields
+        &searchTypeTemplate=basic&page=1&database=Solr&limit=${limit}&sort=${sort}${filters}`;
 
     $( '#run-autocomplete' ).attr( 'href', urlWithoutFacets );
     $( '.searchForm' ).attr( 'action', urlWithoutFacets );
@@ -68,16 +65,16 @@ jQuery( document ).ready( function( $ ) {
             filters = '';
             $( '.hidden-filter' ).each( function() {
                 filters += '&filter[]=' + encodeURIComponent( $( this ).val() );
-            } );
-        }
-        else {
+            });
+        } else {
             filters = '';
             ADVSEARCH.removeAllFilters( true );
         }
 
         let database = $( 'input[name="database"]' ).val();
-        let urlWithFacets = `${searchPath}?lookfor0[]=${encodeURIComponent(
-            query )}&type0[]=AllFields&searchTypeTemplate=basic&page=1&bool0[]=AND&join=AND&database=${database}&limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}${filters}`;
+        let urlWithFacets = `${searchPath}?lookfor0[]=${encodeURIComponent( query )}&type0[]=AllFields
+            &searchTypeTemplate=basic&page=1&bool0[]=AND&join=AND&database=${database}
+            &limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}${filters}`;
 
         $( '#run-autocomplete' ).attr( 'href', urlWithFacets );
         $( '.searchForm' ).attr( 'action', urlWithFacets );
@@ -85,7 +82,7 @@ jQuery( document ).ready( function( $ ) {
         /* Change first query in advanced search to match value in autocomplete */
         ADVSEARCH.clearAdvancedSearchTemplate();
         $( '#query_0 .query-string' ).val( query );
-    } );
+    });
 
     $( 'body' ).on( 'click', '#run-autocomplete', function( event ) {
         event.preventDefault();
@@ -96,24 +93,25 @@ jQuery( document ).ready( function( $ ) {
                 'eventAction': 'fulltext',
                 'eventLabel': query,
                 'eventValue': undefined,
-                'nonInteraction': false,
+                'nonInteraction': false
             },
-        } );
-        /* if autocomplete used in Search/Results, load results async */
+        });
+
+        /* If autocomplete used in Search/Results, load results async */
         limit = $( 'input[name="limit"]' ).val();
-        sort = $( 'input[name="sort"]' ).val();
+        sort  = $( 'input[name="sort"]' ).val();
         let currentUrl = window.location.pathname;
         let controller = currentUrl.split( '/' )[1];
-        let action = currentUrl.split( '/' )[2];
-        let database = $( 'input[name="database"]' ).val();
-        let type = $( '#librariesSearchLink' ).hasClass( 'active' ) ? 'Libraries' : 'AllFields';
+        let action     = currentUrl.split( '/' )[2];
+        let database   = $( 'input[name="database"]' ).val();
+        let type       = $( '#librariesSearchLink' ).hasClass( 'active' ) ? 'Libraries' : 'AllFields';
 
         if (controller === 'Search' && action === 'Results') {
             ADVSEARCH.updateSearchResults(
                 undefined,
                 {
-                    queryString: `?lookfor0=${encodeURIComponent( $( '#searchForm_lookfor' ).
-                        val() )}&type0=${type}&searchTypeTemplate=basic&database=${database}&page=1&bool0=AND&join=AND&limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}`,
+                    queryString: `?lookfor0=${encodeURIComponent( $( '#searchForm_lookfor' ).val() )}&type0=${type}&searchTypeTemplate=basic
+                        &database=${database}&page=1&bool0=AND&join=AND&limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}`
                 },
                 false,
             );
@@ -130,7 +128,7 @@ jQuery( document ).ready( function( $ ) {
     $( '.searchForm' ).submit( function( event ) {
         event.preventDefault();
         limit = $( 'input[name="limit"]' ).val();
-        sort = $( 'input[name="sort"]' ).val();
+        sort  = $( 'input[name="sort"]' ).val();
         dataLayer.push( {
             'event': 'action.search',
             'actionContext': {
@@ -138,26 +136,29 @@ jQuery( document ).ready( function( $ ) {
                 'eventAction': 'fulltext',
                 'eventLabel': query,
                 'eventValue': undefined,
-                'nonInteraction': false,
+                'nonInteraction': false
             },
-        } );
+        });
         let currentUrl = window.location.pathname;
         let controller = currentUrl.split( '/' )[1];
         let action = currentUrl.split( '/' )[2];
 
         let database = $( 'input[name="database"]' ).val();
         let type = $( '#librariesSearchLink' ).hasClass( 'active' ) ? 'Libraries' : 'AllFields';
+
         /* Set up URL for search  */
-        let url = `${searchPath}?lookfor0[]=${encodeURIComponent(
-            query )}&type0[]=${type}&searchTypeTemplate=basic&page=1&bool0[]=AND&join=AND&limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}${filters}&database=${database}`;
+        let url = `${searchPath}?lookfor0[]=${encodeURIComponent( query )}&type0[]=${type}&searchTypeTemplate=basic
+            &page=1&bool0[]=AND&join=AND&limit=${limit}&sort=${sort}
+            &keepEnabledFilters=${enabledKeepFacets}${filters}&database=${database}`;
 
         if (controller === 'Search' && action === 'Results') {
             event.preventDefault();
             ADVSEARCH.updateSearchResults(
                 undefined,
                 {
-                    queryString: `?lookfor0=${encodeURIComponent( $( '#searchForm_lookfor' ).
-                        val() )}&searchTypeTemplate=basic&type0=${type}&page=1&bool0=AND&join=AND&limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}&database=${database}`,
+                    queryString: `?lookfor0=${encodeURIComponent( $( '#searchForm_lookfor' ).val() )}
+                        &searchTypeTemplate=basic&type0=${type}&page=1&bool0=AND&join=AND
+                        &limit=${limit}&sort=${sort}&keepEnabledFilters=${enabledKeepFacets}&database=${database}`
                 },
                 false,
             );
@@ -181,12 +182,12 @@ jQuery( document ).ready( function( $ ) {
             $( '.searchForm' ).attr( 'action', url );
             $( location ).attr( 'href', $( '#run-autocomplete' ).attr( 'href' ) );
         }
-    } );
+    });
 
-    document.getElementById( 'searchFormKeepFilters' ).addEventListener( 'change', function() {
+    $( '#searchFormKeepFilters' ).on( 'change', function() {
         $( '.applied-filter' ).click();
         $( '.search-query' ).trigger( 'change' );
-    } );
+    });
 
     // Update ADVSEARCH_CONFIG
     $.ajax( {
@@ -194,7 +195,7 @@ jQuery( document ).ready( function( $ ) {
         async: true,
         type: 'POST',
         url: '/AJAX/JSON?method=getAllAdvancedHandlers',
-    } ).done( function( response ) {
-        ADVSEARCH_CONFIG = {'data': response.data};
-    } );
-} );
+    }).done( function( response ) {
+        ADVSEARCH_CONFIG = { 'data': response.data };
+    });
+});
