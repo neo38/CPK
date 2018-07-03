@@ -244,7 +244,7 @@
           <?=$author?>
           </a>
           <? if (! empty($localAuthorityId)): ?>
-              &nbsp;<a title="<?=$this->translate('Show person')?> <?=$authors['main']?>" href="/Record/<?=$localAuthorityId?>"><i class="pr-user-single5 author-icon"></i></a>341
+              &nbsp;<a title="<?=$this->translate('Show person')?> <?=$authors['main']?>" href="/Record/<?=$localAuthorityId?>"><i class="pr-user-single5 author-icon"></i></a>
           <? endif;
              elseif (isset($authors['corporate']) && !empty($authors['corporate'])):?>
                <a title='<?=$this->translate('Show publications by')?> <?=$this->escapeHtml($authors['corporate'])?>' class='author-info' href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?=urlencode($authors['corporate'])?>">
@@ -341,7 +341,7 @@
       <? if ($publications = $this->driver->tryMethod('hasPublications')): ?>
         <div>
           <a title="<?=$this->transEsc('Show publications of this person')?>"
-             href="<?=$publications?>">
+             href="<?=$this->driver->getPublicationsUrl()?>">
             <?=$this->translate('Show publications of this person')?>
           </a>
         </div>
@@ -350,7 +350,7 @@
       <? if ($publicationsAboutAvailable = $this->driver->tryMethod('publicationsAboutAvailable')): ?>
         <div>
           <a title="<?=$this->transEsc('Show publications about this person')?>"
-             href="<?=$publicationsAboutAvailable?>">
+             href="<?=$this->driver->getAboutPublicationsUrl()?>">
             <?=$this->translate('Show publications about this person')?>
           </a>
         </div>
