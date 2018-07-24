@@ -1546,7 +1546,7 @@ jQuery( document ).ready( function( $ ) {
             url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
             data: {
                 numberOfRecords: $( '#numberOfRecordsToAdd' ).val(),
-                searchId: $( '#add-to-saved-searches' ).attr( 'data-search-id' ),
+                searchId: $( '.data-search-id' ).attr( 'data-search-id' ),
                 title: $( '#newFavoritesListTitle' ).val(),
             },
             beforeSend() {

@@ -2662,7 +2662,7 @@ class AjaxController extends AjaxControllerBase
         $results = [];
 
         foreach ($records as $record) {
-            $record = $recLoader->load($record->getUniqueID(), 'Solr', false);
+            $record = $recLoader->load($record->getUniqueID(), $record->getSourceIdentifier(), false);
 
             $result = $record->saveToFavorites($params, $user);
 

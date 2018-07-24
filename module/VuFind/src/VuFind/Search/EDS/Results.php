@@ -63,7 +63,7 @@ class Results extends \VuFind\Search\Base\Results
      *
      * @return void
      */
-    protected function performSearch()
+    public function performSearch()
     {
         $query  = $this->getParams()->getQuery();
         $limit  = $this->getParams()->getLimit();
