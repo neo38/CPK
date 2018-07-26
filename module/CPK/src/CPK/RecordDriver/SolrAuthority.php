@@ -238,15 +238,8 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function hasPublications()
     {
-        $request = array(
-            'join' => 'AND',
-            'type0' => array(0 => 'adv_search_author_corporation'),
-            'bool0' => array(0 => 'AND'),
-            'lookfor0' => array(0 => $this->getAuthorityId()),
-            'limit' => '2',
-        );
-        $results = $this->searchRunner->run( $request, 'Solr', $this->searchController->getSearchSetupCallback() );
-        return ($results->getResultTotal() > 1) ? true : false;
+        $results = $this->searchController->getAuthorityPublicationsCount($this->getAuthorityId());
+        return ($results > 1);
     }
 
     /**
@@ -256,15 +249,8 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function publicationsAboutAvailable()
     {
-        $request = array(
-            'join' => 'AND',
-            'type0' => array(0 => 'adv_search_subject_keywords'),
-            'bool0' => array(0 => 'AND'),
-            'lookfor0' => array(0 => $this->getAuthorityId()),
-            'limit' => '1',
-        );
-        $results = $this->searchRunner->run( $request, 'Solr', $this->searchController->getSearchSetupCallback() );
-        return ($results->getResultTotal() > 0) ? true : false;
+        $results = $this->searchController->getPublicationsAboutAvailable($this->getAuthorityId());
+        return ($results > 0);
     }
 
     /**
@@ -274,7 +260,10 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function getPublicationsUrl()
     {
-        return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=" . $this->getAuthorityId();
+        return "/Search/Results?"
+            . "sort=relevance&join=AND&type0[]=adv_search_author_corporation"
+            . "&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]="
+            . $this->getAuthorityId();
     }
 
     /**
@@ -284,7 +273,9 @@ class SolrAuthority extends ParentSolrMarc
      */
     public function getAboutPublicationsUrl()
     {
-        return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_subject_keywords&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=" . $this->getAuthorityId();
+        return "/Search/Results?"
+            . "sort=relevance&join=AND&type0[]=adv_search_subject_keywords"
+            . "&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]="
+            . $this->getAuthorityId();
     }
-
 }
