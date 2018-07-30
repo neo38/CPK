@@ -37,6 +37,7 @@ $toRet = array(
         'vendor/jquery.visible.min.js',
         'vendor/jquery.bootstrap-growl.js',
         'notifications.module.js',
+        'update-results.js',
     ),
     'less' => array(
         'active' => false,
