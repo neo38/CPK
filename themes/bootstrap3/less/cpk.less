@@ -319,3 +319,28 @@ code {
 .header-profile-navigation li a {
   padding: 6px 20px;
 }
+
+body footer {
+  h2 {
+    padding-bottom: 6px;
+  }
+
+  li {
+    padding: 3px 16px;
+
+    a {
+      text-decoration: none;
+
+      &:hover, &:focus {
+        text-decoration: none;
+        color: @brand-primary;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  body footer {
+    text-align: center;
+  }
+}
