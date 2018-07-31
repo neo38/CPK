@@ -91,15 +91,15 @@
                                 <?= $fullname ?>
                                 <b class="caret"></b>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li class="myAccountOptions">
+                            <ul class="dropdown-menu header-profile-navigation">
+                                <li>
                                     <a href="<?= $this->url('myresearch-home', [], ['query' => ['redirect' => 0]]) ?>"
                                        class="modal-link" title="<?= $this->transEsc("Your Account") ?>">
                                         <i class="fa fa-home"></i>
                                         <?= $this->transEsc("Your Account") ?>
                                     </a>
                                 </li>
-                                <li class="myAccountOptions">
+                                <li>
                                     <a href="<?= $this->url('myresearch-favorites') ?>"
                                        class="modal-link" title="<?= $this->transEsc('Your Favorites') ?>">
                                         <i class="icon-oblibene"></i>

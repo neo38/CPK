@@ -2,6 +2,71 @@
   This file contains styling of admin views
 */
 
+.profile-menu {
+  h3 {
+    margin-top: 9px;
+  }
+
+  .badge {
+    padding-top: 6px;
+    font-weight: bolder;
+  }
+
+  .profile-menu-item-icon {
+    font-size: 110%;
+    padding: 0 6px;
+  }
+
+  .profile-menu-divider {
+    height: 1px;
+    margin: 9px 0;
+    overflow: hidden;
+    background-color: #e5e5e5;
+  }
+
+  .list-group .list-group-item {
+    .clearfix();
+
+    padding: 4px 16px 4px 16px;
+
+    &:hover, &:focus {
+      color: #e5004b;
+      text-decoration: none;
+    }
+  }
+
+  .profile-favorites-list {
+    margin-left: 15px;
+  }
+
+  @media only screen and (min-width: 768px) and (max-width: 992px) {
+    .profile-favorites-list {
+      margin-left: 0px;
+    }
+  }
+
+  @media only screen and (min-width: 768px) and (max-width: 992px) {
+    .list-group .list-group-item {
+      padding: 4px 6px 4px 0px;
+    }
+  }
+
+  .list-group-item.active {
+    font-weight: normal;
+  }
+
+}
+
+@media only screen and (max-width: 767px) {
+  .profile-menu {
+    margin-top: 35px;
+
+    h3 {
+      font-size: 140%;
+    }
+  }
+}
+
 .admin-icon {
   font-size: 18px !important;
   cursor: pointer;
@@ -24,4 +89,8 @@
 
 .pointer {
   cursor: pointer;
+}
+
+.main .container h2 {
+  margin-top: 9px;
 }
