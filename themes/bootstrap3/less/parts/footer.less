@@ -2,51 +2,75 @@
   This file contains styling of footer
 */
 
-footer{
+footer {
   margin-top: 40px;
   background-color: #222222;
-  color: #F6F6F6;
+  color: @body-bg;
+  padding-bottom: 24px;
+
   a {
-    color: #F6F6F6;
+    color: @body-bg;
     text-decoration: underline;
+
     &:hover, &:focus {
-      color: #F6F6F6;
+      color: @body-bg;
       text-decoration: none;
     }
   }
+
   ul {
     list-style-type: none;
+    padding-left: 14px;
+
+    li {
+      padding: 3px 12px;
+
+      a {
+        text-decoration: none;
+
+        &:hover, &:focus {
+          text-decoration: none;
+          color: @brand-primary;
+        }
+      }
+    }
   }
-  padding-bottom: 22px;
-}
 
-footer ul {
-  padding-left: 14px;
-}
-
-//footer at the bottom of page without gap
-ul.vakata-context {
-  margin-bottom: 0px;
-}
-
-footer .social a {
+  .social a {
     text-decoration: none;
-}
+  }
 
-footer .social-icon {
+  .social-icon {
     margin: 10px;
-}
+  }
 
-footer .copyright {
+  .copyright {
     margin-top: 10px;
-}
+  }
 
-footer .info {
+  .info {
     padding: 0px 20px 0px 0px;
+  }
+
+  h2 {
+    padding-top: 8px;
+    padding-bottom: 6px;
+  }
 }
 
 @media only screen and (max-width: 1199px) {
   .footer-item {
     text-align: center;
   }
+}
+
+@media only screen and (max-width: 767px) {
+  footer {
+    text-align: center;
+  }
+}
+
+//footer at the bottom of page without gap
+ul.vakata-context {
+  margin-bottom: 0px;
 }
