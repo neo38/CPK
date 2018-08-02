@@ -113,7 +113,11 @@ jQuery( document ).ready( function( $ ) {
          *
          * @return {undefined}
          */
-        updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab) {
+        updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab, facets) {
+            if (facets !== true) {
+                facets = false;
+            }
+
             var data = {};
 
 			/* If we need to add some new paramts to URL we can use extraData argument */
@@ -443,6 +447,10 @@ jQuery( document ).ready( function( $ ) {
                     beforeSend: function () {
 
                         //scrollToTop();
+                        if (facets) {
+                            $('.loader').removeClass('loader-hide');
+                            $('.list-group').addClass('load-facet');
+                        }
 
                         if ((data['type0'] == "Libraries") && (undefined != data['lookfor0'][0])) {
                             console.log( "!!!!!!!Get Map from search-results.js" );
@@ -490,7 +498,9 @@ jQuery( document ).ready( function( $ ) {
                             var responseData = response.data;
                             var title = response.data.title;
                             var resultsHtml = JSON.parse(responseData.resultsHtml);
-                            var facetsHtml = JSON.parse(responseData.sideFacets);
+                            if (facets) {
+                                var facetsHtml = JSON.parse(responseData.sideFacets);
+                            }
                             var resultsAmountInfoHtml = JSON.parse(responseData.resultsAmountInfoHtml);
                             var paginationHtml = JSON.parse(responseData.paginationHtml);
 
@@ -511,11 +521,15 @@ jQuery( document ).ready( function( $ ) {
                             $('#result-list-placeholder').html(decodeHtml(resultsHtml.html));
                             $('#pagination-placeholder').html(paginationHtml.html);
                             $('#results-amount-info-placeholder').html(resultsAmountInfoHtml.html);
-                            $('#side-facets-placeholder').html(facetsHtml.html);
                             $('#result-list-placeholder, #pagination-placeholder, #results-amount-info-placeholder').show('blind', {}, 500);
                             //$('#side-facets-placeholder').show('blind', {}, 500);
+                            if (facets) {
+                                $('#side-facets-placeholder').html(facetsHtml.html);
+                                $('.loader').addClass('loader-hide');
+                                $('.list-group').removeClass('load-facet');
+                            }
 
-							/* Update search identificators */
+                            /* Update search identificators */
                             $('#rss-link').attr('href', window.location.href + '&view=rss');
                             $('.mail-record-link').attr('id', 'mailSearch' + responseData.searchId);
                             $('#add-to-saved-searches').attr('data-search-id', responseData.searchId);
@@ -677,7 +691,7 @@ jQuery( document ).ready( function( $ ) {
             }
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
             }
         },
 
@@ -708,7 +722,7 @@ jQuery( document ).ready( function( $ ) {
             });
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData, undefined, undefined, true);
             }
         },
 
@@ -722,7 +736,7 @@ jQuery( document ).ready( function( $ ) {
             $('#hiddenFacetFilters input').remove();
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
             }
         },
 
@@ -896,11 +910,11 @@ jQuery( document ).ready( function( $ ) {
 		////console.log( currentState );
 		if (null != currentState) {
 			if (currentState.searchTypeTemplate) {
-				ADVSEARCH.updateSearchResults( currentState, undefined, currentState.searchTypeTemplate );
+				ADVSEARCH.updateSearchResults( currentState, undefined, currentState.searchTypeTemplate, undefined, undefined, undefined, true );
 			} else {
 				var currentUrl = window.location.href;
 				var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
-				ADVSEARCH.updateSearchResults( currentState, undefined, searchTypeTemplate );
+				ADVSEARCH.updateSearchResults( currentState, undefined, searchTypeTemplate, undefined, undefined, undefined, true );
 			}
 		} else {
 			console.warn( 'Current history state is NULL.' );
@@ -1099,7 +1113,7 @@ jQuery( document ).ready( function( $ ) {
             });
         }
 
-		ADVSEARCH.updateSearchResults( undefined, undefined );
+		ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
 
 	});
 
@@ -1192,7 +1206,7 @@ jQuery( document ).ready( function( $ ) {
 		$.each( selectedInstitutions, function( index, value ){
 		  ADVSEARCH.addFacetFilter( value, false );
 		});
-		ADVSEARCH.updateSearchResults( undefined, undefined );
+		ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
 	});
 	
 	/*
@@ -1272,8 +1286,9 @@ jQuery( document ).ready( function( $ ) {
 		var value = 'publishDate:"['+extraData['publishDatefrom']+' TO '+extraData['publishDateto']+']"';
 		ADVSEARCH.removeFacetFilter(value, false);
 		ADVSEARCH.addFacetFilter(value, false);
-		
-		ADVSEARCH.updateSearchResults( undefined, undefined, undefined, extraData );
+
+		// @TODO tady nevim jestli facety ano nebo ne
+		ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData, undefined, undefined, true);
 	});
 	
 	/*
@@ -1295,9 +1310,9 @@ jQuery( document ).ready( function( $ ) {
 		$( "input[name='page']" ).val( '1' );
 		$( "input[name='searchTypeTemplate']" ).val( 'advanced' );
 		if (event.ctrlKey) {
-		    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true);
+		    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true, true);
         } else {
-            ADVSEARCH.updateSearchResults( undefined, undefined);
+            ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, undefined, true);
         }
 	});
 	
@@ -1526,6 +1541,7 @@ jQuery( document ).ready( function( $ ) {
         $( this ).parent().parent().find( 'li' ).removeClass( 'active' );
         $( this ).parent().addClass( 'active' );
 
+        // @TODO tady netusim co to je
         if ( isAdvancedSearch ) {
             callbacks = {};
             callbacks.afterSwitchSearchTemplate = function() {

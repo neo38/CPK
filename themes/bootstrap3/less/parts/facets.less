@@ -247,6 +247,32 @@ li.jstree-facet ul {
     }
 }
 
-.loader {
-
+.list-group {
+  .loader {
+    position: relative;
+    left: ~"calc(50%)";
+    display: block;
+    div {
+      position: absolute;
+      margin-top:  ~"calc(50% - 48px )";
+    }
+    .fa-refresh {
+      position: absolute;
+      font-size: 36px;
+      padding-top: 0;
+      z-index: 1011;
+    }
+  }
+  .collapsed {
+    .loader div {
+      position: absolute;
+      margin-top: -5px;
+    }
+  }
+}
+.load-facet {
+  opacity: 0.3;
+}
+.loader-hide {
+  display: none !important;
 }
