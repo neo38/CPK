@@ -114,9 +114,6 @@ jQuery( document ).ready( function( $ ) {
          * @return {undefined}
          */
         updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab, facets) {
-            if (facets !== true) {
-                facets = false;
-            }
 
             var data = {};
 
@@ -363,6 +360,12 @@ jQuery( document ).ready( function( $ ) {
             var daterange = data['daterange'];
             $("input[name='daterange']").val(daterange);
 
+            if (dataFromAutocomplete) {
+                facets = true;
+            } else if (facets !== true) {
+                facets = false;
+            }
+
 			/* 
 			 * If we want to just switch template between basic and advanced search,
 			 * we need to again to gather data from forms 
@@ -450,6 +453,7 @@ jQuery( document ).ready( function( $ ) {
                         if (facets) {
                             $('.loader').removeClass('loader-hide');
                             $('.list-group').addClass('load-facet');
+                            $('.sidebar a').removeAttr("href");
                         }
 
                         if ((data['type0'] == "Libraries") && (undefined != data['lookfor0'][0])) {
@@ -1541,7 +1545,6 @@ jQuery( document ).ready( function( $ ) {
         $( this ).parent().parent().find( 'li' ).removeClass( 'active' );
         $( this ).parent().addClass( 'active' );
 
-        // @TODO tady netusim co to je
         if ( isAdvancedSearch ) {
             callbacks = {};
             callbacks.afterSwitchSearchTemplate = function() {
@@ -1550,7 +1553,8 @@ jQuery( document ).ready( function( $ ) {
             extraData['searchTypeTemplate'] = 'advanced';
             ADVSEARCH.updateSearchResults( undefined, undefined, 'advanced', extraData, callbacks);
         } else {
-            ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData);
+            // @TODO prepnuti indexu mezi CI a LI
+            ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData, undefined, undefined, true);
         }
     });
 
