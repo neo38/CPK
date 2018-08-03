@@ -454,6 +454,8 @@ jQuery( document ).ready( function( $ ) {
                             $('.loader').removeClass('loader-hide');
                             $('.list-group').addClass('load-facet');
                             $('.sidebar a').removeAttr("href");
+                            $('.sidebar a').removeAttr("data-facet");
+                            $('.sidebar li').removeAttr("id");
                         }
 
                         if ((data['type0'] == "Libraries") && (undefined != data['lookfor0'][0])) {
