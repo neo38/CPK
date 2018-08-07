@@ -1350,7 +1350,11 @@ class SearchController extends SearchControllerBase
 
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
-	    $sideFacets = $this->getSideFacetsHtml($viewData);
+        if ($request['facets'] == "ano") {
+            $sideFacets = $this->getSideFacetsHtml($viewData);
+        } else {
+            $sideFacets = "";
+        }
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 

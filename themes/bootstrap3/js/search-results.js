@@ -402,6 +402,12 @@ jQuery( document ).ready( function( $ ) {
                 //console.log( deCompressedFilters.split( "|" ) );
 
             }
+            if (facets) {
+                facets = "ano";
+            } else {
+                facets = "ne";
+            }
+            data['facets'] = facets;
 
             var dataForAjax = data;
 
@@ -450,9 +456,10 @@ jQuery( document ).ready( function( $ ) {
                     beforeSend: function () {
 
                         //scrollToTop();
-                        if (facets) {
+                        if (dataForAjax['facets'] === 'ano') {
                             $('.loader').removeClass('loader-hide');
                             $('.list-group').addClass('load-facet');
+                            // turn off all action on facets
                             $('.sidebar a').removeAttr("href");
                             $('.sidebar a').removeAttr("data-facet");
                             $('.sidebar li').removeAttr("id");
@@ -504,9 +511,7 @@ jQuery( document ).ready( function( $ ) {
                             var responseData = response.data;
                             var title = response.data.title;
                             var resultsHtml = JSON.parse(responseData.resultsHtml);
-                            if (facets) {
-                                var facetsHtml = JSON.parse(responseData.sideFacets);
-                            }
+                            var facetsHtml = JSON.parse(responseData.sideFacets);
                             var resultsAmountInfoHtml = JSON.parse(responseData.resultsAmountInfoHtml);
                             var paginationHtml = JSON.parse(responseData.paginationHtml);
 
@@ -529,11 +534,12 @@ jQuery( document ).ready( function( $ ) {
                             $('#results-amount-info-placeholder').html(resultsAmountInfoHtml.html);
                             $('#result-list-placeholder, #pagination-placeholder, #results-amount-info-placeholder').show('blind', {}, 500);
                             //$('#side-facets-placeholder').show('blind', {}, 500);
-                            if (facets) {
+                            if (facetsHtml.html !== "") {
                                 $('#side-facets-placeholder').html(facetsHtml.html);
                                 $('.loader').addClass('loader-hide');
                                 $('.list-group').removeClass('load-facet');
                             }
+                            console.log(responseData);
 
                             /* Update search identificators */
                             $('#rss-link').attr('href', window.location.href + '&view=rss');

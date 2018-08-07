@@ -52,11 +52,6 @@ $removeFilterUrl = '/Search/Results?' . http_build_query($queryParams);
 
 <? $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); if (!empty($filterList)): ?>
     <div class="list-group filters">
-      <div class="loader loader-hide">
-        <div>
-          <i class="fa fa-2x fa-refresh fa-spin"></i>
-        </div>
-      </div>
 
         <? foreach ($filterList as $field => $filters): ?>
             <? if ($field !== 'Institution'): ?>
@@ -138,12 +133,12 @@ $removeFilterUrl = '/Search/Results?' . http_build_query($queryParams);
         <div class="col-xs-7 col-sm-12 col-lg-7 list-group-item title<? if(in_array($title, $collapsedFacets)): ?> collapsed<? endif ?>" data-toggle="collapse" href="#side-collapse-<?=$this->escapeHtmlAttr($title) ?>" >
         <? else: ?>
         <div class="col-xs-12 list-group-item title<? if(in_array($title, $collapsedFacets)): ?> collapsed<? endif ?>" data-toggle="collapse" href="#side-collapse-<?=$this->escapeHtmlAttr($title) ?>" >
-        <? endif; ?>
           <div class="loader loader-hide">
             <div>
               <i class="fa fa-2x fa-refresh fa-spin"></i>
             </div>
           </div>
+        <? endif; ?>
             <i class="pr-institution-arrow" title="<?=$this->translate('Expand or collapse')?>"></i>
             <!--<?= $this->help()->getElementHelp('Expand or collapse', "<i class='pr-institution-arrow'></i>") ?>-->
             <? $titleHtml = $this->transEsc($cluster['label']); ?>
