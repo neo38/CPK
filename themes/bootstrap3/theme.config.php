@@ -8,9 +8,7 @@ $toRet = array(
         'compiled.css',
         'vendor/font-awesome.min.css',
         'vendor/bootstrap-slider.css',
-        'vendor/bootstrap-select.min.css',
         'print.css:print',
-        'ol.css'
     ),
     'js' => array(
         'vendor/base64.js:lt IE 10', // btoa polyfill
@@ -18,9 +16,6 @@ $toRet = array(
         'vendor/bootstrap.min.js',
         'vendor/rc4.js',
         'vendor/js.cookie.js',
-        'vendor/bootstrap-datepicker.js',
-        'vendor/bootstrap-datepicker.cs.js',
-        'vendor/bootstrap-select.min.js',
         'vendor/bootstrap-slider.js',
         'vendor/jquery.validate.min.js',
         'vendor/validation-additional-methods.js',
@@ -29,9 +24,6 @@ $toRet = array(
         'common.js',
         'lightbox.js',
         'eu-cookies.js',
-        'search-results.js',
-        'vendor/jsTree/jstree.min.js',
-        'facets.js',
         'lz-string.js',
         'obalkyknih.js',
         'vendor/jquery.visible.min.js',

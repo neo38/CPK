@@ -1,4 +1,6 @@
 <?
+    $this->headScript()->appendFile("vendor/bootstrap-datepicker.js");
+    $this->headScript()->appendFile("vendor/bootstrap-datepicker.cs.js");
     // Set page title.
     $this->headTitle($this->translate('request_place_text') . ': ' . $this->driver->getBreadcrumb());
 
@@ -175,6 +177,14 @@
     </div>
   </form>
 </div>
+
+<script>
+  $('input#requiredByDate, input#last-interest-date').datepicker({
+    format: "dd.mm.yyyy",
+    weekStart: 1,
+    language: "cs"
+  });
+</script>
 
 <?
     // Set up hold script; we do this inline instead of in the header for lightbox compatibility:
