@@ -215,7 +215,7 @@ $config = [
         'display_not_found_reason' => APPLICATION_ENV == 'development',
         'display_exceptions'       => APPLICATION_ENV == 'development',
         'not_found_template'       => 'error/404',
-        'exception_template'       => 'error/index',
+        'exception_template'       => (APPLICATION_ENV == 'development') ? 'error/tracy' : 'error/index',
         'template_path_stack'      => [],
     ],
     // This section contains all VuFind-specific settings (i.e. configurations
