@@ -405,8 +405,7 @@ function recordDocReady() {
  * @return	{undefined}
  */
 function displayCitationLink() {
-	jQuery( '#citace-pro > a' ).addClass( 'citations-link' );
-	jQuery( '#citace-pro > a' ).removeClass( 'disabled-link' );
+	jQuery( '#citace-pro > a' ).addClass( 'citations-link' ).removeClass( 'disabled-link' );
 	jQuery( '#citation-link-spinner' ).addClass( 'hidden' );
 }
 
@@ -471,128 +470,250 @@ function insertCitation( citation ) {
 	$( '#citation-style-selector' ).removeClass( 'hidden' );
 }
 
-jQuery( document ).ready( function( $ ) {
-	$( '.style' ).on( 'change', function() {
-		var recordId = $( this ).attr( 'id' ).replace( 'record_', '' );
-		getCitation( recordId, $( this ).val(), insertCitation);
-	});
-	
-	$( '.selectOnClick' ).on( 'click', function() {
-		$( this ).select();
-	});
-	
-	/* Record email form client-side validation */
-	$( '#email-record' ).validate({ // initialize the plugin
+/**
+ * Disables tab
+ *
+ * @param tabId Id tab which will be disabled
+ */
+function disableTab(tabId) {
+    // disable redirect event on click to link
+    tabId.click(function (event) {
+        event.preventDefault();
+    });
+    tabId.parent().removeClass('active').addClass('disabled');
+}
+
+jQuery( document ).ready( function ($) {
+    $( ".style" ).on( "change", function () {
+        var recordId = $( this ).attr( "id" ).replace( "record_", "" )
+        getCitation( recordId, $( this ).val(), insertCitation )
+    } )
+
+    $( ".selectOnClick" ).on( "click", function () {
+        $( this ).select()
+    } )
+
+    /* Record email form client-side validation */
+    $( "#email-record" ).validate( { // initialize the plugin
         rules: {
             from: {
                 required: true,
-                email: true
+                email: true,
             },
             to: {
                 required: true,
-                email: true
-            }
+                email: true,
+            },
         },
         messages: {
-        	from: {
-              required: VuFind.translate( 'Enter email' ),
-              email: VuFind.translate( 'Wrong email format' )
+            from: {
+                required: VuFind.translate( "Enter email" ),
+                email: VuFind.translate( "Wrong email format" ),
             },
             to: {
-                required: VuFind.translate( 'Enter email' ),
-                email: VuFind.translate( 'Wrong email format' )
-              }
-          }
-    });
+                required: VuFind.translate( "Enter email" ),
+                email: VuFind.translate( "Wrong email format" ),
+            },
+        },
+    } )
 
-  $('#mail-record').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'sendEmail',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( "#mail-record" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "sendEmail",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-  $('.export-toggle').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'export',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( ".export-toggle" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "export",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-  $('#permalinkAnchor').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'permalink',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( "#permalinkAnchor" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "permalink",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-  $('#save-record').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'favourite',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( "#save-record" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "favourite",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-  $('#citace-pro').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'showCitation',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( "#citace-pro" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "showCitation",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-  $('#e-version-table a').on('click', function() {
-    dataLayer.push({
-      'event': 'action.record',
-      'actionContext': {
-        'eventCategory': 'record',
-        'eventAction': 'ebook',
-        'eventLabel': $('input.hiddenId').val(),
-        'eventValue': undefined,
-        'nonInteraction': false
-      }
-    });
-  });
+    $( "#e-version-table a" ).on( "click", function () {
+        dataLayer.push( {
+            "event": "action.record",
+            "actionContext": {
+                "eventCategory": "record",
+                "eventAction": "ebook",
+                "eventLabel": $( "input.hiddenId" ).val(),
+                "eventValue": undefined,
+                "nonInteraction": false,
+            },
+        } )
+    } )
 
-});
+    dataLayer.push( {
+        "page": {
+            "type": "detail",
+        },
+    } )
+
+    let body = $( "body" )
+    // Get record unique id and institution source for further usage
+    let uniqueId = body.find( '.hiddenId' ).val();
+    let source = uniqueId.split( "." )[0]
+
+    if (source !== "library") {
+        dataLayer.push( {
+            "page": {
+                "category": "record",
+            },
+        } )
+
+        if (source !== "auth") {
+            dataLayer.push( {
+                "page": {
+                    "library": source,
+                },
+            } )
+        }
+    }
+    else {
+        dataLayer.push( {
+            "page": {
+                "category": "library",
+            },
+        } )
+    }
+
+    getCitation( uniqueId, '', insertCitation )
+
+    if (document.referrer.search( "/Search/" ) !== -1) {
+        body.find( "#back-to-search-link-ID" ).removeClass( "hide" ).attr( "href", document.referrer )
+    }
+    else {
+        body.find( "#back-to-search-link-ID" ).addClass( "hide" )
+    }
+
+    // select default record group
+    $( "#record-group li a" ).each( function () {
+        if ($( this ).attr( "id" ).toLowerCase().indexOf( source.toLowerCase() ) >= 0) {
+            $( "#first-record-group" ).text( $( this ).attr( "title" ) )
+        }
+    } )
+
+    $( "#subjects-tr" ).on( "click", "#show-all-subjects", function () {
+        $( "#subjectsModal" ).modal( "show" )
+    } )
+
+    body.on( "click", ".want-it", function () {
+        $( "html,body" ).animate( {
+            scrollTop: $( "#records-in-groups-container" ).offset().top,
+        }, 1000 )
+    } )
+
+    body.on( "click", ".eds-want-it", function () {
+        $( "html,body" ).animate( {
+            scrollTop: $( "#edsavailability" ).offset().top,
+        }, 1000 )
+    } )
+
+    // Get parent record ID
+    getParentRecordId( uniqueId ).done( function( parentRecordId ) {
+        // Get number of items for tabs
+        getItemsCountForTabsInRecord( parentRecordId.data ).done( function( response ) {
+
+            // Disable eVersion tab
+            if (typeof response.data['eVersionLinksCount'] === 'undefined' || !response.data['eVersionLinksCount']) {
+                disableTab( $( '#eversion' ) );
+                // Hide table inside the tab
+                $( '#e-version-table' ).addClass( 'hidden' );
+            }
+
+            // Disable Holdings tab
+            if (!response.data['holdingsCount']) {
+                disableTab( $( '#holdings' ) );
+            }
+
+            // Disable AddInfo tab
+            if (!response.data['addInfoItemsCount']) {
+                disableTab( $( '#addinfo' ) );
+            }
+
+            // Disable Contacts tab
+            if (!response.data['contactsItemsCount']) {
+                disableTab( $( '#contacts' ) );
+            }
+
+            // Disable Services tab
+            if (!response.data['servicesItemsCount']) {
+                disableTab( $( '#services' ) );
+            }
+
+            // Disable Branches tab
+            if (!response.data['branchesItemsCount']) {
+                disableTab( $( '#branches' ) );
+            }
+        } ).fail(function( error ) {
+            console.error( error )
+        } )
+    } );
+
+    // Moved form record/view.phtml
+    recordDocReady();
+} )
 
 /**
  * Smooth scroll to the top of the element
  *
- * @param	{string}	elementId
- * @return	{undefined}
+ * @param     {string}    elementId
+ * @return    {undefined}
  */
-var smoothScrollToElement = function( elementId ) {
-    $( 'html,body' ).animate( {
-        scrollTop: $( elementId ).offset().top
-    }, 1000);
-};
+let smoothScrollToElement = function (elementId) {
+    $( "html,body" ).animate( {
+        scrollTop: $( elementId ).offset().top,
+    }, 1000 )
+}

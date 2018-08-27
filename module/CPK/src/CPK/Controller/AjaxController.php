@@ -161,6 +161,76 @@ class AjaxController extends AjaxControllerBase
         return $this->output($vars, self::STATUS_OK);
     }
 
+    /**
+     * Get count of items for tabs in view
+     *
+     * @param {string} $_POST['parentRecordId']
+     *
+     * @return array|\Zend\Http\Response
+     * @throws \Exception
+     */
+    public function getItemsCountForTabsInRecordAjax()
+    {
+        $parentRecordId = $this->params()->fromPost('parentRecordId');
+        $recordLoader   = $this->getServiceLocator()->get('VuFind\RecordLoader');
+        $recordDriver   = $recordLoader->load($parentRecordId);
+        // get 856 links
+        $linksFrom856 = $recordDriver->get856Links();
+        // get 866 links
+        $field866 = $recordDriver->get866Data();
+        // get number of links
+        $noLinksFrom856     = $linksFrom856 === false ? 0 : count($linksFrom856);
+        $noLinksFrom866     = $field866 === false ? 0 : count($field866);
+        $eVersionLinksCount = $noLinksFrom856 + $noLinksFrom866;
+        // get holdings items
+        $holdingsCount = count($recordDriver->getRealTimeHoldings());
+        // get number of AddInfo items
+        $addInfoItemsCount = 1;
+        if (method_exists($recordDriver, "addInfoItemsCount")) {
+            $addInfoItemsCount = $recordDriver->addInfoItemsCount();
+        }
+        // get number of contact items
+        $contactsItemsCount = 1;
+        if (method_exists($recordDriver, "contactsItemsCount")) {
+            $contactsItemsCount = $recordDriver->contactsItemsCount();
+        }
+        // get number of services items
+        $servicesItemsCount = 1;
+        if (method_exists($recordDriver, "servicesItemsCount")) {
+            $servicesItemsCount = $recordDriver->servicesItemsCount();
+        }
+        // get number of branches items
+        $branchesItemsCount = 1;
+        if (method_exists($recordDriver, "branchesItemsCount")) {
+            $branchesItemsCount = $recordDriver->branchesItemsCount();
+        }
+        $vars = [
+            'eVersionLinksCount' => $eVersionLinksCount,
+            'holdingsCount'      => $holdingsCount,
+            'addInfoItemsCount'  => $addInfoItemsCount,
+            'contactsItemsCount' => $contactsItemsCount,
+            'servicesItemsCount' => $servicesItemsCount,
+            'branchesItemsCount' => $branchesItemsCount,
+        ];
+        return $this->output($vars, self::STATUS_OK);
+    }
+    /**
+     * Get parent record ID
+     *
+     * @param {string} $_POST['recordUniqueId']
+     *
+     * @return \Zend\Http\Response Parent Record Id
+     * @throws \Exception
+     */
+    public function getParentRecordIdAjax()
+    {
+        $recordUniqueId = $this->params()->fromPost('recordUniqueId');
+        $recordLoader = $this->getServiceLocator()->get('VuFind\RecordLoader');
+        $recordDriver = $recordLoader->load($recordUniqueId);
+        $parentRecordId = $recordDriver->getParentRecordId();
+        return $this->output($parentRecordId, self::STATUS_OK);
+    }
+
     public function getHoldingsStatusesAjax()
     {
         $request = $this->getRequest();

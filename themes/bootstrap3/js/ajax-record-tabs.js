@@ -26,9 +26,8 @@ function getBuyLinks( recordID, parentRecordID, callback ) {
 /**
  * Prints SFX JIB Results
  * 
- * @param	{string}	sfxUrl
  * @param	{string}	recordID
- * @param	{string}	institute
+ * @param 	{string}	sourceInstitute
  * @param	{array}		arrayOf866
  * @return	{undefined}	
  */
@@ -88,8 +87,9 @@ function getSfxJibResult( recordID, sourceInstitute, arrayOf866 ) {
 /**
  * Gets Buy Links via AjaxController
  * 
- * @param	{string}	recordID
+ * @param 	{string}	recordUniqueID
  * @param	{string}	parentRecordID
+ * @param 	{string}	sourceInstitute
  * @param	{function}	callback
  * @return	{undefined}
  */
@@ -117,6 +117,7 @@ function get866( recordUniqueID, parentRecordID, sourceInstitute, callback ) {
  * 
  * @param	{string}	recordUniqueID
  * @param	{array}		rawDataArrayOf866
+ * @param 	{string}	sourceInstitute
  * @return	{getSfxJibResult}
  */
 function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
@@ -132,7 +133,7 @@ function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
 			var pole = entry.split("|");
 
 			arrayOf866[pole[1]] = {
-				'source': pole[0], 
+				'source': pole[0],
 				'anchor': pole[2]
 			}
 		});
@@ -140,4 +141,40 @@ function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
 		getSfxJibResult(recordUniqueID, sourceInstitute, arrayOf866);
 
 	}
+}
+
+/**
+ * Get record unique id
+ *
+ * @param   {string}  recordUniqueId
+ * @returns {promise}
+ */
+function getParentRecordId( recordUniqueId ) {
+    return $.ajax( {
+        dataType: 'json',
+        async: true,
+        type: 'POST',
+        url: '/AJAX/JSON?method=getParentRecordId',
+        data: {
+            recordUniqueId: recordUniqueId,
+        },
+    } );
+}
+
+/**
+ * Get number of items for record tabs
+ *
+ * @param   {string}  parentRecordId
+ * @returns {promise}
+ */
+function getItemsCountForTabsInRecord( parentRecordId ) {
+    return $.ajax( {
+        dataType: 'json',
+        async: true,
+        type: 'POST',
+        url: '/AJAX/JSON?method=getItemsCountForTabsInRecord',
+        data: {
+            parentRecordId: parentRecordId,
+        },
+    } );
 }
