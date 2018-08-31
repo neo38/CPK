@@ -402,12 +402,8 @@ jQuery( document ).ready( function( $ ) {
                 //console.log( deCompressedFilters.split( "|" ) );
 
             }
-            if (facets) {
-                facets = "ano";
-            } else {
-                facets = "ne";
-            }
-            data['facets'] = facets;
+
+            data['facets'] = JSON.stringify(facets);
 
             var dataForAjax = data;
 
@@ -456,7 +452,7 @@ jQuery( document ).ready( function( $ ) {
                     beforeSend: function () {
 
                         //scrollToTop();
-                        if (dataForAjax['facets'] === 'ano') {
+                        if (facets === true) {
                             $('.loader').removeClass('loader-hide');
                             $('.list-group').addClass('load-facet');
                             // turn off all action on facets
@@ -539,7 +535,6 @@ jQuery( document ).ready( function( $ ) {
                                 $('.loader').addClass('loader-hide');
                                 $('.list-group').removeClass('load-facet');
                             }
-                            console.log(responseData);
 
                             /* Update search identificators */
                             $('#rss-link').attr('href', window.location.href + '&view=rss');
@@ -1299,7 +1294,6 @@ jQuery( document ).ready( function( $ ) {
 		ADVSEARCH.removeFacetFilter(value, false);
 		ADVSEARCH.addFacetFilter(value, false);
 
-		// @TODO tady nevim jestli facety ano nebo ne
 		ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData, undefined, undefined, true);
 	});
 	
@@ -1556,12 +1550,11 @@ jQuery( document ).ready( function( $ ) {
         if ( isAdvancedSearch ) {
             callbacks = {};
             callbacks.afterSwitchSearchTemplate = function() {
-                ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData);
+                ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData, undefined, undefined, true);
             };
             extraData['searchTypeTemplate'] = 'advanced';
-            ADVSEARCH.updateSearchResults( undefined, undefined, 'advanced', extraData, callbacks);
+            ADVSEARCH.updateSearchResults( undefined, undefined, 'advanced', extraData, callbacks, undefined, true);
         } else {
-            // @TODO prepnuti indexu mezi CI a LI
             ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData, undefined, undefined, true);
         }
     });
