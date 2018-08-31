@@ -237,6 +237,10 @@ trait HoldsTrait
                 'helpText' => isset($checkHolds['helpText']) ? $checkHolds['helpText'] : null
             ]);
         $view->setTemplate('record/hold');
+
+        $view->id     = $this->driver->getUniqueID();
+        $view->source = explode(".", $view->id)[0];
+
         return $view;
     }
 }
