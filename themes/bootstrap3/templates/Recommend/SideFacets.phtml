@@ -1,3 +1,142 @@
+<?
+  function createFacetBox($data, $or ,$hierarchical){
+    $html = "<ul>";
+    if ($or) {
+      if ($hierarchical) {
+        $html .= createHierarchical($data);
+      } else { // je or a nehier
+        foreach ($data as $facet) {
+          $html .= createOR($facet['displayText']);
+        }
+      }
+    } else { // je and
+      foreach ($data as $facet) {
+        $html .= createFacet($facet['displayText']);
+      }
+    }
+    $html .= "</ul>";
+    return $html;
+  }
+
+  function createOR($facet) {
+    $html = "<b>OR </b>";
+    $html .= createFacet($facet['displayText']);
+    return $html;
+  }
+
+  function createFacet($value) {
+    $line = "<li>".$value."</li>";
+    return $line;
+  }
+
+  function createHierarchical($data) {
+    $html = "";
+    foreach ($data as $facet) {
+      if ((int)$facet['value'][0] == 0) {
+        $html .= createOR($facet);
+      } else {
+        $html .= "<u>";
+        $html .= createOR($facet);
+        $html .= "</u>";
+      }
+    }
+
+    return $html;
+  }
+?>
+
+
+<?
+$results = $this->recommend->getResults();
+
+$extraFilters = isset($this->extraSideFacetFilters) ? $this->extraSideFacetFilters : array();
+$queryParams = $results->getUrlQuery()->getParamArray();
+unset($queryParams['filter']);
+$i = '?';
+$removeFilterUrl = '/Search/Results';
+foreach ($queryParams as $key => $value) {
+  if (is_array($value)) {
+    $value = $value[0];
+    $key .= "[]";
+  }
+  $removeFilterUrl .= $i . $key . '=' . urlencode($value);
+  if ($i === '?') {
+    $i = '&';
+  }
+}
+// get facets which show in LI or CI and libraries
+$facetSettings = $this->recommend->facetSettings();
+?>
+<!-- hlavni nadpis facet hledani BEGIN -->
+<? if ($results->getResultTotal() > 0): ?>
+  <h3 class='side-facets-header facets-questionmark-help'>
+    <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
+    <?= ($this->librarySearch)? ('adr-facets') : ($filterClass)? $this->help()->getQuestionMarkHelp('ci-facets') : $this->help()->getQuestionMarkHelp('facets') ;?>
+  </h3>
+<? endif; ?>
+<!-- hlavni nadpis facet hledani END -->
+<? $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
+<!-- vypis filtr BEGIN -->
+<? if (!empty($filterList)): ?>
+  <div class="list-group filters">
+    <? foreach ($filterList as $field => $filters): ?>
+      <? foreach ($filters as $i => $filter): ?>
+        <?= $filter['displayText'].'<br>'; ?>
+      <? endforeach; ?>
+    <? endforeach; ?>
+    <div class='text-center'>
+      <a id='remove-all-filters-async' href='<?=$removeFilterUrl?>'><div class="btn btn-primary btn-sm"><?=$this->transEsc('Remove Filters')?></div></a>
+    </div>
+  </div>
+<? endif; ?>
+<!-- vypis filtr END -->
+<!-- toto nevim co je BEGIN -->
+<div class="checkboxFilter<?if($shown == 0):?> hidden<? endif; ?>">
+  <div id="side-panel-eds-filters">
+    <?= "asssss" //$html?>
+  </div>
+</div>
+<!-- toto nevim co je END -->
+
+<?= isset($this->sideFacetExtraControls) ? $this->sideFacetExtraControls : '' ?>
+<?
+$sideFacetSet = $this->recommend->getFacetSet();
+$rangeFacets = $this->recommend->getAllRangeFacets();
+?>
+<? if (!empty($sideFacetSet) && $results->getResultTotal() > 0) {
+  $i = 0;
+  foreach ($sideFacetSet as $title => $cluster) {
+    if (in_array($cluster['label'], ($this->layout()->headerType != "newlibraries") ? $facetSettings['allFieldsSection'] : $facetSettings['librariesSection'])) {
+      echo "<h2>".$cluster['label']."</h2>";
+      //var_dump($cluster['list']);
+
+      if (($cluster['label'] == 'adv_search_year')) {
+        // @TODO prepsat casovou osu
+        include_once 'SideFacets/PublishDate.phtml';
+        continue;
+      }
+
+      // @TODO zkontroluje vzdy prvni zaznam a podle toho si vybere co pak bude delat
+      if (($cluster['list']['0']['operator'] == 'OR') && ((int)$cluster['list']['0']['value'][0] >= 0)){ // pokud je or a hierachicka
+        echo createFacetBox($cluster['list'], true,true);
+      } else if ($cluster['list']['0']['operator'] == 'OR') { // pokud je or a nehierarchicka
+        echo createFacetBox($cluster['list'], true,false);
+      } else { // pokud neni or(je and)
+        echo createFacetBox($cluster['list'], false,false);
+      }
+
+    }
+  }
+}
+?>
+
+
+
+
+
+
+
+
 <? $results = $this->recommend->getResults(); ?>
 <? $checkboxFilters = $results->getParams()->getCheckboxFacets(); if (count($checkboxFilters) > 0): ?>
 <? $filterClass = (!isset($this->searchClassId) || $this->searchClassId == 'Solr') ? 'facet-filter' : 'facet-filter-central-index';?>

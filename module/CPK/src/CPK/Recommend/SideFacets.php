@@ -60,6 +60,12 @@ class SideFacets extends SideFacetsBase
     protected $timelineFacets = [];
 
     /**
+     * @var array
+     */
+    protected $facetSettings = [];
+
+
+  /**
      * Store the configuration of the recommendation module.
      *
      * @param string $settings Settings from searches.ini.
@@ -147,6 +153,11 @@ class SideFacets extends SideFacetsBase
             $this->timelineFacets = $config->SpecialFacets->timeline->toArray();
         }
 
+
+        if (isset($config->Facet_Settings)) {
+          $this->facetSettings = $config->Facet_Settings->toArray();
+        }
+
     }
 
     /**
@@ -202,6 +213,10 @@ class SideFacets extends SideFacetsBase
     public function getTimelineFacets()
     {
         return $this->timelineFacets;
+    }
+
+    public function facetSettings(){
+      return $this->facetSettings;
     }
 
 }

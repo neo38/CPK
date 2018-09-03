@@ -1,0 +1,99 @@
+<?
+/**
+ * Project: www.knihovny.cz
+ * User: Zdeněk Nováček (BlueEyedBoy)
+ * Email: znovacek1997@gmail.com
+ * Date: 3.9.18
+ */
+?>
+
+
+<?
+$min = !empty($rangeFacets[$title]['values'][0]) ? min($rangeFacets[$title]['values'][0], 1000) : 1000;
+$future = date('Y', time()+31536000);
+$max = !empty($rangeFacets[$title]['values'][1]) ? max($future, $rangeFacets[$title]['values'][1]) : $future;
+$low  = !empty($rangeFacets[$title]['values'][0]) ? $rangeFacets[$title]['values'][0] : $min;
+$high = !empty($rangeFacets[$title]['values'][1]) ? $rangeFacets[$title]['values'][1] : $max;
+$reversed = $this->layout()->rtl ? 'true' : 'false';
+?>
+  <div class="col-xs-12 list-group" id="side-panel-advsearchyear">
+    <li class="arrow list-group-item title" id="facet-advsearchyear-ul"><span class="arrow-title">advsearchyear</span></li>
+    <button type="button" class="btn btn-default btn-sm<?=in_array($title, $this->recommend->getTimelineFacets())?'' : ' hidden'?>" id="showmodal"  ><?=$this->transEsc('Show timeline') ?></button>
+
+
+    <div class="modal fade" id="dateVisModal" tabindex="-1" role="dialog" aria-labelledby="dateVisModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="dateVisModalLabel"><?=$this->transEsc('Timeline') ?></h4>
+          </div>
+          <div class="modal-body">
+            <? foreach ($this->results->getRecommendations('top') as $current): ?>
+              <div>
+                <?=$this->recommend($current)?>
+              </div>
+            <? endforeach; ?>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->transEsc('Close') ?></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <ul id="facet-ul-advsearchyear">
+
+      <?=$results->getUrlQuery()->asHiddenFields(array('page' => "/./", 'filter' => "/^{$title}:.*/"))?>
+      <input type="hidden" name="<?=$this->escapeHtmlAttr($rangeFacets[$title]['type'])?>range[]" value="<?=$this->escapeHtmlAttr($title)?>"/>
+      <div class="row">
+        <? $extraInputAttribs = ($rangeFacets[$title]['type'] == 'date') ? 'maxlength="4" ' : ''; ?>
+        <div class="col-sm-6">
+          <label for="<?=$this->escapeHtmlAttr($title)?>from">
+            <?=$this->transEsc('date_from')?>:
+          </label>
+          <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>from" id="<?=$this->escapeHtmlAttr($title)?>from" value="<?=$low?>" placeholder="<?=$min?>" <?=$extraInputAttribs?>/>
+        </div>
+        <div class="col-sm-6">
+          <label for="<?=$this->escapeHtmlAttr($title)?>to">
+            <?=$this->transEsc('date_to')?>:
+          </label>
+          <input type="text" class="form-control" name="<?=$this->escapeHtmlAttr($title)?>to" id="<?=$this->escapeHtmlAttr($title)?>to" value="<?=$high?>" placeholder="<?=$max?>" <?=$extraInputAttribs?>/>
+        </div>
+      </div>
+      <? if ($rangeFacets[$title]['type'] == 'date'): ?>
+        <div class="slider-container"><input type="text" class="hidden" id="<?=$this->escapeHtmlAttr($title)?><?=$this->escapeHtml($rangeFacets[$title]['type'])?>Slider"/></div>
+      <? endif; ?>
+      <div style="text-align: center; margin-top: 10px;">
+        <button class="btn btn-default apply-facet-filter-range"><?=$this->transEsc('Use filters')?></button>
+      </div>
+    </ul>
+  </div>
+<? if ($rangeFacets[$title]['type'] == 'date'): ?>
+  <? $this->headScript()->appendFile('vendor/bootstrap-slider.js'); ?>
+  <?
+  $script = <<<JS
+$(document).ready(function() {
+  var fillTexts = function() {
+  var v = {$this->escapeHtmlAttr($title)}dateSlider.getValue();
+  $('#{$this->escapeHtmlAttr($title)}from').val(v[0]);
+  $('#{$this->escapeHtmlAttr($title)}to').val(v[1]);
+  };
+  var {$this->escapeHtmlAttr($title)}dateSlider = $('#{$this->escapeHtmlAttr($title)}dateSlider')
+  .slider({
+    'min':{$min},
+    'max':{$max},
+    'handle':"square",
+    'tooltip':"hide",
+    'value':[{$low},{$high}],
+    'reversed': {$reversed}
+  })
+  .on('slide', fillTexts)
+  .data('slider');
+});
+JS;
+  ?>
+  <?=$this->inlineScript(\Zend\View\Helper\HeadScript::SCRIPT, $script, 'SET'); ?>
+<? endif; ?>
