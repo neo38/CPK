@@ -32,14 +32,14 @@ $searchUrl = $this->url($basicSearch);
       >
       <span>&nbsp;<i class="fa fa-times" id="searchclear"></i></span>
 
-      <input type='hidden' name='searchTypeTemplate' value='basic'>
+      <input type="hidden" name="searchTypeTemplate" value="basic">
       <input type="hidden" name="database" value="<?= $this->escapeHtmlAttr($this->searchClassId) ?>">
       <input type="hidden" name="type0[]" value="<?= $this->escapeHtmlAttr($handlers[0]['value']) ?>">
-      <input type='hidden' name='join' value='AND'>
-      <input type='hidden' name='bool0[]' value='AND'>
-      <input type='hidden' name='page' value='1'>
-      <input type='hidden' name='keepEnabledFilters' value='true'>
-      <input type='hidden' name='searchPath' value="<?= $searchUrl ?>">
+      <input type="hidden" name="join" value="AND">
+      <input type="hidden" name="bool0[]" value="AND">
+      <input type="hidden" name="page" value="1">
+      <input type="hidden" name="keepEnabledFilters" value="true">
+      <input type="hidden" name="searchPath" value="<?= $searchUrl ?>">
         <? if ( ! empty($lastLimit)): ?>
           <input type="hidden" name="limit" value="<?= $this->escapeHtmlAttr($lastLimit) ?>">
         <? endif; ?>
@@ -47,10 +47,10 @@ $searchUrl = $this->url($basicSearch);
           <input type="hidden" name="sort" value="<?= $this->escapeHtmlAttr($lastSort) ?>">
         <? endif; ?>
 
-      <a href='<?= $searchUrl ?>?lookfor=&type0[]=AllFields&searchTypeTemplate=basic&database=Solr'
-         id='run-autocomplete'
+      <a href="<?= $searchUrl ?>?lookfor=&type0[]=AllFields&searchTypeTemplate=basic&database=Solr"
+         id="run-autocomplete"
          class="btn btn-primary find-button form-control"
-         title='<?= $this->transEsc("Find") ?>'>
+         title="<?= $this->transEsc("Find") ?>">
         <i class="pr-interface-search"></i>
         <span> <?= $this->transEsc("Find") ?></span>
       </a>
@@ -62,9 +62,8 @@ $searchUrl = $this->url($basicSearch);
                 $selectedShards); ?>
           <input type="checkbox" <?= $isSelected ? 'checked="checked" ' : '' ?>
                  name="shard[]"
-                 value='<?= $this->escapeHtmlAttr($shard) ?>'
-                 title='<?= $this->transEsc($shard) ?>'
-          >
+                 value="<?= $this->escapeHtmlAttr($shard) ?>"
+                 title="<?= $this->transEsc($shard) ?>">
             <?= $this->transEsc($shard) ?>
         <? endforeach; ?>
         <? endif; ?>
@@ -111,20 +110,20 @@ $searchUrl = $this->url($basicSearch);
             </a>
               <? // hide save option if login disabled
               if (($account = $this->auth()->getManager()) && $account->loginEnabled()): ?>
-                <span class='save-basic-search-results'>
+                <span class="save-basic-search-results">
                     <? if (is_numeric($this->results->getSearchId())): ?>
                         <? if ($this->results->isSavedSearch()): ?>
                         <a class="save-search-link"
-                           id='remove-from-saved-searches'
-                           data-search-id='<?= urlencode($this->results->getSearchId()) ?>'
-                           title='<?= $this->translate('Delete saved search') ?>'>
+                           id="remove-from-saved-searches"
+                           data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
+                           title="<?= $this->translate('Delete saved search') ?>">
                             <?= $this->translate('Delete saved search') ?>
                         </a>
                         <? else: ?>
                         <a class="save-search-link"
-                           id='add-to-saved-searches'
-                           data-search-id='<?= urlencode($this->results->getSearchId()) ?>'
-                           title='<?= $this->translate('Save search') ?>'>
+                           id="add-to-saved-searches"
+                           data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
+                           title="<?= $this->translate('Save search') ?>">
                           <i class="pr-web-downloadarrow"></i>
                           <span><?= $this->translate('Save search') ?></span>
                         </a>
@@ -134,7 +133,7 @@ $searchUrl = $this->url($basicSearch);
               <? endif; ?>
           </span>
         <? elseif ($this->layout()->frontpage): ?>
-          <div class='col-md-12 text-center homepage-advanced-search-link'>
+          <div class="col-md-12 text-center homepage-advanced-search-link">
             <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=Solr&limit=<?= $this->layout()->limit ?>">
                 <?= $this->translate("Advanced Search") ?>
             </a>
@@ -166,16 +165,14 @@ $searchUrl = $this->url($basicSearch);
           </span>
         <? endif; ?>
         <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || ! empty($filterDetails)): ?>
-      <div id='keep-facets-enabled-checkbox'>
+      <div id="keep-facets-enabled-checkbox">
           <? else: ?>
-        <div id='keep-facets-enabled-checkbox' style='display: none;'>
+        <div id="keep-facets-enabled-checkbox" style="display: none;">
             <? endif; ?>
           <label>
             <input class="checkbox searchFormKeepFilters"
-                   onChange="$('.applied-filter').click(); $( '.search-query' ).trigger( 'change' );"
                    type="checkbox"<?= $defaultFilterState ?>
-                   title='<?= $this->transEsc("basic_search_keep_filters") ?>'
-            >
+                   title="<?= $this->transEsc("basic_search_keep_filters") ?>">
               <?= $this->transEsc("basic_search_keep_filters") ?>
           </label>
         </div>
