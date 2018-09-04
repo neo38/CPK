@@ -487,6 +487,15 @@ class AbstractRecord extends AbstractBase
     {
         $view = $this->createViewModel();
         $view->setTemplate('record/cite');
+
+        $helper    = $this->citation($this->driver);
+        $citations = [];
+
+        foreach ($this->driver->getCitationFormats() as $format) {
+            $citations[$format.' Citation'] = $helper->getCitation($format);
+        }
+        
+        $view->citations = $citations;
         return $view;
     }
 

@@ -149,7 +149,7 @@ function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
  * @param   {string}  recordUniqueId
  * @returns {promise}
  */
-function getParentRecordId( recordUniqueId ) {
+function getParentRecordId (recordUniqueId) {
     return $.ajax( {
         dataType: 'json',
         async: true,
@@ -167,7 +167,7 @@ function getParentRecordId( recordUniqueId ) {
  * @param   {string}  parentRecordId
  * @returns {promise}
  */
-function getItemsCountForTabsInRecord( parentRecordId ) {
+function getItemsCountForTabsInRecord (parentRecordId) {
     return $.ajax( {
         dataType: 'json',
         async: true,
