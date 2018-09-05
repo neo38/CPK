@@ -1008,4 +1008,14 @@ class SolrMarc extends ParentSolrMarc
         return isset($this->fields['summary_display_mv']) ? $this->fields['summary_display_mv'] : [];
     }
 
+    /**
+     * Get conspectus from Solr auto_conspectus_display_mv field
+     *
+     * @return array
+     */
+    public function getAutoConspectus()
+    {
+        return isset($this->fields['auto_conspectus_display_mv']) ? $this->fields['auto_conspectus_display_mv'] : [];
+    }
+
 }

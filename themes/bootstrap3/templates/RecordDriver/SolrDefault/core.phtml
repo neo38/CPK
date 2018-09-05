@@ -419,6 +419,18 @@
             </tr>
           <? endif; ?>
 
+          <? $autoConspectus = $this->driver->getAutoConspectus(); if (!empty($autoConspectus)): ?>
+              <? $contentDisplayed = true; ?>
+            <tr>
+              <th><?=$this->transEsc('auto_conspectus')?>: </th>
+              <td>
+                  <? foreach ($autoConspectus as $field): ?>
+                      <?=$this->escapeHtml($field)?><br />
+                  <? endforeach; ?>
+              </td>
+            </tr>
+          <? endif; ?>
+
           <? $isbns = $this->driver->getISBNs(); if (!empty($isbns)): ?>
             <? $contentDisplayed = true; ?>
             <tr>
