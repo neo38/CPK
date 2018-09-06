@@ -359,7 +359,11 @@ class SearchController extends SearchControllerBase
                 $widget = new \CPK\Widgets\Widget();
                 $widget->setName($widgetName);
             } else {
-                $widget->setContents($this->getWidgetContent($widgetName, $widget->getShownRecordsNumber()));
+                try {
+                    $widget->setContents($this->getWidgetContent($widgetName, $widget->getShownRecordsNumber()));
+                } catch (\Exception $e) {
+                    break;
+                }
             }
             $widgets[][$widgetName] = $widget;
         }
@@ -721,10 +725,16 @@ class SearchController extends SearchControllerBase
 
 	    $database = ! empty($request['database']) ? $request['database'] : $this->searchClassId;
 
-	    $view->results = $results = $runner->run(
-	        $request, $database, $this->getSearchSetupCallback()
-	        );
-	    $view->params = $results->getParams();
+	    try {
+            $view->results = $results = $runner->run(
+                $request, $database, $this->getSearchSetupCallback()
+                );
+        } catch (HttpErrorException $e) {
+            $view->setTemplate('error/fatal-error');
+            return $view;
+        }
+
+        $view->params = $results->getParams();
 
 	    // If we received an EmptySet back, that indicates that the real search
 	    // failed due to some kind of syntax error, and we should display a
@@ -1499,7 +1509,14 @@ class SearchController extends SearchControllerBase
                 $infoboxItems = $infoboxTable->getActualItems($inspirationsWidget->getShownRecordsNumber());
                 $inspirationsWidget->setContents($infoboxItems);
             } else {
-                $inspirationsWidget->setContents($this->getWidgetContent($inspirationsWidget->getName(), $inspirationsWidget->getShownRecordsNumber()));
+                try {
+                    $inspirationsWidget->setContents(
+                        $this->getWidgetContent($inspirationsWidget->getName(),
+                        $inspirationsWidget->getShownRecordsNumber())
+                    );
+                } catch (\Exception $e) {
+                    break;
+                }
             }
         }
 
@@ -1523,7 +1540,14 @@ class SearchController extends SearchControllerBase
         $params->addFacet($this->conspectusField, $this->conspectusFieldName);
         $params->setLimit(0);
         $params->setFacetLimit(10000);
-        $results->getResults();
+
+        try {
+            $results->getResults();
+        } catch (HttpErrorException $e) {
+            $view->setTemplate('error/fatal-error');
+            return $view;
+        }
+
         $facets = $results->getFacetList();
 
         $conspectus = [];

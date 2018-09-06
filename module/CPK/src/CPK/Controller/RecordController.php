@@ -280,7 +280,7 @@ class RecordController extends RecordControllerBase
     {
         parent::loadTabDetails();
 
-        if ($this->driver instanceof \CPK\RecordDriver\SolrLibrary) return;
+        if (!$this->driver || $this->driver instanceof \CPK\RecordDriver\SolrLibrary) return;
 
         if (empty($this->driver->getRealTimeHoldings())) {
 
