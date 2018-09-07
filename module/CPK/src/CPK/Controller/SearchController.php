@@ -725,11 +725,11 @@ class SearchController extends SearchControllerBase
 
 	    $database = ! empty($request['database']) ? $request['database'] : $this->searchClassId;
 
-	    try {
+        try {
             $view->results = $results = $runner->run(
                 $request, $database, $this->getSearchSetupCallback()
-                );
-        } catch (HttpErrorException $e) {
+            );
+        } catch (\Exception $e) {
             $view->setTemplate('error/fatal-error');
             return $view;
         }
