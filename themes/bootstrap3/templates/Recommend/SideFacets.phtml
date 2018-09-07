@@ -1,6 +1,6 @@
 <?
   function createFacetBox($data, $or ,$hierarchical){
-    $html = "<ul>";
+    $html = "";
     if ($or) {
       if ($hierarchical) {
         $html .= createHierarchical($data);
@@ -14,13 +14,11 @@
         $html .= createFacet($facet['displayText']);
       }
     }
-    $html .= "</ul>";
     return $html;
   }
 
   function createOR($facet) {
-    $html = "<b>OR </b>";
-    $html .= createFacet($facet['displayText']);
+    $html = "<b>".createFacet($facet)."</b>";
     return $html;
   }
 
@@ -31,13 +29,30 @@
 
   function createHierarchical($data) {
     $html = "";
-    foreach ($data as $facet) {
-      if ((int)$facet['value'][0] == 0) {
-        $html .= createOR($facet);
-      } else {
-        $html .= "<u>";
-        $html .= createOR($facet);
-        $html .= "</u>";
+    foreach ($data as $key => $facet) {
+      $html .= "<u>";
+      $html .= createOR($facet['displayText']);
+      $html .= createSubFacet($data, $key, $facet['value']);
+      $html .= "</u>";
+    }
+
+    return $html;
+  }
+
+  function createSubFacet($data, $position, $search) {
+    $html = "";
+    // @TODO slo by to zrychlit kdyz bych pocital soucet podfaset a porovnaval s poctem nadfasety
+    // @TODO stejne tak ze bych hledal pouze od dane pozice kde se nadfaseta nachazi dal     !!!   HOTOVO   !!!
+    foreach ($data as $key => $facet) {
+      if ($key < $position) continue;
+      if (strpos(substr($facet['value'], 1), substr($search, 1)) === 0) {// pokud je to podradna faceta...
+        if ((int)$facet['value'][0] == ((int)$search[0])+1) {// pokud je to faceta o 1 uroven pod ni
+          $html .= "<ul>";
+          // @TODO dela v tom pravdepodobne bordel poradi kvuli strpos... je potreba jasne vzclenit co s cim ma porovnavat
+          $html .= createOR($facet['displayText']);
+          $html .= createSubFacet($data, $key, $facet['value']);
+          $html .= "</ul>";
+        }
       }
     }
 
@@ -117,7 +132,7 @@ $rangeFacets = $this->recommend->getAllRangeFacets();
       }
 
       // @TODO zkontroluje vzdy prvni zaznam a podle toho si vybere co pak bude delat
-      if (($cluster['list']['0']['operator'] == 'OR') && ((int)$cluster['list']['0']['value'][0] >= 0)){ // pokud je or a hierachicka
+      if (($cluster['list']['0']['operator'] == 'OR') && ($cluster['list'][0]['value'][0] == "0")){ // pokud je or a hierachicka
         echo createFacetBox($cluster['list'], true,true);
       } else if ($cluster['list']['0']['operator'] == 'OR') { // pokud je or a nehierarchicka
         echo createFacetBox($cluster['list'], true,false);
