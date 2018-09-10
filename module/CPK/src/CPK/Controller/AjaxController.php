@@ -1352,6 +1352,13 @@ class AjaxController extends AjaxControllerBase
         );
     }
 
+    public function getSubcategoryMapAjax()
+    {
+        $subcategoryMap = file_get_contents(ORIGINAL_WORKING_DIRECTORY.'/../themes/bootstrap3/js/conspectus_subcategory_name.json');
+        $json = json_decode($subcategoryMap);
+        return $this->output($json, self::STATUS_OK);
+    }
+
     /**
      * Get citation
      *

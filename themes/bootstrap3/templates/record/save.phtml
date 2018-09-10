@@ -1,6 +1,8 @@
 <?
   // Set page title.
   $this->headTitle($this->translate('Save'));
+  $this->headScript()->appendFile("jquery-ui.min.js");
+  $this->headScript()->appendFile("favorites-autocomplete.js");
 
   // Set up breadcrumbs:
   $this->layout()->breadcrumbs = '<li>' . $this->getLastSearchLink($this->transEsc('Search'), '', '</li> ')
