@@ -30,9 +30,14 @@
   function createHierarchical($data) {
     $html = "";
     foreach ($data as $key => $facet) {
+      if ((int)$facet['value'][0] !== 0)
+        continue;
       $html .= "<u>";
+      $podf = createSubFacet($data, $key, $facet['value']);
       $html .= createOR($facet['displayText']);
-      $html .= createSubFacet($data, $key, $facet['value']);
+      if ($podf['pocet'] > 0) {
+        $html .= $podf['html'];
+      }
       $html .= "</u>";
     }
 
@@ -41,6 +46,7 @@
 
   function createSubFacet($data, $position, $search) {
     $html = "";
+    $neni = 0;
     // @TODO slo by to zrychlit kdyz bych pocital soucet podfaset a porovnaval s poctem nadfasety
     // @TODO stejne tak ze bych hledal pouze od dane pozice kde se nadfaseta nachazi dal     !!!   HOTOVO   !!!
     foreach ($data as $key => $facet) {
@@ -48,15 +54,22 @@
       if (strpos(substr($facet['value'], 1), substr($search, 1)) === 0) {// pokud je to podradna faceta...
         if ((int)$facet['value'][0] == ((int)$search[0])+1) {// pokud je to faceta o 1 uroven pod ni
           $html .= "<ul>";
-          // @TODO dela v tom pravdepodobne bordel poradi kvuli strpos... je potreba jasne vzclenit co s cim ma porovnavat
+          // @TODO nevim proc se spravne nedeli ostatni a knihovny
+          $podf = createSubFacet($data, $key, $facet['value']);
           $html .= createOR($facet['displayText']);
-          $html .= createSubFacet($data, $key, $facet['value']);
+          if ($podf['pocet'] > 0) {
+            $html .= $podf['html'];
+          }
+          $neni++;
           $html .= "</ul>";
         }
       }
     }
 
-    return $html;
+    return array(
+        'pocet' => $neni,
+        'html' => $html
+    );
   }
 ?>
 
@@ -130,7 +143,7 @@ $rangeFacets = $this->recommend->getAllRangeFacets();
         include_once 'SideFacets/PublishDate.phtml';
         continue;
       }
-
+      //var_dump($cluster['list']);
       // @TODO zkontroluje vzdy prvni zaznam a podle toho si vybere co pak bude delat
       if (($cluster['list']['0']['operator'] == 'OR') && ($cluster['list'][0]['value'][0] == "0")){ // pokud je or a hierachicka
         echo createFacetBox($cluster['list'], true,true);
