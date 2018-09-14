@@ -24,7 +24,7 @@ jQuery( document ).ready( function ($) {
     if (extraRecordsCount > 1 && currentPosition >= 0) {
         recordsSwitching.removeClass( 'hidden' );
         if (currentPosition > 0) {
-            let previousRecordId = getRecordIdForLink( extraResults[currentPosition - 1] );
+            let previousRecordId = Object.values(extraResults[currentPosition - 1]);
             //create link to prev record with right record type
             recordsSwitching.find( '#extraPrevious' ).
                 attr( 'href', recordType + previousRecordId + '?referer=' + referer );
@@ -45,7 +45,7 @@ jQuery( document ).ready( function ($) {
                 'record' )} ${currentPosition + 1}` );
 
         if (currentPosition < extraRecordsCount - 1) {
-            let nextRecordId = getRecordIdForLink( extraResults[currentPosition + 1] );
+            let nextRecordId = Object.values(extraResults[currentPosition + 1]);
             //create link to next record with right record type
             recordsSwitching.find( '#extraNext' ).attr( 'href', recordType + nextRecordId + '?referer=' + referer );
         }
@@ -77,11 +77,11 @@ jQuery( document ).ready( function ($) {
             let extraResultsCount = extraResults.length;
             recordsSwitching.find( '#extraPrevious' ).
                 attr( 'href',
-                    recordType + getRecordIdForLink( extraResults[extraResultsCount - 1] ) + '?referer=' + referer );
+                    recordType + Object.values(extraResults[extraResultsCount - 1]) + '?referer=' + referer );
         }
         else {
             recordsSwitching.find( '#extraNext' ).
-                attr( 'href', recordType + getRecordIdForLink( extraResults[0] ) + '?referer=' + referer );
+                attr( 'href', recordType + Object.values(extraResults[0]) + '?referer=' + referer );
         }
 
         recordsSwitching.find( '#extra' + direction + 'IconSpiner' ).addClass( 'hidden' );
@@ -142,13 +142,5 @@ jQuery( document ).ready( function ($) {
             i++;
         }
         return null;
-    }
-
-    function getRecordIdForLink (data) {
-        for (let propName in data) {
-            if (data.hasOwnProperty( propName )) {
-                return data[propName];
-            }
-        }
     }
 } );
