@@ -526,6 +526,7 @@ jQuery( document ).ready( function( $ ) {
                             $('#search-results-loader').remove();
                             $('#result-list-placeholder, #pagination-placeholder').css('display', 'none');
                             $('#result-list-placeholder').html(decodeHtml(resultsHtml.html));
+                            document.getElementById('search-result-list').scrollIntoView();
                             $('#pagination-placeholder').html(paginationHtml.html);
                             $('#results-amount-info-placeholder').html(resultsAmountInfoHtml.html);
                             $('#result-list-placeholder, #pagination-placeholder, #results-amount-info-placeholder').show('blind', {}, 500);
