@@ -294,9 +294,40 @@ function initInstitutionsTree(treeNode, inSidebar)
 
 jQuery( document ).ready( function( $ ) {
 
-	/*
-	 * Save chosen institutions to DB
-	 */
+    $( 'body' ).on( 'click', '.show-all-facets, .hide-some-facets', function( event ) {
+        var parentId = "#"+event.target.parentNode.id;
+
+        $(parentId).children('li').slice(resultDef).toggleClass("hide");
+        $(parentId+' .show-all-facets').toggleClass('hide');
+        $(parentId+' .hide-some-facets').toggleClass('hide');
+    });
+
+
+    $( 'body' ).on( 'click', '.arrow------', function( event ) {
+        var classArrow = event.target.id;
+        classArrow = delPartId(classArrow,-1,1);
+        classArrow = addPartId(classArrow,1,'ul');
+        $('#'+classArrow).toggleClass("hide");
+        $(event.target).toggleClass("active");
+        if (!$(event.target).hasClass("arrow-title")) {
+            if ($(event.target).hasClass("active")) {
+                $(event.target).attr('title', 'Zabalit');
+            } else {
+                $(event.target).attr('title', 'Rozbalit');
+            }
+        }
+    });
+    $( '.list-group' ).on('click', '.arrow', function( event ) {
+        event.preventDefault();
+        var classArrow = event.target.closest('li').id;
+        console.log(classArrow);
+        $('#ul-'+classArrow).toggleClass("hide");
+    });
+
+
+    /*
+     * Save chosen institutions to DB
+     */
 	$( 'body' ).on( 'click', '#save-these-institutions', function( event ) {
 		event.preventDefault();
 

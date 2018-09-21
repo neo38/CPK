@@ -1,40 +1,136 @@
 <?
-  function createFacetBox($data, $or ,$hierarchical){
+  function createFBox($data, $label, $title, $settings, $or, $hierarchical) {
+    $html = "";
+    $html .= "<div class='col-xs-12 list-group' id='side-panel-".$label."'>";
+    $html .= "<li class='arrow list-group-item title' id='facet-".$label."-ul'><span class='arrow-title'>".$label."</span></li>";
+    $html .= "<ul id='facet-ul-".$label."'> class='hide'";
+
+    foreach($data as  $key => $facet) {
+      $subfacet = "";
+      if (! $or || (int)$facet['value'][0] === 0)
+        $html .= "<li class='list-group-item'>";
+      if ($or) {
+        if ((int)$facet['value'][0] === 0) {
+          if ($hierarchical) {
+            $subfacet = createSub($data, $facet['value'], $title, $key, $settings);
+          }
+          $html .= orFacet($facet, strlen($subfacet));
+        }
+      }
+      if (! $or || (int)$facet['value'][0] === 0) {
+        if (! $or) {
+          $html .= "<a href=\"\" class='and-facet'>" . $facet['displayText'];
+        }
+        if ($settings['count']) {
+          $html .= "<u class='badge'>" . $facet['count'] . "</u>";
+        }
+        $html .= "</a>";
+        if (strlen($subfacet) > 12) {
+          $html .= $subfacet;
+        }
+        $html .= "</li>";
+      }
+    }
+    $html .= "</ul>";
+    $html .= "</div>";
+
+    return $html;
+  }
+
+  function createSub($data, $search, $title, $label, $start, $settings) {
+    // @TODO defaultne vsechny podfacety zabalene... pripadne podle configu je rozbalit
+    // @TODO ul musi mit id podle nadfacety + ze je to ul
+    $faceId = "ul-".$label."-".str_replace("/",'-',$search);
+    $html = "<ul id='".$faceId."' class='hide'>";
+    $under = "";
+
+    foreach($data as  $key => $facet) {
+      if ($facet['value'] == $facet['displayText'] && strpos($title, "institution"))
+        continue;
+      if ($key < $start)
+        continue;
+      $subfacet = "";
+      if (strpos(substr($facet['value'], 1), substr($search, 1)) === 0) {// pokud je to podradna faceta...
+        if ((int)$facet['value'][0] == ((int)$search[0]) + 1) {// pokud je to faceta o 1 uroven pod ni
+          $subfacet = createSub($data, $facet['value'], $title, $label, $key, $settings);
+        }
+      }
+      // @TODO hlidat aji jestli facet['count'] > 0
+      if (!empty($subfacet)) {
+        // @TODO li musi mit id facety
+        // @TODO data-facet="" v tomto stylu kvuli async vyhledavani: ~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"
+        $dataValue = "~".$title.":\"".$facet['value']."\"";//'~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"'
+        $facetId = $label."-".str_replace("/",'-',$facet['value']);
+        $under .= "<li class='list-group-item' data-facet='".$dataValue."' id='".$facetId."'>";
+        if ($subfacet != "SSXASWWEW")
+          $under .= "<b class='arrow'></b>";
+        $under .= orFacet($facet);
+        if ($settings['count']) {
+          $under .= "<b class='badge'>" . $facet['count'] . "</b>";
+        }
+        $under .= "</a>";
+        if ($subfacet != "SSXASWWEW")
+          $under .= $subfacet;
+        $under .= "</li>";
+      }
+    }
+
+    // @TODO proste kurva nejak vymyslet aby ta rekurziva vratla prazdnou hodnotu nenajde li nejakou podfacetu -_- nechapu proc to nejsem schopnej udelat...
+
+    // @TODO vracet aji boolean jestli se ma HTML vypsat nebo je to jen prazdna kostra, nebude se muset overovat podle delky
+    // @TODO diky te delce jsou vsude ty sipky i kdyz nemaji podfacety :D
+    if (!empty($under))
+      return $html.$under."</ul>";
+    else
+      return "SSXASWWEW";
+  }
+
+  function orFacet($facet) {
+    $html = "";
+    // @TODO do a dat url pro pripad rozkliknuti do noveho tabu
+    $html .= "<a class='list-group-item or-facet'>";
+    $html .= "<span class='item'>". $facet['displayText']."</span>";
+    return $html;
+  }
+
+
+
+  function createFacetBox($data, $title, $or ,$hierarchical){
     $html = "";
     if ($or) {
       if ($hierarchical) {
-        $html .= createHierarchical($data);
+        $html .= createHierarchical($data, $title);
       } else { // je or a nehier
         foreach ($data as $facet) {
-          $html .= createOR($facet['displayText']);
+          $html .= createOR($facet['displayText'], $title);
         }
       }
     } else { // je and
       foreach ($data as $facet) {
-        $html .= createFacet($facet['displayText']);
+        $html .= createFacet($facet['displayText'], $title);
       }
     }
     return $html;
   }
 
-  function createOR($facet) {
-    $html = "<b>".createFacet($facet)."</b>";
+  function createOR($facet, $title) {
+    $html = "<b>".createFacet($facet, $title)."</b>";
     return $html;
   }
 
-  function createFacet($value) {
+  function createFacet($value, $title) {
     $line = "<li>".$value."</li>";
     return $line;
   }
 
-  function createHierarchical($data) {
+  function createHierarchical($data, $title) {
     $html = "";
     foreach ($data as $key => $facet) {
       if ((int)$facet['value'][0] !== 0)
         continue;
       $html .= "<u>";
       $podf = createSubFacet($data, $key, $facet['value']);
-      $html .= createOR($facet['displayText']);
+      $html .= createOR($facet['displayText'], $title);
       if ($podf['pocet'] > 0) {
         $html .= $podf['html'];
       }
@@ -130,13 +226,16 @@ $facetSettings = $this->recommend->facetSettings();
 <?
 $sideFacetSet = $this->recommend->getFacetSet();
 $rangeFacets = $this->recommend->getAllRangeFacets();
+//var_dump($sideFacetSet);
+//var_dump($rangeFacets);
 ?>
 <? if (!empty($sideFacetSet) && $results->getResultTotal() > 0) {
   $i = 0;
   foreach ($sideFacetSet as $title => $cluster) {
     if (in_array($cluster['label'], ($this->layout()->headerType != "newlibraries") ? $facetSettings['allFieldsSection'] : $facetSettings['librariesSection'])) {
-      echo "<h2>".$cluster['label']."</h2>";
-      //var_dump($cluster['list']);
+      //echo "<h2>".$cluster['label']."</h2>";
+      //echo "<h2>".$title."</h2>";
+      //var_dump($cluster);
 
       if (($cluster['label'] == 'adv_search_year')) {
         // @TODO prepsat casovou osu
@@ -145,18 +244,89 @@ $rangeFacets = $this->recommend->getAllRangeFacets();
       }
       //var_dump($cluster['list']);
       // @TODO zkontroluje vzdy prvni zaznam a podle toho si vybere co pak bude delat
-      if (($cluster['list']['0']['operator'] == 'OR') && ($cluster['list'][0]['value'][0] == "0")){ // pokud je or a hierachicka
-        echo createFacetBox($cluster['list'], true,true);
+      $pole = array(
+          "count" => false
+      );
+      /*if (($cluster['list']['0']['operator'] == 'OR') && ($cluster['list'][0]['value'][0] == "0")){ // pokud je or a hierachicka
+        echo createFBox($cluster['list'], $cluster['label'], $title, $pole, true,true);
       } else if ($cluster['list']['0']['operator'] == 'OR') { // pokud je or a nehierarchicka
-        echo createFacetBox($cluster['list'], true,false);
+        echo createFBox($cluster['list'], $cluster['label'], $title, $pole, true,false);
       } else { // pokud neni or(je and)
-        echo createFacetBox($cluster['list'], false,false);
-      }
+        echo createFBox($cluster['list'], $cluster['label'], $title, $pole, false,false);
+      }*/
+      /*if (($cluster['list']['0']['operator'] == 'OR') && ($cluster['list'][0]['value'][0] == "0")){ // pokud je or a hierachicka
+        echo createFacetBox($cluster['list'], $title , true,true);
+      } else if ($cluster['list']['0']['operator'] == 'OR') { // pokud je or a nehierarchicka
+        echo createFacetBox($cluster['list'], $title , true,false);
+      } else { // pokud neni or(je and)
+        echo createFacetBox($cluster['list'], $title , false,false);
+      }*/
 
+      $settings = array(
+          "count" => true
+      );
+      $data = $cluster['list'];
+      $or = ($cluster['list']['0']['operator'] == 'OR');
+      $hierarchical = ($cluster['list'][0]['value'][0] == "0");
+      $label = str_replace(' ','',$cluster['label']);
+      
+
+      $html1 = "";
+      $html1 .= "<div class='col-xs-12 list-group' id='side-panel-".$label."'>";
+      $html1 .= "<li class='arrow list-group-item title' id='facet-".$label."'><span class='arrow-title'>".$this->translate($label)."</span></li>";
+      $html1 .= "<ul id='ul-facet-".$label."' class='hide'>";
+      echo $html1;
+      //var_dump($cluster['list']);
+
+      foreach($data as  $key => $facet) {
+        $html = "";
+        $subfacet = "";
+        $dataValue = "~".$title.":\"".$facet['value']."\"";//'~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"'
+        $facetId = $label."-".str_replace("/",'-',$facet['value']);
+        if (! $or || (int)$facet['value'][0] === 0) // vleze jeli and nebo hierarchicka... kdyz je orova ale nehier tak ne
+          $html .= "<li class='list-group-item' data-facet='".$dataValue."' id='".$facetId."'>";
+        if ($or) {
+          if ((int)$facet['value'][0] === 0) {
+            if ($hierarchical) {
+              $subfacet = createSub($data, $facet['value'], $title, $label, $key, $settings);
+              if ($subfacet != "SSXASWWEW")
+                $html .= "<b class='arrow'></b>";
+            }
+            $html .= orFacet($facet);
+          }
+        }
+        // @TODO nakonec to vyresit tak ze vsechno se bude vytvaret na jednom miste a jen pomoci promennych budu vypisovat ruzne tridy nebo nejakou cast uplne vynecham
+        if (! $or || (int)$facet['value'][0] === 0) {
+          if (! $or) {
+            $html .= "<a href=\"\" class='and-facet'><span>" . $facet['displayText'] . "</span>";
+          }
+          if ($settings['count']) {
+            $html .= "<b class='badge'>" . $facet['count'] . "</b>";
+          }
+          $html .= "</a>";
+          if ($subfacet != "SSXASWWEW")
+            $html .= $subfacet;
+          $html .= "</li>";
+        }
+        echo $html;
+      }
+      $html1 = "</ul>";
+      $html1 .= "</div>";
+
+      echo $html1;
     }
   }
 }
 ?>
+
+
+
+<script>
+    $(document).ready(function() {
+
+    });
+
+</script>
 
 
 
