@@ -1,3 +1,13 @@
+<script>
+  // @TODO nechapu proc ale kdyz je to pouze v doc.ready tak to po prvnim vyhledavani prestane fungovat
+    $( '.list-group' ).on('click', '.arrow', function( event ) {
+        event.preventDefault();
+        var classArrow = event.target.closest('li').id;
+        console.log(classArrow);
+        $('#ul-'+classArrow).toggleClass("hide");
+    });
+</script>
+
 <?
   function createFBox($data, $label, $title, $settings, $or, $hierarchical) {
     $html = "";
@@ -39,7 +49,6 @@
 
   function createSub($data, $search, $title, $label, $start, $settings) {
     // @TODO defaultne vsechny podfacety zabalene... pripadne podle configu je rozbalit
-    // @TODO ul musi mit id podle nadfacety + ze je to ul
     $faceId = "ul-".$label."-".str_replace("/",'-',$search);
     $html = "<ul id='".$faceId."' class='hide'>";
     $under = "";
@@ -57,14 +66,13 @@
       }
       // @TODO hlidat aji jestli facet['count'] > 0
       if (!empty($subfacet)) {
-        // @TODO li musi mit id facety
-        // @TODO data-facet="" v tomto stylu kvuli async vyhledavani: ~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"
         $dataValue = "~".$title.":\"".$facet['value']."\"";//'~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"'
+        $link = ""; // @TODO vytvorit link na facetu pro odkazovani do noveho tabu
         $facetId = $label."-".str_replace("/",'-',$facet['value']);
-        $under .= "<li class='list-group-item' data-facet='".$dataValue."' id='".$facetId."'>";
+        $under .= "<li class='list-group-item' id='".$facetId."'>";
         if ($subfacet != "SSXASWWEW")
           $under .= "<b class='arrow'></b>";
-        $under .= orFacet($facet);
+        $under .= orFacet($facet,$dataValue, $link, $search, $label);
         if ($settings['count']) {
           $under .= "<b class='badge'>" . $facet['count'] . "</b>";
         }
@@ -75,20 +83,19 @@
       }
     }
 
-    // @TODO proste kurva nejak vymyslet aby ta rekurziva vratla prazdnou hodnotu nenajde li nejakou podfacetu -_- nechapu proc to nejsem schopnej udelat...
-
     // @TODO vracet aji boolean jestli se ma HTML vypsat nebo je to jen prazdna kostra, nebude se muset overovat podle delky
-    // @TODO diky te delce jsou vsude ty sipky i kdyz nemaji podfacety :D
     if (!empty($under))
       return $html.$under."</ul>";
     else
       return "SSXASWWEW";
   }
 
-  function orFacet($facet) {
+  function orFacet($facet,$dataValue, $link, $search, $label) {
     $html = "";
-    // @TODO do a dat url pro pripad rozkliknuti do noveho tabu
-    $html .= "<a class='list-group-item or-facet'>";
+    $search = $label."-".str_replace("/",'-',$search);
+    $active = ($facet['isApplied']? ' active' : '');
+    // @TODO dat do url pro pripad rozkliknuti do noveho tabu
+    $html .= "<a class='list-group-item or-facet facet-filter".$active."' data-parent='".$search."' data-facet='".$dataValue."' href='".$link."'>";
     $html .= "<span class='item'>". $facet['displayText']."</span>";
     return $html;
   }
@@ -282,9 +289,10 @@ $rangeFacets = $this->recommend->getAllRangeFacets();
         $html = "";
         $subfacet = "";
         $dataValue = "~".$title.":\"".$facet['value']."\"";//'~cpk_detected_format_facet_str_mv:"1/OTHER/PERSON/"'
+        $link = "";
         $facetId = $label."-".str_replace("/",'-',$facet['value']);
         if (! $or || (int)$facet['value'][0] === 0) // vleze jeli and nebo hierarchicka... kdyz je orova ale nehier tak ne
-          $html .= "<li class='list-group-item' data-facet='".$dataValue."' id='".$facetId."'>";
+          $html .= "<li class='list-group-item' id='".$facetId."'>";
         if ($or) {
           if ((int)$facet['value'][0] === 0) {
             if ($hierarchical) {
@@ -292,13 +300,13 @@ $rangeFacets = $this->recommend->getAllRangeFacets();
               if ($subfacet != "SSXASWWEW")
                 $html .= "<b class='arrow'></b>";
             }
-            $html .= orFacet($facet);
+            $html .= orFacet($facet, $dataValue, $link, $facet['value'], $label);
           }
         }
         // @TODO nakonec to vyresit tak ze vsechno se bude vytvaret na jednom miste a jen pomoci promennych budu vypisovat ruzne tridy nebo nejakou cast uplne vynecham
         if (! $or || (int)$facet['value'][0] === 0) {
           if (! $or) {
-            $html .= "<a href=\"\" class='and-facet'><span>" . $facet['displayText'] . "</span>";
+            $html .= "<a href=\"\" class='and-facet facet-filter' data-facet='".$dataValue."'><span>" . $facet['displayText'] . "</span>";
           }
           if ($settings['count']) {
             $html .= "<b class='badge'>" . $facet['count'] . "</b>";
