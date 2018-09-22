@@ -422,7 +422,7 @@ jQuery( document ).ready( function( $ ) {
                     $.each( selectedInstitutions, function( index, value ){
                         ADVSEARCH.addFacetFilter( value, false );
                     });
-                    ADVSEARCH.updateSearchResults( undefined, undefined );
+                    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, undefined, true );
 
                 } else {
                     console.error(response.data);
@@ -441,7 +441,7 @@ jQuery( document ).ready( function( $ ) {
         });
 
     });
-    
+
     /*
      * Load my institutions from HTML container
      */
@@ -475,7 +475,7 @@ jQuery( document ).ready( function( $ ) {
         $.each( selectedInstitutions, function( index, value ){
             ADVSEARCH.addFacetFilter( value, false );
         });
-        ADVSEARCH.updateSearchResults( undefined, undefined );
+        ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, undefined, true );
 
     });
     
@@ -570,7 +570,7 @@ jQuery( document ).ready( function( $ ) {
 		                $.each( selectedInstitutions, function( index, value ){
 		                    ADVSEARCH.addFacetFilter( value, false );
 		                });
-		                ADVSEARCH.updateSearchResults( undefined, undefined );
+		                ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, undefined, true );
 		                
 	                } else {
 	                    console.error(response.data);
