@@ -144,9 +144,10 @@
                     	false
                     );
                     return false;
+                } else {
+                    $( '.searchForm' ).submit();
                 }
 
-				$( '.searchForm' ).submit();
           	});
 
 			/*
@@ -194,6 +195,7 @@
 					);
                     return false;
 				} else {
+            $( 'document, body, input' ).css( 'cursor', 'progress' );
 					query = $( "#searchForm_lookfor" ).val();
 
 		           	enabledKeepFacets = $( '.searchFormKeepFilters' ).is(':checked');
