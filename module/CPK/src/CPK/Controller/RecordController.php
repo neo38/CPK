@@ -58,6 +58,8 @@ class RecordController extends RecordControllerBase
      */
     protected $logStatistics = false;
 
+    protected $parentRecordDriver = null;
+
     /**
      * Display a particular tab.
      *
@@ -163,7 +165,6 @@ class RecordController extends RecordControllerBase
         $view->selectedCitationStyle = $selectedCitationStyle;
 
         $view->availableCitationStyles = $availableCitationStyles;
-        //
 
         $config = $this->getConfig();
         $view->config = $config;
@@ -175,6 +176,15 @@ class RecordController extends RecordControllerBase
 	    } else {
 	        $view->searchTypeTemplate = 'basic';
 	    }
+
+        //set username for comments if user have come from social network and don`t have firstname and lastname
+        if($this->getUser()
+            && $this->getUser()->isSocialUser()
+            && !$this->getUser()->firstname
+            && !$this->getUser()->lastname
+        ) {
+            $view->socialUser = $this->getUser()->getSource().'_user';
+        }
 
         $view->setTemplate($ajax ? 'record/ajaxtab' : 'record/view');
 
@@ -188,10 +198,12 @@ class RecordController extends RecordControllerBase
 
         $this->layout()->recordView = true;
 
-        /* Get sigla */
+        /* Get Library ID */
         $multiBackendConfig = $this->getConfig('MultiBackend');
         $recordSource = explode(".", $this->driver->getUniqueId())[0];
-        $view->sigla = $multiBackendConfig->SiglaMapping->$recordSource;
+        try {
+            $view->libraryID = $multiBackendConfig->LibraryIDMapping->$recordSource;
+        } catch (\Exception $e){}
 
         $searchesConfig = $this->getConfig('searches');
         // If user have preferred limit and sort settings
@@ -218,6 +230,17 @@ class RecordController extends RecordControllerBase
             $this->layout()->sort = $searchesConfig->General->default_sort;
         }
 
+        // Set up MVS button
+        $request = $this->getRequest();
+        $mvsCookie = $request->getCookie()->ziskej;
+
+        if (isset($config->Ziskej, $config->Ziskej->$mvsCookie) && $mvsCookie != 'disabled') {
+            $view->mvsUrl = $config->Ziskej->$mvsCookie;
+            $view->eppn = $request->getServer()->eduPersonPrincipalName;
+            $view->serverName = $request->getServer()->SERVER_NAME;
+            $view->entityId = $request->getServer('Shib-Identity-Provider');
+        }
+
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
 
@@ -235,14 +258,7 @@ class RecordController extends RecordControllerBase
      */
     protected function get856Links()
     {
-        $parentRecordID = $this->driver->getParentRecordID();
-
-        if ($this->recordLoader === null) {
-            $this->recordLoader = $this->getServiceLocator()->get('VuFind\RecordLoader');
-        }
-
-        $recordDriver = $this->recordLoader->load($parentRecordID);
-        return $recordDriver->get856Links();
+        return $this->getParentRecordDriver()->get856Links();
     }
 
     /**
@@ -252,15 +268,7 @@ class RecordController extends RecordControllerBase
      */
     protected function get866Data()
     {
-    	$parentRecordID = $this->driver->getParentRecordID();
-
-    	if ($this->recordLoader === null)
-    	    $this->recordLoader = $this->getServiceLocator()
-    	       ->get('VuFind\RecordLoader');
-
-    	$recordDriver = $this->recordLoader->load($parentRecordID);
-    	$links = $recordDriver->get866Data();
-    	return $links;
+        return $this->getParentRecordDriver()->get866Data();
     }
 
     /**
@@ -286,11 +294,7 @@ class RecordController extends RecordControllerBase
     protected function getXml()
     {
         $recordID = $this->driver->getUniqueID();
-        $recordLoader = $this->getServiceLocator()->get('VuFind\RecordLoader');
-        $recordDriver = $recordLoader->load($recordID);
-
-        $parentRecordID = $recordDriver->getParentRecordID();
-        $parentRecordDriver = $recordLoader->load($parentRecordID);
+        $parentRecordDriver = $this->getParentRecordDriver();
 
         $format = $parentRecordDriver->getRecordType();
         if ($format === 'marc')
@@ -638,6 +642,18 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
         );
         $view->setTemplate('record/shortloan');
         return $view;
+    }
+
+    protected function getParentRecordDriver()
+    {
+        if ($this->parentRecordDriver === null) {
+            $parentRecordID = $this->driver->getParentRecordID();
+            if ($this->recordLoader === null) {
+                $this->recordLoader = $this->getServiceLocator()->get('VuFind\RecordLoader');
+            }
+            $this->parentRecordDriver = $this->recordLoader->load($parentRecordID);
+        }
+        return $this->parentRecordDriver;
     }
 
 }

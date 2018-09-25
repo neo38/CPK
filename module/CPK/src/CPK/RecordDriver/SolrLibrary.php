@@ -34,6 +34,16 @@ class SolrLibrary extends ParentSolrMarc
     }
 
     /**
+     * Get the full title of the record
+     *
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->getLibraryNames();
+    }
+
+    /**
      * Get an array of note about the libraryhours
      *
      * @return string
@@ -326,5 +336,27 @@ class SolrLibrary extends ParentSolrMarc
         return $result;
     }
 
+    /**
+     * Get handler for related
+     *
+     * @return array
+     */
+    public function getFilterParamsForRelated()
+    {
+        return ['handler' => 'morelikethislibrary'];
+    }
+
+    /**
+     * Get Regional Library
+     *
+     * @return array
+     */
+    public function getRegLibrary()
+    {
+        $library       = isset($this->fields['reg_lib_id_display_mv']) ? $this->fields['reg_lib_id_display_mv'] : [];
+        $parsedLibrary = empty($library) ? [] : explode('|', $library[0]);
+
+        return empty($parsedLibrary) ? [] : ['id' => $parsedLibrary[0], 'name' => $parsedLibrary[1]];
+    }
 }
 
