@@ -604,6 +604,7 @@ jQuery( document ).ready( function ($) {
     let body = $( 'body' );
     // Get record unique id and institution source for further usage
     let uniqueId = body.find( '.hiddenId' ).val();
+    let parentRecordId = body.find( '.hiddenParentRecordId' ).val();
     let source = uniqueId.split( '.' )[0];
 
     if (source !== 'library') {
@@ -661,45 +662,42 @@ jQuery( document ).ready( function ($) {
         }, 1000 );
     } );
 
-    // Get parent record ID
-    getParentRecordId( uniqueId ).done( function (parentRecordId) {
-        // Get number of items for tabs
-        getItemsCountForTabsInRecord( parentRecordId.data ).done( function (response) {
+    // Get number of items for tabs
+    getItemsCountForTabsInRecord( parentRecordId ).done( function (response) {
 
-            // Disable eVersion tab
-            if (typeof response.data['eVersionLinksCount'] === 'undefined' || !response.data['eVersionLinksCount']) {
-                disableTab( $( '#eversion' ) );
-                // Hide table inside the tab
-                $( '#e-version-table' ).addClass( 'hidden' );
-            }
+        // Disable eVersion tab
+        if (typeof response.data['eVersionLinksCount'] === 'undefined' || !response.data['eVersionLinksCount']) {
+            disableTab( $( '#eversion' ) );
+            // Hide table inside the tab
+            $( '#e-version-table' ).addClass( 'hidden' );
+        }
 
-            // Disable Holdings tab
-            if (!response.data['holdingsCount']) {
-                disableTab( $( '#holdings' ) );
-            }
+        // Disable Holdings tab
+        if (!response.data['holdingsCount']) {
+            disableTab( $( '#holdings' ) );
+        }
 
-            // Disable AddInfo tab
-            if (!response.data['addInfoItemsCount']) {
-                disableTab( $( '#addinfo' ) );
-            }
+        // Disable AddInfo tab
+        if (!response.data['addInfoItemsCount']) {
+            disableTab( $( '#addinfo' ) );
+        }
 
-            // Disable Contacts tab
-            if (!response.data['contactsItemsCount']) {
-                disableTab( $( '#contacts' ) );
-            }
+        // Disable Contacts tab
+        if (!response.data['contactsItemsCount']) {
+            disableTab( $( '#contacts' ) );
+        }
 
-            // Disable Services tab
-            if (!response.data['servicesItemsCount']) {
-                disableTab( $( '#services' ) );
-            }
+        // Disable Services tab
+        if (!response.data['servicesItemsCount']) {
+            disableTab( $( '#services' ) );
+        }
 
-            // Disable Branches tab
-            if (!response.data['branchesItemsCount']) {
-                disableTab( $( '#branches' ) );
-            }
-        } ).fail( function (error) {
-            console.error( error );
-        } );
+        // Disable Branches tab
+        if (!response.data['branchesItemsCount']) {
+            disableTab( $( '#branches' ) );
+        }
+    } ).fail( function (error) {
+        console.error( error );
     } );
 
     // Moved form record/view.phtml

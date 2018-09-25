@@ -38,10 +38,10 @@ $this->layout()->title = $this->driver->getShortTitle();
       <? else: ?>
         <li class="disabled"><a href="#">&laquo; <?= $this->transEsc('Prev') ?></a></li>
       <? endif; ?>
-    #<?= $this->localizedNumber($this->scrollData['currentPosition'])
-      .' '.$this->transEsc('of')
-      .' '.$this->localizedNumber($this->scrollData['resultTotal'])
-      .' '.$this->transEsc('results') ?>
+      #<?= $this->localizedNumber($this->scrollData['currentPosition'])
+        .' '.$this->transEsc('of')
+        .' '.$this->localizedNumber($this->scrollData['resultTotal'])
+        .' '.$this->transEsc('results') ?>
       <? if ($this->scrollData['nextRecord']): ?>
         <li>
           <a href="<?= $this->recordLink()->getUrl($this->scrollData['nextRecord']) ?>"
@@ -59,9 +59,13 @@ $this->layout()->title = $this->driver->getShortTitle();
   <div class="col-sm-9">
     <div class="record source<?= $this->escapeHtmlAttr($this->driver->getResourceSource()) ?>">
       <input type="hidden" value="<?= $this->escapeHtmlAttr($this->id) ?>" class="hiddenId">
-      <input type="hidden" value="<?= $this->escapeHtmlAttr($this->driver->getResourceSource()) ?>"
+      <input type="hidden"
+             value="<?= $this->escapeHtmlAttr($this->driver->getResourceSource()) ?>"
              class="hiddenSource">
-        <?= $this->flashmessages() ?>
+      <input type="hidden"
+             value="<?= $this->escapeHtmlAttr($this->driver->getParentRecordID()) ?>"
+             class="hiddenParentRecordId">
+      <?= $this->flashmessages() ?>
 
       <!-- Modal -->
       <div class="modal fade" id="citationsModal" tabindex="-1" role="dialog" aria-labelledby="citationsLabel">

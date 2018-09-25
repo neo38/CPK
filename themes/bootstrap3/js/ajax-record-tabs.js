@@ -104,7 +104,6 @@ function get866( recordUniqueID, parentRecordID, sourceInstitute, callback ) {
 				// display the error message on each of the ajax status place holder
 				$( "#ajax-error-info" ).empty().append( response.data );
 			} else {
-				console.log( response );
 				callback( recordUniqueID, response['data'][0]['field866'], sourceInstitute );
 			}
 		}
@@ -141,24 +140,6 @@ function display866( recordUniqueID, rawDataArrayOf866, sourceInstitute ) {
 		getSfxJibResult(recordUniqueID, sourceInstitute, arrayOf866);
 
 	}
-}
-
-/**
- * Get record unique id
- *
- * @param   {string}  recordUniqueId
- * @returns {promise}
- */
-function getParentRecordId (recordUniqueId) {
-    return $.ajax( {
-        dataType: 'json',
-        async: true,
-        type: 'POST',
-        url: '/AJAX/JSON?method=getParentRecordId',
-        data: {
-            recordUniqueId: recordUniqueId,
-        },
-    } );
 }
 
 /**
