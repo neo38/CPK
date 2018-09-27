@@ -57,7 +57,7 @@
           $recordAddRemoveUrl = $handleOfflineFavorites ? '#' : $this->recordLink()->getActionUrl($this->driver, 'Save');
     ?>
       <li class="list-group-item">
-        <a id="save-record" class="modal-link favorites-add-remove-link <?=$controllerClass?>"
+        <a class="modal-link <?=$controllerClass?>"
            href="<?=$recordAddRemoveUrl?>"
            title="<?=$this->transEsc('Add to favorites')?>" rel="nofollow">
           <i class="pr-interface-favoritestar"> </i>
