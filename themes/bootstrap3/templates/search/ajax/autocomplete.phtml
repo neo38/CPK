@@ -1,11 +1,11 @@
 <?php
-if (empty($lastLimit)) {
+  if (empty($lastLimit)) {
     $lastLimit = $this->layout()->limit;
-}
-if (empty($lastSort)) {
+  }
+  if (empty($lastSort)) {
     $lastSort = $this->layout()->sort;
-}
-$searchUrl = $this->url($basicSearch);
+  }
+  $searchUrl = $this->url($basicSearch);
 ?>
 
 <div id="collapseAdvancedSearch"
@@ -19,7 +19,7 @@ $searchUrl = $this->url($basicSearch);
           action="<?= $this->url($basicSearch) ?>"
           name="searchForm"
           autocomplete="off">
-        <? $defaultFilterState = $options->getRetainFilterSetting() ? ' checked="checked"' : ''; ?>
+      <? $defaultFilterState = $options->getRetainFilterSetting() ? ' checked="checked"' : ''; ?>
 
       <input
           class="form-control find-input search-query autocomplete <? if ($this->searchbox()->autocompleteEnabled($this->searchClassId)): ?> searcher:<?= $this->escapeHtmlAttr($this->searchClassId) ?><? endif ?>"
@@ -28,24 +28,23 @@ $searchUrl = $this->url($basicSearch);
           name="lookfor0[]"
           value="<?= (isset($_GET['lookfor0'][0])) ? $this->escapeHtmlAttr($_GET['lookfor0'][0]) : '' ?>"
           placeholder="<?= $this->librarySearch ? $this->translate('autocomplete-placeholder-libraries') : $this->translate('autocomplete-placeholder'); ?>"
-          title="<?= $this->librarySearch ? $this->translate('autocomplete-placeholder-libraries') : $this->translate('autocomplete-placeholder'); ?>"
-      >
+          title="<?= $this->librarySearch ? $this->translate('autocomplete-placeholder-libraries') : $this->translate('autocomplete-placeholder'); ?>" />
       <span>&nbsp;<i class="fa fa-times" id="searchclear"></i></span>
 
-      <input type="hidden" name="searchTypeTemplate" value="basic">
-      <input type="hidden" name="database" value="<?= $this->escapeHtmlAttr($this->searchClassId) ?>">
-      <input type="hidden" name="type0[]" value="<?= $this->escapeHtmlAttr($handlers[0]['value']) ?>">
-      <input type="hidden" name="join" value="AND">
-      <input type="hidden" name="bool0[]" value="AND">
-      <input type="hidden" name="page" value="1">
-      <input type="hidden" name="keepEnabledFilters" value="true">
-      <input type="hidden" name="searchPath" value="<?= $searchUrl ?>">
-        <? if ( ! empty($lastLimit)): ?>
-          <input type="hidden" name="limit" value="<?= $this->escapeHtmlAttr($lastLimit) ?>">
-        <? endif; ?>
-        <? if ( ! empty($lastSort)): ?>
-          <input type="hidden" name="sort" value="<?= $this->escapeHtmlAttr($lastSort) ?>">
-        <? endif; ?>
+      <input type="hidden" name="searchTypeTemplate" value="basic" />
+      <input type="hidden" name="database" value="<?= $this->escapeHtmlAttr($this->searchClassId) ?>" />
+      <input type="hidden" name="type0[]" value="<?= $this->escapeHtmlAttr($handlers[0]['value']) ?>" />
+      <input type="hidden" name="join" value="AND" />
+      <input type="hidden" name="bool0[]" value="AND" />
+      <input type="hidden" name="page" value="1" />
+      <input type="hidden" name="keepEnabledFilters" value="true" />
+      <input type="hidden" name="searchPath" value="<?= $searchUrl ?>" />
+      <? if ( ! empty($lastLimit)): ?>
+        <input type="hidden" name="limit" value="<?= $this->escapeHtmlAttr($lastLimit) ?>" />
+      <? endif; ?>
+      <? if ( ! empty($lastSort)): ?>
+        <input type="hidden" name="sort" value="<?= $this->escapeHtmlAttr($lastSort) ?>" />
+      <? endif; ?>
 
       <a href="<?= $searchUrl ?>?lookfor=&type0[]=AllFields&searchTypeTemplate=basic&database=Solr"
          id="run-autocomplete"
@@ -55,125 +54,124 @@ $searchUrl = $this->url($basicSearch);
         <span> <?= $this->transEsc("Find") ?></span>
       </a>
 
-        <? if ($options->showShardCheckboxes() && ! empty($shards)):
-            $selectedShards = isset($this->selectedShards) ? $this->selectedShards : $options->getDefaultSelectedShards(); ?>
-          <br/>
+      <? if ($options->showShardCheckboxes() && ! empty($shards)):
+        $selectedShards = isset($this->selectedShards) ? $this->selectedShards : $options->getDefaultSelectedShards(); ?>
+        <br />
           <? foreach ($shards as $shard => $val): $isSelected = empty($selectedShards) || in_array($shard,
-                $selectedShards); ?>
-          <input type="checkbox" <?= $isSelected ? 'checked="checked" ' : '' ?>
-                 name="shard[]"
-                 value="<?= $this->escapeHtmlAttr($shard) ?>"
-                 title="<?= $this->transEsc($shard) ?>">
-            <?= $this->transEsc($shard) ?>
-        <? endforeach; ?>
-        <? endif; ?>
+          $selectedShards); ?>
+        <input type="checkbox" <?= $isSelected ? 'checked="checked" ' : '' ?>
+               name="shard[]"
+               value="<?= $this->escapeHtmlAttr($shard) ?>"
+               title="<?= $this->transEsc($shard) ?>" />
+        <?= $this->transEsc($shard) ?>
+      <? endforeach; ?>
+      <? endif; ?>
 
 
-        <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || ! empty($filterDetails)): ?>
+      <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || ! empty($filterDetails)): ?>
 
-          <div class="hidden">
-              <? foreach ($filterDetails as $current): ?>
-                <input class="applied-filter"
-                       id="<?= $this->escapeHtmlAttr($current['id']) ?>"
-                       type="checkbox"<?= $defaultFilterState ?>
-                       name="filter[]"
-                       value="<?= $this->escapeHtmlAttr($current['value']) ?>"/>
-                <label for="<?= $this->escapeHtmlAttr($current['id']) ?>">
-                    <?= $this->escapeHtml($current['value']) ?>
-                </label>
-              <? endforeach; ?>
+        <div class="hidden">
+          <? foreach ($filterDetails as $current): ?>
+            <input class="applied-filter"
+                   id="<?= $this->escapeHtmlAttr($current['id']) ?>"
+                   type="checkbox"<?= $defaultFilterState ?>
+                   name="filter[]"
+                   value="<?= $this->escapeHtmlAttr($current['value']) ?>" />
+            <label for="<?= $this->escapeHtmlAttr($current['id']) ?>">
+              <?= $this->escapeHtml($current['value']) ?>
+            </label>
+          <? endforeach; ?>
 
-              <? if (isset($hasDefaultsApplied) && $hasDefaultsApplied): ?>
-                <!-- this is a hidden element that flags whether or not default filters have been applied;
-                it is intentionally unlabeled, as users are not meant to manipulate it directly. -->
-                <input class="applied-filter"
-                       id="dfApplied"
-                       type="checkbox"
-                       name="dfApplied"
-                       value="1"<?= $defaultFilterState ?>
-                >
-              <? endif; ?>
-          </div>
+          <? if (isset($hasDefaultsApplied) && $hasDefaultsApplied): ?>
+            <!-- this is a hidden element that flags whether or not default filters have been applied;
+            it is intentionally unlabeled, as users are not meant to manipulate it directly. -->
+            <input class="applied-filter"
+                   id="dfApplied"
+                   type="checkbox"
+                   name="dfApplied"
+                   value="1"<?= $defaultFilterState ?> />
+          <? endif; ?>
+        </div>
 
-        <? endif; ?>
+      <? endif; ?>
 
-        <? /* Show hidden field for active search class when in combined handler mode. */
+      <? /* Show hidden field for active search class when in combined handler mode. */
         if ($this->searchbox()->combinedHandlersActive()): ?>
-            <?= '<input type="hidden" name="activeSearchClassId" value="'.$this->escapeHtmlAttr($this->searchClassId).'" >' ?>
+          <?= '<input type="hidden" name="activeSearchClassId" value="'.$this->escapeHtmlAttr($this->searchClassId).'" />' ?>
         <? endif; ?>
 
-        <? if ($this->searchResults): ?>
-          <span class="pull-right search-box-right">
-            <a href="#"
-               class="search-type-template-switch<?= ($catalog == 'catalog') ? '' : ' hidden' ?>"
-               id="advancedSearchLink"><?= $this->translate("Advanced Search") ?>
-            </a>
-              <? // hide save option if login disabled
-              if (($account = $this->auth()->getManager()) && $account->loginEnabled()): ?>
-                <span class="save-basic-search-results">
-                    <? if (is_numeric($this->results->getSearchId())): ?>
-                        <? if ($this->results->isSavedSearch()): ?>
-                        <a class="save-search-link"
-                           id="remove-from-saved-searches"
-                           data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
-                           title="<?= $this->translate('Delete saved search') ?>">
-                            <?= $this->translate('Delete saved search') ?>
-                        </a>
-                        <? else: ?>
-                        <a class="save-search-link"
-                           id="add-to-saved-searches"
-                           data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
-                           title="<?= $this->translate('Save search') ?>">
-                          <i class="pr-web-downloadarrow"></i>
-                          <span><?= $this->translate('Save search') ?></span>
-                        </a>
-                        <? endif; ?>
-                    <? endif; ?>
-                </span>
-              <? endif; ?>
-          </span>
-        <? elseif ($this->layout()->frontpage): ?>
-          <div class="col-md-12 text-center homepage-advanced-search-link">
-            <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=Solr&limit=<?= $this->layout()->limit ?>">
-                <?= $this->translate("Advanced Search") ?>
-            </a>
-          </div>
+      <? if ($this->searchResults): ?>
+        <span class="pull-right search-box-right">
+          <a href="#"
+             class="search-type-template-switch<?= ($catalog == 'catalog') ? '' : ' hidden' ?>"
+             id="advancedSearchLink"><?= $this->translate("Advanced Search") ?>
+          </a>
+          <? // hide save option if login disabled
+            if (($account = $this->auth()->getManager()) && $account->loginEnabled()): ?>
+              <span class="save-basic-search-results">
+                <? if (is_numeric($this->results->getSearchId())): ?>
+                  <? if ($this->results->isSavedSearch()): ?>
+                    <a class="save-search-link"
+                       id="remove-from-saved-searches"
+                       data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
+                       title="<?= $this->translate('Delete saved search') ?>">
+                      <?= $this->translate('Delete saved search') ?>
+                    </a>
+                  <? else: ?>
+                    <a class="save-search-link"
+                       id="add-to-saved-searches"
+                       data-search-id="<?= urlencode($this->results->getSearchId()) ?>"
+                       title="<?= $this->translate('Save search') ?>">
+                      <i class="pr-web-downloadarrow"></i>
+                      <span><?= $this->translate('Save search') ?></span>
+                    </a>
+                  <? endif; ?>
+                <? endif; ?>
+              </span>
+            <? endif; ?>
+        </span>
+      <? elseif ($this->layout()->frontpage): ?>
+        <div class="col-md-12 text-center homepage-advanced-search-link">
+          <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=Solr&limit=<?= $this->layout()->limit ?>">
+            <?= $this->translate("Advanced Search") ?>
+          </a>
+        </div>
+      <? else: ?>
+        <? if ($this->layout()->recordView || $this->layout()->history): ?>
+          <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=Solr&limit=<?= $this->layout()->limit ?>">
+            <?= $this->translate("Advanced Search") ?>
+          </a>
         <? else: ?>
-            <? if ($this->layout()->recordView || $this->layout()->history): ?>
-            <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=Solr&limit=<?= $this->layout()->limit ?>">
-                <?= $this->translate("Advanced Search") ?>
-            </a>
-            <? else: ?>
-            <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=EDS&limit=<?= $this->layout()->limit ?>">
-                <?= $this->translate("Advanced Search") ?>
-            </a>
-            <? endif; ?>
+          <a href="<?= $searchUrl ?>?searchTypeTemplate=advanced&lookfor0[]=&type0[]=AllFields&join=AND&bool0[]=AND&page=1&database=EDS&limit=<?= $this->layout()->limit ?>">
+            <?= $this->translate("Advanced Search") ?>
+          </a>
         <? endif; ?>
-        <? if ($this->searchClassId == 'Solr'): ?>
-          <span id="autocomplete-help">
-              <?= $this->help()->getQuestionMarkHelp('autocomplete') ?>
-          </span>
-          <span id="ci-autocomplete-help" class="hidden">
-              <?= $this->help()->getQuestionMarkHelp('ci-autocomplete') ?>
-          </span>
-        <? elseif ($this->searchClassId == 'EDS'): ?>
-          <span id="autocomplete-help" class="hidden">
-              <?= $this->help()->getQuestionMarkHelp('autocomplete') ?>
-          </span>
-          <span id="ci-autocomplete-help">
-              <?= $this->help()->getQuestionMarkHelp('ci-autocomplete') ?>
-          </span>
-        <? endif; ?>
-        <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || ! empty($filterDetails)): ?>
+      <? endif; ?>
+      <? if ($this->searchClassId == 'Solr'): ?>
+        <span id="autocomplete-help">
+          <?= $this->help()->getQuestionMarkHelp('autocomplete') ?>
+        </span>
+        <span id="ci-autocomplete-help" class="hidden">
+          <?= $this->help()->getQuestionMarkHelp('ci-autocomplete') ?>
+        </span>
+      <? elseif ($this->searchClassId == 'EDS'): ?>
+        <span id="autocomplete-help" class="hidden">
+          <?= $this->help()->getQuestionMarkHelp('autocomplete') ?>
+        </span>
+        <span id="ci-autocomplete-help">
+          <?= $this->help()->getQuestionMarkHelp('ci-autocomplete') ?>
+        </span>
+      <? endif; ?>
+      <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || ! empty($filterDetails)): ?>
       <div id="keep-facets-enabled-checkbox">
-          <? else: ?>
+        <? else: ?>
         <div id="keep-facets-enabled-checkbox" style="display: none;">
-            <? endif; ?>
+          <? endif; ?>
           <label>
             <input class="checkbox searchFormKeepFilters"
                    type="checkbox"<?= $defaultFilterState ?>
-                   title="<?= $this->transEsc("basic_search_keep_filters") ?>">
-              <?= $this->transEsc("basic_search_keep_filters") ?>
+                   title="<?= $this->transEsc("basic_search_keep_filters") ?>" />
+            <?= $this->transEsc("basic_search_keep_filters") ?>
           </label>
         </div>
 
