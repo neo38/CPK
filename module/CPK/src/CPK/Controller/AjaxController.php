@@ -2625,4 +2625,13 @@ class AjaxController extends AjaxControllerBase
         // Make the object available to the view:
         return $savedSearch;
     }
+
+    /**
+     * Is user logged in
+     * @return bool
+     */
+    public function isLoggedInAjax()
+    {
+        return $this->output([], $this->getAuthManager()->isLoggedIn() ? 200 : 404);
+    }
 }

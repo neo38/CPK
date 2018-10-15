@@ -615,4 +615,23 @@ jQuery( document ).ready( function( $ ){
   })
 
     $( '#modal_dg' ).appendTo( 'body' );
+  
+    VuFind.bootstrapGrowlOptions = {
+        type: 'info', // info, success, warning and danger
+        ele: 'body', // parent container
+        offset: {
+            from: 'top',
+            amount: 40
+        },
+        align: 'right', // right, left or center
+        width: 300,
+        delay: 5000,
+        allow_dismiss: true,
+        stackup_spacing: 10
+    };
+
+    VuFind.flashMessage = function(message) {
+        jQuery.bootstrapGrowl(VuFind.translate(message), VuFind.bootstrapGrowlOptions);
+    };
+
 });

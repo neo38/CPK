@@ -851,6 +851,8 @@ class SearchController extends SearchControllerBase
     	    ? $facetConfig->DigitalLibrarieForLibraries->toArray()
     	    : [];
 
+        $view->favorites = [];
+
 	    return $view;
 	}
 
@@ -1326,6 +1328,8 @@ class SearchController extends SearchControllerBase
 	        $viewData['offlineFavoritesEnabled'] = (bool) $this->getConfig()->Site['offlineFavoritesEnabled'];
 	    }
 
+        $viewData['favorites'] = [];
+
 		// Set up facet information:
 		$viewData['facetList'] = $this->processAdvancedFacets(
 			$this->getAdvancedFacets()->getFacetList(), false
@@ -1366,7 +1370,7 @@ class SearchController extends SearchControllerBase
             'edsDefaultSorts' => json_encode(['data' => $edsDefaultSorts]),
             'solrLimits' => json_encode(['data' => $solrLimits]),
             'solrMaxLimit' => json_encode(['data' => $solrMaxLimit]),
-            'solrDefaultSorts' => json_encode(['data' => $solrDefaultSorts])
+            'solrDefaultSorts' => json_encode(['data' => $solrDefaultSorts]),
 	    ];
 
 	    return $data;

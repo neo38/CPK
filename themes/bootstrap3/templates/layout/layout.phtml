@@ -94,7 +94,11 @@
             'Expand or collapse' => 'Expand or collapse',
             'Do not forget to update search results' => 'Do not forget to update search results',
             'warning_safety_login' => 'warning_safety_login',
-            'Select widget' => 'Select widget'
+            'Select widget' => 'Select widget',
+            'record_added_to_favorites' => 'record_added_to_favorites',
+            'search_added_to_favorites' => 'search_added_to_favorites',
+            'record_removed_from_favorites' => 'record_removed_from_favorites',
+            'search_removed_from_favorites' => 'search_removed_from_favorites'
           )
         );
         // Add libphonenumber.js strings
@@ -214,6 +218,7 @@
       $this->headScript()->appendScript($setupJS);
     ?>
     <?=$this->headScript()->appendFile("geolocation.js");?>
+    <script type='module' src='/themes/bootstrap3/js/bundle.js'></script>
   </head>
   <body data-ng-app="cpk" data-ng-controller="GlobalController as ctrl" class="<?=$this->layoutClass('offcanvas-row')?><? if ($this->layout()->rtl): ?> rtl<? endif; ?>">
 
@@ -311,7 +316,10 @@
         </div>
     </header>
 
-    <div role="main" class="main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>">
+    <div role="main"
+         class="main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>"
+         id="main-container"
+         data-templateName="<?=$this->templateName?>">
       <div class="container">
         <? if ($this->layout()->frontpage != true): ?>
           <? if ($this->layout()->headerType != "libraries"): ?>

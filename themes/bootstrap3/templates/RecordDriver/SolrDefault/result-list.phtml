@@ -367,31 +367,72 @@
 
 		<div class='row'>
 		  <div class='col-md-8'>
-			<div class="format-list pull-left inline-block">
-        	  <?=$this->record($this->driver)->getFormatList()?>
-      		</div>
+			  <div class="format-list pull-left inline-block">
+          <?=$this->record($this->driver)->getFormatList()?>
+        </div>
 		  </div>
-            <? if (!$this->librarySearch) : ?>
-              <div class='col-md-4 search-results-favorite-button hidden pull-right'>
-                <? if ($this->userlist()->getMode() !== 'disabled'):
-                    $controllerClass = 'controller:' . $this->record($this->driver)->getController();
-                    $handleOfflineFavorites = ! $this->isLoggedIn && $this->offlineFavoritesEnabled; ?>
-                <li class="list-group-item">
-                    <a id="save-record" class="to-favorites-link modal-link <?=$controllerClass?>"
-                     <? if ($handleOfflineFavorites) : ?>
-                        href="/Record/<?=$this->driver->getUniqueID()?>" onclick="return false;" data-ng-click="searchFavCtrl.addOrRemoveFavorite(<?=isset($_ENV['currentRecordNo']) ? $_ENV['currentRecordNo'] : '' ?>)"
-                    <? else: ?>
-                        href="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>"
-                    <? endif; ?>
 
-                    title="<?=$this->transEsc('Add to favorites')?>" rel="nofollow"><i class="pr-interface-favoritestar"> </i>
-                    <span data-add-remove-search="add<?=isset($_ENV['currentRecordNo']) ? ':' . $_ENV['currentRecordNo'] : '' ?>"><?=$this->transEsc('Add to favorites')?></span>
-                    <span data-add-remove-search="rem<?=isset($_ENV['currentRecordNo']) ? ':' . $_ENV['currentRecordNo'] : '' ?>" hidden ><b><?=$this->transEsc('remove_from_favorites')?></b></span>
-                    </a>
-                </li>
-              <? endif; ?>
-              </div>
-            <? endif; ?>
+      <? if (!$this->librarySearch) : ?>
+      <div class='col-md-4 search-results-favorite-button hidden pull-right'>
+        <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+        <li class="list-group-item">
+
+          <a title='<?= $this->translate('Add to favorites') ?>'
+             id='add-record-<?=$recordId?>-to-favorites'
+             rel='nofollow'
+             data-recordID='<?=$recordId?>'
+             class='add-record-to-favorites-link <?= in_array($recordId, $this->favorites) ? 'hidden' : '' ?>'
+             <?= $this->isLoggedIn ? 'data-toggle="modal"' : '' ?>
+             <?= $this->isLoggedIn ? 'data-target="#favoriteModalForRecord'.$recordId.'"' : '' ?>
+             <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$recordId.'\')"' : '' ?>>
+            <i class='pr-interface-favoritestar'> </i>
+            <span>
+              <?=$this->translate('Add to favorites')?>
+            </span>
+          </a>
+
+          <a title='<?= $this->translate('Remove from favorites') ?>'
+             id='remove-record-<?=$recordId?>-from-favorites'
+             rel='nofollow'
+             data-recordID='<?=$recordId?>'
+             class='font-bold remove-record-from-favorites-link <?= !in_array($recordId, $this->favorites) ? 'hidden' : '' ?>'
+             onclick='VuFind.removeFromFavorites("<?=$recordId?>")'>
+            <i class='pr-interface-favoritestar'> </i>
+            <span>
+              <?=$this->translate('Remove from favorites')?>
+            </span>
+          </a>
+
+        </li>
+      <? endif; ?>
+      </div>
+
+      <!-- Add to favorites Modal -->
+      <div class='modal fade'
+           id='favoriteModalForRecord<?=$recordId?>'
+           tabindex='-1'
+           role='dialog'
+           aria-labelledby='favoriteModalForRecord<?=$recordId?>Label'
+           aria-hidden='true'>
+        <div class='modal-dialog' role='document'>
+          <div class='modal-content'>
+            <div class='modal-header'>
+              <h5 class='modal-title' id='favoriteModalForRecord<?=$recordId?>Label'>Modal title</h5>
+              <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+                <span aria-hidden='true'>&times;</span>
+              </button>
+            </div>
+            <div class='modal-body'>
+              ...
+            </div>
+            <div class='modal-footer'>
+              <button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>
+              <button type='button' class='btn btn-primary'>Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <? endif; ?>
 		</div>
 
     </div>
