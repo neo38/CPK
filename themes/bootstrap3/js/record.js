@@ -583,6 +583,14 @@ jQuery( document ).ready( function( $ ) {
     });
   });
 
+  const sigla = $( '#library-sigla' ).text();
+  if (sigla !== '' && sigla !== 'undefined') {
+    dataLayer.push( {
+      'page': {
+        'library': sigla,
+      },
+    } );
+  }
 });
 
 /**

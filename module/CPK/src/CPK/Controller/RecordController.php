@@ -179,11 +179,11 @@ class RecordController extends RecordControllerBase
         $view->maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
 
         /* Handle view template */
-	    if (! empty($this->params()->fromQuery('searchTypeTemplate')) ){
-	        $view->searchTypeTemplate = $this->params()->fromQuery('searchTypeTemplate');
-	    } else {
-	        $view->searchTypeTemplate = 'basic';
-	    }
+        if (! empty($this->params()->fromQuery('searchTypeTemplate')) ){
+            $view->searchTypeTemplate = $this->params()->fromQuery('searchTypeTemplate');
+        } else {
+            $view->searchTypeTemplate = 'basic';
+        }
 
         //set username for comments if user have come from social network and don`t have firstname and lastname
         if($this->getUser()
@@ -251,6 +251,15 @@ class RecordController extends RecordControllerBase
 
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
+
+        $view->filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('local_institution_facet_str_mv:"'.$this->driver->getBookSearchFilter().'"'));
+
+        // For Google Maps
+        $view->lat = $this->driver->getGpsLat();
+        $view->lng = $this->driver->getGpsLng();
+
+        $view->id = $this->driver->getUniqueID();
+        $view->source = explode(".", $view->id)[0];
 
         return $view;
     }
