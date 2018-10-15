@@ -615,7 +615,7 @@ jQuery( document ).ready( function( $ ){
   })
 
     $( '#modal_dg' ).appendTo( 'body' );
-  
+
     VuFind.bootstrapGrowlOptions = {
         type: 'info', // info, success, warning and danger
         ele: 'body', // parent container

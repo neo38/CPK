@@ -851,7 +851,8 @@ class SearchController extends SearchControllerBase
     	    ? $facetConfig->DigitalLibrarieForLibraries->toArray()
     	    : [];
 
-        $view->favorites = [];
+        // Get favorites
+        $view->favorites = $user ? $user->getFavorites() : [];
 
 	    return $view;
 	}
@@ -1328,7 +1329,8 @@ class SearchController extends SearchControllerBase
 	        $viewData['offlineFavoritesEnabled'] = (bool) $this->getConfig()->Site['offlineFavoritesEnabled'];
 	    }
 
-        $viewData['favorites'] = [];
+	    // Get favorites
+        $viewData['favorites'] = $user ? $user->getFavorites() : [];
 
 		// Set up facet information:
 		$viewData['facetList'] = $this->processAdvancedFacets(

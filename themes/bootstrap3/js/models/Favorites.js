@@ -11,10 +11,24 @@
 * u odebirani favs v search results skace DIV
 *
 * TODO STEPS
-* Nacist Oblibene z DB pro search resultsVuFind.removeFromFavorites
-* ukladatFavorites do DB
+*
+* Nacit recordTitle do modalu
+* Zavolat vycet seznamů oblibenych
+* Textearea pro poznamku
+* Definovat action button
+*
+* Po uspesnem pridani prihlasenemu uzivateli CPK_ADMIN skontrolovat,
+ * zda Ma user opravdu 32 oblibenych nebo je to nejaky debilni limit?
+*
+* Otestovat nacita Oblibenych z DB pri strankovani
+
 * mazat Favorites z DB
-* upravit strukturu DB?
+*
+* V navigaci zobrazovat NavItem Oblibene
+
+* Moznost ulozit/smazat 1 record z core
+* Moznost ulozit vysledky vyhledavani
+* Administrace ulozenych
 * */
 
 import User from './User.js'
@@ -32,9 +46,19 @@ export default class Favorites {
         return SEARCH_TYPE;
     }
 
-    static saveRecord(recordId) {
+    static openFavoritesModal(recordId, title) {
+        sessionStorage.setItem('favoriteToAdd', {
+            type: Favorites.RECORD_TYPE,
+            recordId: recordId,
+            title: title,
+        });
+        document.getElementById(`favoriteModalForRecord${recordId}Title`).innerHTML = title;
+        jQuery(`#favoriteModalForRecord${recordId}`).modal('show');
+    };
+
+    static saveRecord(recordId, title = undefined, listId = undefined) {
         let alreadyInFavorites = false;
-        console.info('Add '+recordId+' to favorites.');
+
         User.isLoggedIn()
             .then(() => {
                 /* Save to DB */

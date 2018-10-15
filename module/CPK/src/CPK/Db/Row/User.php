@@ -776,4 +776,19 @@ class User extends BaseUser
         $pattern = '/^[_a-zA-Z0-9-.]+@([a-zA-Z0-9]+)\.(.)+/i';
         return preg_match($pattern, $this->username, $matches) ? $matches[1] : false;
     }
+
+    /*
+     * Return favorites
+     *
+     * @return array Array of record_id strings
+     * */
+    public function getFavorites()
+    {
+        $favorites = [];
+        $favoriteItems = $this->getDbTable('Resource')->getFavorites($this->id);
+        foreach ($favoriteItems as $item) {
+            array_push($favorites, $item->record_id);
+        }
+        return $favorites;
+    }
 }

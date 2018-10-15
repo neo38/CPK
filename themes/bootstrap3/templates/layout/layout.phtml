@@ -170,7 +170,7 @@
 
       // Prompt 'offline' favorites to push to the server
       if(isSeT($_ENV['justLoggedIn'])) {
-          $this->headScript()->appendScript('var sendMeFavs=()=>true');
+          $this->headScript()->appendScript('let sendMeFavs=()=>true');
       }
 
       // Session keep-alive

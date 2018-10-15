@@ -382,8 +382,8 @@
              rel='nofollow'
              data-recordID='<?=$recordId?>'
              class='add-record-to-favorites-link <?= in_array($recordId, $this->favorites) ? 'hidden' : '' ?>'
-             <?= $this->isLoggedIn ? 'data-toggle="modal"' : '' ?>
-             <?= $this->isLoggedIn ? 'data-target="#favoriteModalForRecord'.$recordId.'"' : '' ?>
+             <?= $this->isLoggedIn  ? 'data-toggle="modal"' : '' ?>
+             <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoritesModal(\''.$recordId.'\', \'neco\')"' : '' ?>
              <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$recordId.'\')"' : '' ?>>
             <i class='pr-interface-favoritestar'> </i>
             <span>
@@ -417,7 +417,12 @@
         <div class='modal-dialog' role='document'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <h5 class='modal-title' id='favoriteModalForRecord<?=$recordId?>Label'>Modal title</h5>
+              <h5 class='modal-title' id='favoriteModalForRecord<?=$recordId?>Label'>
+                <?= $this->translate('add_favorite_prefix') ?>
+                <span class='title-in-heading' id='favoriteModalForRecord<?=$recordId?>Title'>
+                </span>
+                <?= $this->translate('add_favorite_suffix') ?>
+              </h5>
               <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
                 <span aria-hidden='true'>&times;</span>
               </button>
@@ -426,8 +431,9 @@
               ...
             </div>
             <div class='modal-footer'>
-              <button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>
-              <button type='button' class='btn btn-primary'>Save changes</button>
+              <button type='button' class='btn btn-primary'>
+                <?= $this->translate('Add to favorites'); ?>
+              </button>
             </div>
           </div>
         </div>
