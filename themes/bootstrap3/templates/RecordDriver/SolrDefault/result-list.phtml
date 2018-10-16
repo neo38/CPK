@@ -1,5 +1,9 @@
 <?
+  $this->headLink()->appendStylesheet('//cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css');
+  $this->headScript()->appendFile('//cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js');
+
   $recordId = $this->driver->getUniqueID();
+
   $recordSource = explode(".", $recordId)[0];
   $backLink = $this->serverUrl($this->recordLink()->getUrl($this->driver));
   $formats = $this->driver->getFormats();
@@ -378,13 +382,14 @@
         <li class="list-group-item">
 
           <a title='<?= $this->translate('Add to favorites') ?>'
-             id='add-record-<?=$recordId?>-to-favorites'
+             id='add-record-<?=$this->driver->getRecordIdHash()?>-to-favorites'
              rel='nofollow'
-             data-recordID='<?=$recordId?>'
-             class='add-record-to-favorites-link <?= in_array($recordId, $this->favorites) ? 'hidden' : '' ?>'
+             data-recordId='<?=$this->driver->getUniqueID()?>'
+             class='add-record-to-favorites-link <?= in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>'
              <?= $this->isLoggedIn  ? 'data-toggle="modal"' : '' ?>
-             <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoritesModal(\''.$recordId.'\', \'neco\')"' : '' ?>
-             <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$recordId.'\')"' : '' ?>>
+             <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoritesModal(\''.$this->driver->getUniqueID().'\', \''
+                 . htmlspecialchars($this->driver->getTitle()) . '\')"' : '' ?>
+             <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$this->driver->getUniqueID().'\')"' : '' ?>>
             <i class='pr-interface-favoritestar'> </i>
             <span>
               <?=$this->translate('Add to favorites')?>
@@ -392,11 +397,11 @@
           </a>
 
           <a title='<?= $this->translate('Remove from favorites') ?>'
-             id='remove-record-<?=$recordId?>-from-favorites'
+             id='remove-record-<?=$this->driver->getRecordIdHash()?>-from-favorites'
              rel='nofollow'
-             data-recordID='<?=$recordId?>'
-             class='font-bold remove-record-from-favorites-link <?= !in_array($recordId, $this->favorites) ? 'hidden' : '' ?>'
-             onclick='VuFind.removeFromFavorites("<?=$recordId?>")'>
+             data-recordId='<?=$this->driver->getUniqueID()?>'
+             class='font-bold remove-record-from-favorites-link <?= !in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>'
+             onclick='VuFind.removeFromFavorites("<?=$this->driver->getUniqueID()?>")'>
             <i class='pr-interface-favoritestar'> </i>
             <span>
               <?=$this->translate('Remove from favorites')?>
@@ -409,17 +414,17 @@
 
       <!-- Add to favorites Modal -->
       <div class='modal fade'
-           id='favoriteModalForRecord<?=$recordId?>'
+           id='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>'
            tabindex='-1'
            role='dialog'
-           aria-labelledby='favoriteModalForRecord<?=$recordId?>Label'
+           aria-labelledby='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>Label'
            aria-hidden='true'>
         <div class='modal-dialog' role='document'>
           <div class='modal-content'>
             <div class='modal-header'>
-              <h5 class='modal-title' id='favoriteModalForRecord<?=$recordId?>Label'>
+              <h5 class='modal-title' id='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>Label'>
                 <?= $this->translate('add_favorite_prefix') ?>
-                <span class='title-in-heading' id='favoriteModalForRecord<?=$recordId?>Title'>
+                <span class='title-in-heading' id='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>Title'>
                 </span>
                 <?= $this->translate('add_favorite_suffix') ?>
               </h5>
@@ -428,10 +433,49 @@
               </button>
             </div>
             <div class='modal-body'>
-              ...
+              <div>
+                <label for='favoritesList'><?=$this->transEsc('Choose a List') ?></label>
+              </div>
+
+              <div>
+                <? if (! empty($this->favoritesLists)): ?>
+                  <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label select2Select'>
+                    <? foreach ($this->favoritesLists as $list): ?>
+                      <option value='<?=$list['id']?>'>
+                        <?=htmlspecialchars($list['title'])?>
+                      </option>
+                    <? endforeach; ?>
+                  </select>
+                <? endif; ?>
+              </div>
+
+              <div>
+                <a class="btn btn-link"
+                   id="create-favorite-list"
+                   title='<?= empty($this->favoritesLists)
+                    ? $this->translate('Create a List')
+                    : $this->translate('or create a new list') ?>'>
+                  <?= empty($this->favoritesLists)
+                      ? $this->translate('Create a List')
+                      : $this->translate('or create a new list') ?>
+                </a>
+              </div>
+
+              <? if (! empty($this->favoritesLists)): ?>
+                <br>
+                <div class='form-group'>
+                  <label class='control-label' for='add_notes'><?=$this->transEsc('Add a Note') ?></label>
+                  <div>
+                    <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
+                  </div>
+                </div>
+              <? endif; ?>
             </div>
             <div class='modal-footer'>
-              <button type='button' class='btn btn-primary'>
+              <button type='button'
+                      class='btn btn-primary'
+                      data-dismiss='modal'
+                      onclick='VuFind.addToFavorites("<?=$this->driver->getUniqueID()?>", true, "<?=$this->searchClassId?>")'>
                 <?= $this->translate('Add to favorites'); ?>
               </button>
             </div>

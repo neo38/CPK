@@ -1,8 +1,20 @@
 import Favorites from './models/Favorites.js';
 import User from './models/User.js';
 
-VuFind.addToFavorites = function(recordId, recordTitle = undefined, listId = undefined) {
-    Favorites.saveRecord(recordId, recordTitle, listId);
+VuFind.addToFavorites = function(recordId, online = false, searchClassId = undefined) {
+    let recordHash = Favorites.getRecordIdHash(recordId);
+
+    let listId = undefined;
+    let note = undefined;
+
+    if (online) {
+        const selectElement = document.getElementById(`favoritesListFor${recordHash}`);
+
+        listId = selectElement.options[selectElement.selectedIndex].value;
+        note = document.getElementById(`favoritesListFor${recordHash}Note`).value;
+    }
+
+    Favorites.saveRecord(recordId, listId, note, searchClassId);
 };
 
 VuFind.openFavoritesModal = function(recordId, recordTitle) {

@@ -781,7 +781,7 @@ class User extends BaseUser
      * Return favorites
      *
      * @return array Array of record_id strings
-     * */
+     */
     public function getFavorites()
     {
         $favorites = [];
@@ -790,5 +790,22 @@ class User extends BaseUser
             array_push($favorites, $item->record_id);
         }
         return $favorites;
+    }
+
+    /*
+     * Return favorites lists
+     *
+     * @return array User's favorites lists
+     */
+    public function getFavoritesLists()
+    {
+        $lists = [];
+        foreach ($this->getLists() as $list) {
+            array_push($lists, [
+                'id'    => $list->id,
+                'title' => $list->title
+            ]);
+        }
+        return $lists;
     }
 }

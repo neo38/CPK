@@ -9,23 +9,20 @@
 *
 * FIXME
 * u odebirani favs v search results skace DIV
+* V modalu pro pridani Fav nefunguje vyhledavani
+* Vytvoreni noveho seznamu udelat do modalu
+* Kdyz neni zadny seznam, zobrzit rovnou vytvoreni noveho
+* Pri pridavani fav do DB se pouziva jQuery,
+* protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA, takze axios a fetchAPI standardne nefunguje
+* Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
+* select2.min.css a select2.min.js nenacitat z CDN ale z vendoru
 *
 * TODO STEPS
 *
-* Nacit recordTitle do modalu
-* Zavolat vycet seznamů oblibenych
-* Textearea pro poznamku
-* Definovat action button
-*
-* Po uspesnem pridani prihlasenemu uzivateli CPK_ADMIN skontrolovat,
- * zda Ma user opravdu 32 oblibenych nebo je to nejaky debilni limit?
-*
-* Otestovat nacita Oblibenych z DB pri strankovani
-
+* Otestovat nacitani Oblibenych z DB pri strankovani
 * mazat Favorites z DB
 *
 * V navigaci zobrazovat NavItem Oblibene
-
 * Moznost ulozit/smazat 1 record z core
 * Moznost ulozit vysledky vyhledavani
 * Administrace ulozenych
@@ -47,23 +44,63 @@ export default class Favorites {
     }
 
     static openFavoritesModal(recordId, title) {
+        let recordHash = Favorites.getRecordIdHash(recordId);
+
         sessionStorage.setItem('favoriteToAdd', {
             type: Favorites.RECORD_TYPE,
             recordId: recordId,
             title: title,
         });
-        document.getElementById(`favoriteModalForRecord${recordId}Title`).innerHTML = title;
-        jQuery(`#favoriteModalForRecord${recordId}`).modal('show');
+        document.getElementById(`favoriteModalForRecord${recordHash}Title`).innerHTML = title;
+        jQuery(`#favoriteModalForRecord${recordHash}`).modal('show');
     };
 
-    static saveRecord(recordId, title = undefined, listId = undefined) {
+    static saveRecord(recordId, listId = undefined, note = undefined, searchClassId = undefined) {
         let alreadyInFavorites = false;
 
         User.isLoggedIn()
             .then(() => {
+                jQuery.ajax({ // jquery sends data as FORM DATA. VuFind cant take POST from fetchAPI or Axios
+                    type: 'POST',
+                    cache: false,
+                    dataType: 'json',
+                    url: VuFind.getPath() + '/AJAX/JSON?method=addRecordToFavorites',
+                    data: {
+                         recordId, listId, note, searchClassId
+                    },
+                    success: function( response ) {
+                        if (response.status == 200) {
+                            VuFind.flashMessage('record_added_to_favorites');
+                            Favorites.swapButtons(recordId);
+                        } else {
+                            VuFind.flashMessage('could_not_save_to_favorites');
+                        }
+                    },
+                    error: function ( xmlHttpRequest, status, error ) {
+                        console.error(error);
+                        VuFind.flashMessage('could_not_save_to_favorites');
+                    }
+                });
+
                 /* Save to DB */
-                // TODO save favorite do DB
-                VuFind.flashMessage('record_added_to_favorites');
+                // axios.post(
+                //     '/AJAX/JSON?method=addRecordToFavorites',
+                //     {
+                //         recordId, listId, note, searchClassId
+                //     })
+
+                    // .then((response) => response.json())
+                    // .then((response) => {
+                    //     if (response.status == 200) {
+                    //         VuFind.flashMessage('record_added_to_favorites');
+                    //         Favorites.swapButtons(recordId);
+                    //     }
+                    //     VuFind.flashMessage('could_not_save_to_favorites');
+                    // })
+                    // .catch((error) => {
+                    //     console.error(error);
+                    //     VuFind.flashMessage('could_not_save_to_favorites');
+                    // });
             })
             .catch(() => {
                 /* Save to SessionStorage */
@@ -85,9 +122,7 @@ export default class Favorites {
                     favorites.push(item);
                     sessionStorage.setItem('favorites', JSON.stringify(favorites));
 
-                    /* Swap buttons */
-                    document.getElementById('add-record-' + recordId + '-to-favorites').classList.toggle('hidden');
-                    document.getElementById('remove-record-' + recordId + '-from-favorites').classList.toggle('hidden');
+                    Favorites.swapButtons(recordId);
 
                     VuFind.flashMessage('record_added_to_favorites');
                 }
@@ -116,9 +151,7 @@ export default class Favorites {
 
                 sessionStorage.setItem('favorites', JSON.stringify(favorites));
 
-                /* Swap buttons */
-                document.getElementById('add-record-' + recordId + '-to-favorites').classList.toggle('hidden');
-                document.getElementById('remove-record-' + recordId + '-from-favorites').classList.toggle('hidden');
+                Favorites.swapButtons(recordId);
 
                 VuFind.flashMessage('record_removed_from_favorites');
             });
@@ -132,5 +165,19 @@ export default class Favorites {
         }
 
         return favorites;
+    }
+
+    static swapButtons(recordId)
+    {
+        let recordHash = Favorites.getRecordIdHash(recordId);
+
+        /* Swap buttons */
+        document.getElementById('add-record-' + recordHash + '-to-favorites').classList.toggle('hidden');
+        document.getElementById('remove-record-' + recordHash    + '-from-favorites').classList.toggle('hidden');
+    }
+
+    static getRecordIdHash(recordId)
+    {
+        return recordId.replace(/[\.\:]/g, '');
     }
 }

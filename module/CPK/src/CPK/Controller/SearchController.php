@@ -852,7 +852,8 @@ class SearchController extends SearchControllerBase
     	    : [];
 
         // Get favorites
-        $view->favorites = $user ? $user->getFavorites() : [];
+        $view->favorites      = $user ? $user->getFavorites() : [];
+        $view->favoritesLists = $user ? $user->getFavoritesLists() : [];
 
 	    return $view;
 	}
@@ -1330,7 +1331,8 @@ class SearchController extends SearchControllerBase
 	    }
 
 	    // Get favorites
-        $viewData['favorites'] = $user ? $user->getFavorites() : [];
+        $viewData['favorites']      = $user ? $user->getFavorites() : [];
+        $viewData['favoritesLists'] = $user ? $user->getFavoritesLists() : [];
 
 		// Set up facet information:
 		$viewData['facetList'] = $this->processAdvancedFacets(

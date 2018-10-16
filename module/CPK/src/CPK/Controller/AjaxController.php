@@ -2634,4 +2634,36 @@ class AjaxController extends AjaxControllerBase
     {
         return $this->output([], $this->getAuthManager()->isLoggedIn() ? 200 : 404);
     }
+
+    /**
+     * Save record to favorites
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function addRecordToFavoritesAjax()
+    {
+        // Retrieve user object and force login if necessary:
+        if (! ($user = $this->getUser())) {
+            return $this->forceLogin();
+        }
+
+        $recordId      = $this->params()->fromPost('recordId');
+        $listId        = $this->params()->fromPost('listId');
+        $note          = $this->params()->fromPost('note');
+        $searchClassId = $this->params()->fromPost('searchClassId');
+
+        $recordLoader = $this->getServiceLocator()->get('VuFind\RecordLoader');
+        $driver = $recordLoader->load(
+            $recordId,
+            $searchClassId
+        );
+
+        $driver->saveToFavorites([
+            'list'  => (int) $listId,
+            'notes' => $note,
+            'tags'  => [],
+        ], $user);
+
+        return $this->output([], 200);
+    }
 }

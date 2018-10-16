@@ -1766,6 +1766,8 @@ jQuery( document ).ready( function( $ ) {
             }
           }
     });
+
+    $( '.select2Select' ).select2();
 });
 
 function escapeHtml(text) {

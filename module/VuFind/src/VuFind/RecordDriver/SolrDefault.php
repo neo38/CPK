@@ -1800,4 +1800,14 @@ class SolrDefault extends AbstractBase
             && !empty($this->fields['hierarchy_parent_id'])
             ? $this->fields['hierarchy_parent_id'][0] : '';
     }
+
+    /**
+     * Get record unique Id without chars not allowed in HTML "id" attribute
+     * @return string
+     * @throws \Exception
+     */
+    public function getRecordIdHash()
+    {
+        return preg_replace('/[\.\:]/', '', $this->getUniqueID());
+    }
 }
