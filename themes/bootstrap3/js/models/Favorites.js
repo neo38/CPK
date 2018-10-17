@@ -25,6 +25,7 @@
 * Moznost ulozit/smazat 1 record z core
 * Moznost ulozit vysledky vyhledavani
 * Administrace ulozenych
+* Smazat themes/bootstrap3/js/ng-cpk/favorites
 */
 
 import User from './User.js';
