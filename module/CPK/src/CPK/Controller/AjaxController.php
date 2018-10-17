@@ -2666,4 +2666,24 @@ class AjaxController extends AjaxControllerBase
 
         return $this->output([], 200);
     }
+
+    /**
+     * Remove record from favorites
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function removeRecordFromFavoritesAjax()
+    {
+        // Retrieve user object and force login if necessary:
+        if (! ($user = $this->getUser())) {
+            return $this->forceLogin();
+        }
+
+        $recordId      = $this->params()->fromPost('recordId');
+        $searchClassId = $this->params()->fromPost('searchClassId');
+
+        $user->removeResourcesById([$recordId], $searchClassId);
+
+        return $this->output([], 200);
+    }
 }

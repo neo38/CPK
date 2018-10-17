@@ -644,6 +644,15 @@ jQuery( document ).ready( function( $ ) {
                             $("#advanced-search-help").attr('class', 'hidden');
                             $("#ci-advanced-search-help").removeAttr('class');
                         }
+
+                        //Show/hide 'To favorites' button on result book
+                        $( 'body' ).find('.result').hover(function () {
+                            $( this ).find( '.search-results-favorite-button' ).removeClass( 'hidden' );
+                        }, function () {
+                            $( this ).find( '.search-results-favorite-button' ).addClass( 'hidden' );
+                        });
+
+                        $( '.select2Select' ).select2();
                     },
                     error: function (xmlHttpRequest, status, error) {
                         $('#search-results-loader').remove();
@@ -1767,6 +1776,7 @@ jQuery( document ).ready( function( $ ) {
           }
     });
 
+	// On page load initialize select2
     $( '.select2Select' ).select2();
 });
 

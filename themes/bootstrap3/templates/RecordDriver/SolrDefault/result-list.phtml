@@ -401,7 +401,7 @@
              rel='nofollow'
              data-recordId='<?=$this->driver->getUniqueID()?>'
              class='font-bold remove-record-from-favorites-link <?= !in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>'
-             onclick='VuFind.removeFromFavorites("<?=$this->driver->getUniqueID()?>")'>
+             onclick='VuFind.removeFromFavorites("<?=$this->driver->getUniqueID()?>", "<?=$this->searchClassId?>")'>
             <i class='pr-interface-favoritestar'> </i>
             <span>
               <?=$this->translate('Remove from favorites')?>

@@ -6,6 +6,7 @@
 * Remove offlineFavoritesEnabled
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Install Babel - https://babeljs.io/setup#installation
+* Zobrazovat confirmation pri mazani z oblibenych?
 *
 * FIXME
 * u odebirani favs v search results skace DIV
@@ -16,19 +17,18 @@
 * protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA, takze axios a fetchAPI standardne nefunguje
 * Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
 * select2.min.css a select2.min.js nenacitat z CDN ale z vendoru
+* Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
+* takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 *
 * TODO STEPS
-*
-* Otestovat nacitani Oblibenych z DB pri strankovani
-* mazat Favorites z DB
-*
+
 * V navigaci zobrazovat NavItem Oblibene
 * Moznost ulozit/smazat 1 record z core
 * Moznost ulozit vysledky vyhledavani
 * Administrace ulozenych
-* */
+*/
 
-import User from './User.js'
+import User from './User.js';
 
 const RECORD_TYPE = 'RECORD';
 const SEARCH_TYPE = 'SEARCH';
@@ -60,7 +60,7 @@ export default class Favorites {
 
         User.isLoggedIn()
             .then(() => {
-                jQuery.ajax({ // jquery sends data as FORM DATA. VuFind cant take POST from fetchAPI or Axios
+                jQuery.ajax({
                     type: 'POST',
                     cache: false,
                     dataType: 'json',
@@ -73,12 +73,12 @@ export default class Favorites {
                             VuFind.flashMessage('record_added_to_favorites');
                             Favorites.swapButtons(recordId);
                         } else {
-                            VuFind.flashMessage('could_not_save_to_favorites');
+                            VuFind.flashMessage('could_not_save_record_to_favorites');
                         }
                     },
                     error: function ( xmlHttpRequest, status, error ) {
                         console.error(error);
-                        VuFind.flashMessage('could_not_save_to_favorites');
+                        VuFind.flashMessage('could_not_save_record_to_favorites');
                     }
                 });
 
@@ -95,11 +95,11 @@ export default class Favorites {
                     //         VuFind.flashMessage('record_added_to_favorites');
                     //         Favorites.swapButtons(recordId);
                     //     }
-                    //     VuFind.flashMessage('could_not_save_to_favorites');
+                    //     VuFind.flashMessage('could_not_save_record_to_favorites');
                     // })
                     // .catch((error) => {
                     //     console.error(error);
-                    //     VuFind.flashMessage('could_not_save_to_favorites');
+                    //     VuFind.flashMessage('could_not_save_record_to_favorites');
                     // });
             })
             .catch(() => {
@@ -129,12 +129,32 @@ export default class Favorites {
             });
     }
 
-    static removeRecord(recordId) {
+    static removeRecord(recordId, searchClassId) {
         User.isLoggedIn()
             .then(() => {
                 /* Save to DB */
-                // TODO remove favorite from DB
-                VuFind.flashMessage('record_removed_from_favorites');
+
+                jQuery.ajax({
+                    type: 'POST',
+                    cache: false,
+                    dataType: 'json',
+                    url: VuFind.getPath() + '/AJAX/JSON?method=removeRecordFromFavorites',
+                    data: {
+                        recordId, searchClassId
+                    },
+                    success: function( response ) {
+                        if (response.status == 200) {
+                            VuFind.flashMessage('record_removed_from_favorites');
+                            Favorites.swapButtons(recordId);
+                        } else {
+                            VuFind.flashMessage('could_not_remove_record_from_favorites');
+                        }
+                    },
+                    error: function ( xmlHttpRequest, status, error ) {
+                        console.error(error);
+                        VuFind.flashMessage('could_not_remove_record_from_favorites');
+                    }
+                });
             })
             .catch(() => {
                 /* Remove from SessionStorage */

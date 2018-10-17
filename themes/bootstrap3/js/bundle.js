@@ -21,8 +21,8 @@ VuFind.openFavoritesModal = function(recordId, recordTitle) {
     Favorites.openFavoritesModal(recordId, recordTitle);
 };
 
-VuFind.removeFromFavorites = function(recordId) {
-    Favorites.removeRecord(recordId);
+VuFind.removeFromFavorites = function(recordId, searchClassId) {
+    Favorites.removeRecord(recordId, searchClassId);
 };
 
 document.addEventListener('DOMContentLoaded', function() {
