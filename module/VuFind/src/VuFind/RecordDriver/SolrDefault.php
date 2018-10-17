@@ -1808,6 +1808,6 @@ class SolrDefault extends AbstractBase
      */
     public function getRecordIdHash()
     {
-        return preg_replace('/[\.\:]/', '', $this->getUniqueID());
+        return preg_replace('/[^A-Za-z0-9 ]/', '', $this->getUniqueID());
     }
 }

@@ -197,6 +197,6 @@ export default class Favorites {
 
     static getRecordIdHash(recordId)
     {
-        return recordId.replace(/[\.\:]/g, '');
+        return recordId.replace(/[^A-Za-z0-9 ]/g, '');
     }
 }
