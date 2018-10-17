@@ -190,10 +190,12 @@
 	 * Gets the record id of a ranked record 
 	 */
 	function getRecordId(fromThis, rank) {
-	    
-	    if (typeof rank !== 'undefined')
-		return rankedItems[rank].querySelector('a.title').getAttribute('href').match(/^\/Record\/([^\?]*)/)[1];
-	    
+	    try {
+            if (typeof rank !== 'undefined')
+                return rankedItems[rank].querySelector('a.title').getAttribute('href').match(/^\/Record\/([^\?]*)/)[1];
+        } catch (e) {
+
+        }
 	    var fromWhat = (typeof fromThis === "undefined") ? location.pathname : fromThis;
 	    
 	    return fromWhat.split('/')[2];
