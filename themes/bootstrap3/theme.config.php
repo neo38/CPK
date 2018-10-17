@@ -10,7 +10,8 @@ $toRet = array(
         'vendor/bootstrap-slider.css',
         'vendor/bootstrap-select.min.css',
         'print.css:print',
-        'ol.css'
+        'ol.css',
+        'vendor/select2.min.css',
     ),
     'js' => array(
         'vendor/base64.js:lt IE 10', // btoa polyfill
@@ -29,6 +30,7 @@ $toRet = array(
         'common.js',
         'lightbox.js',
         'eu-cookies.js',
+        'vendor/select2.min.js',
         'search-results.js',
         'vendor/jsTree/jstree.min.js',
         'facets.js',
