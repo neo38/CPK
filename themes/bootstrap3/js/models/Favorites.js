@@ -16,7 +16,6 @@
 * Pri pridavani fav do DB se pouziva jQuery,
 * protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA, takze axios a fetchAPI standardne nefunguje
 * Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
-* select2.min.css a select2.min.js nenacitat z CDN ale z vendoru
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 *
