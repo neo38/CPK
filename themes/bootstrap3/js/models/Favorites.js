@@ -18,12 +18,14 @@
 * Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
+* Add favortites to modal - udelat jako componentu, ted se opakuje 3 krat stejny kod
+* Zobrazeni linku pro add/remove favorites - udelat take jako komponentu?
 *
 * TODO STEPS
-
-* V navigaci zobrazovat NavItem Oblibene
+*
 * Moznost ulozit/smazat 1 record z core
 * Moznost ulozit vysledky vyhledavani
+* V navigaci zobrazovat NavItem Oblibene
 * Administrace ulozenych
 * Smazat themes/bootstrap3/js/ng-cpk/favorites
 */

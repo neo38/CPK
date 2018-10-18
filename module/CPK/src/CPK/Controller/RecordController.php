@@ -244,6 +244,10 @@ class RecordController extends RecordControllerBase
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
 
+        // Get favorites
+        $view->favorites      = $user ? $user->getFavorites() : [];
+        $view->favoritesLists = $user ? $user->getFavoritesLists() : [];
+
         return $view;
     }
 
