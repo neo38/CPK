@@ -21,11 +21,10 @@
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 * Add favortites to modal - udelat jako componentu, ted se opakuje 3 krat stejny kod
 * Zobrazeni linku pro add/remove favorites - udelat take jako komponentu?
-* Kdyz sa zmenit async dotaz, neaktualizuje se nazev noveho Listu v moddalu na oblibene vysledku vyhledavani a take
-* se ulozi vysledky ze stareho vyhledavani
 *
 * TODO STEPS
 *
+* -------------------------------------------------------------
 * V navigaci zobrazovat NavItem Oblibene
 * Administrace ulozenych
 * Smazat themes/bootstrap3/js/ng-cpk/favorites
@@ -161,7 +160,7 @@ export default class Favorites {
             url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
             data: {
                 numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
-                searchId: document.getElementsByClassName('data-search-id')[0].getAttribute('data-search-id'),
+                searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
                 title: document.getElementById('newFavoritesListTitle').value,
             },
             beforeSend() {

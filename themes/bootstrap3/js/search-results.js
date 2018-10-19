@@ -523,6 +523,8 @@ jQuery( document ).ready( function( $ ) {
                             $('#remove-from-saved-searches').attr('title', VuFind.translate('Save search'));
                             $('#remove-from-saved-searches').text(VuFind.translate('Save search'));
                             $('#remove-from-saved-searches').attr('id', 'add-to-saved-searches');
+                            document.getElementById('favoriteModalForSearch')
+                                .setAttribute('data-search-id', responseData.searchId);
 
                             $(' #flashedMessage div .alert').hide('blind', {}, 500);
 
@@ -653,6 +655,17 @@ jQuery( document ).ready( function( $ ) {
                         });
 
                         $( '.select2Select' ).select2();
+
+                        // If logged in, show new button for adding search results to favorites
+                        fetch('/AJAX/JSON?method=isLoggedIn')
+                            .then((response) => response.json())
+                            .then((response) => {
+                                if (response.status == 200) {
+                                    document.getElementById('add-search-results-to-favorites-container')
+                                        .classList.remove('hidden')
+                                }
+                            });
+
                     },
                     error: function (xmlHttpRequest, status, error) {
                         $('#search-results-loader').remove();
