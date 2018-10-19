@@ -1,0 +1,49 @@
+<!-- Add to favorites Modal -->
+<div class='modal fade text-left'
+     id='favoriteModalForSearch'
+     tabindex='-1'
+     role='dialog'
+     aria-labelledby='favoriteModalForSearchLabel'
+     aria-hidden='true'>
+  <div class='modal-dialog' role='document'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <h5 class='modal-title' id='favoriteModalForSearchLabel'>
+          <?= $this->translate('Add search results to favorites') ?>
+        </h5>
+        <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+          <span aria-hidden='true'>&times;</span>
+        </button>
+      </div>
+      <div class='modal-body'>
+        <div class='form-group'>
+          <label class='control-label' for='numberOfRecordsToAdd'><?=$this->transEsc('Select number of results to save') ?></label>
+          <select id='numberOfRecordsToAdd' class='form-control'>
+            <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
+              <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>><?=$limit?></option>
+            <? endforeach; ?>
+          </select>
+        </div>
+
+        <div class='form-group'>
+          <label class='control-label' for='newFavoritesListTitle'><?=$this->transEsc('Favorites list title') ?></label>
+          <input type='text'
+                 id='newFavoritesListTitle'
+                 value=''
+                 class='form-control'
+                 placeholder=''>
+        </div>
+
+      </div>
+      <div class='modal-footer'>
+        <button type='button'
+                class='btn btn-primary'
+                data-dismiss='modal'
+                data-dismiss='modal'
+                onclick='VuFind.addSearchToFavorites()'>
+          <?= $this->translate('Add to favorites'); ?>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

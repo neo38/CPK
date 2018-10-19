@@ -7,6 +7,7 @@
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Install Babel - https://babeljs.io/setup#installation
 * Zobrazovat confirmation pri mazani z oblibenych?
+* Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
 *
 * FIXME
 * u odebirani favs v search results skace DIV
@@ -20,11 +21,11 @@
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 * Add favortites to modal - udelat jako componentu, ted se opakuje 3 krat stejny kod
 * Zobrazeni linku pro add/remove favorites - udelat take jako komponentu?
+* Kdyz sa zmenit async dotaz, neaktualizuje se nazev noveho Listu v moddalu na oblibene vysledku vyhledavani a take
+* se ulozi vysledky ze stareho vyhledavani
 *
 * TODO STEPS
 *
-* Moznost ulozit/smazat 1 record z core
-* Moznost ulozit vysledky vyhledavani
 * V navigaci zobrazovat NavItem Oblibene
 * Administrace ulozenych
 * Smazat themes/bootstrap3/js/ng-cpk/favorites
@@ -45,7 +46,7 @@ export default class Favorites {
         return SEARCH_TYPE;
     }
 
-    static openFavoritesModal(recordId, title) {
+    static openFavoriteRecordModal(recordId, title) {
         let recordHash = Favorites.getRecordIdHash(recordId);
 
         sessionStorage.setItem('favoriteToAdd', {
@@ -55,6 +56,19 @@ export default class Favorites {
         });
         document.getElementById(`favoriteModalForRecord${recordHash}Title`).innerHTML = title;
         jQuery(`#favoriteModalForRecord${recordHash}`).modal('show');
+    };
+
+    static openFavoriteSearchModal() {
+        let lookForElement = undefined;
+        if (lookForElement = document.getElementsByName('last_searched_lookfor0')[0]) {
+            let newFavoritesListTitleElement = undefined;
+            if (newFavoritesListTitleElement = document.getElementById('newFavoritesListTitle')) {
+                let newValue = VuFind.translate('Search query') + ': ' + VuFind.escapeHtml(lookForElement.value);
+                newFavoritesListTitleElement.value = newValue;
+                newFavoritesListTitleElement.placeholder = newValue;
+            }
+        }
+        jQuery(`#favoriteModalForSearch`).modal('show');
     };
 
     static saveRecord(recordId, listId = undefined, note = undefined, searchClassId = undefined) {
@@ -70,17 +84,25 @@ export default class Favorites {
                     data: {
                          recordId, listId, note, searchClassId
                     },
+                    beforeSend() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'wait';
+                    },
                     success: function( response ) {
                         if (response.status == 200) {
-                            VuFind.flashMessage('record_added_to_favorites');
+                            VuFind.flashTranslation('record_added_to_favorites');
                             Favorites.swapButtons(recordId);
                         } else {
-                            VuFind.flashMessage('could_not_save_record_to_favorites');
+                            VuFind.flashTranslation('could_not_save_record_to_favorites');
                         }
+                    },
+                    complete() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'default';
                     },
                     error: function ( xmlHttpRequest, status, error ) {
                         console.error(error);
-                        VuFind.flashMessage('could_not_save_record_to_favorites');
+                        VuFind.flashTranslation('could_not_save_record_to_favorites');
                     }
                 });
 
@@ -94,14 +116,14 @@ export default class Favorites {
                     // .then((response) => response.json())
                     // .then((response) => {
                     //     if (response.status == 200) {
-                    //         VuFind.flashMessage('record_added_to_favorites');
+                    //         VuFind.flashTranslation('record_added_to_favorites');
                     //         Favorites.swapButtons(recordId);
                     //     }
-                    //     VuFind.flashMessage('could_not_save_record_to_favorites');
+                    //     VuFind.flashTranslation('could_not_save_record_to_favorites');
                     // })
                     // .catch((error) => {
                     //     console.error(error);
-                    //     VuFind.flashMessage('could_not_save_record_to_favorites');
+                    //     VuFind.flashTranslation('could_not_save_record_to_favorites');
                     // });
             })
             .catch(() => {
@@ -126,9 +148,45 @@ export default class Favorites {
 
                     Favorites.swapButtons(recordId);
 
-                    VuFind.flashMessage('record_added_to_favorites');
+                    VuFind.flashTranslation('record_added_to_favorites');
                 }
             });
+    }
+
+    static addSearchToFavorites() {
+        $.ajax({
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
+            data: {
+                numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
+                searchId: document.getElementsByClassName('data-search-id')[0].getAttribute('data-search-id'),
+                title: document.getElementById('newFavoritesListTitle').value,
+            },
+            beforeSend() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'wait';
+            },
+            success: function( response ) {
+                if (response.status == 'OK') {
+                    VuFind.flashTranslation('search_results_added_to_favorites');
+                    document.getElementById('add-search-results-to-favorites-container').classList.add('hidden');
+                } else if (response.status == 'ERROR') {
+                    VuFind.flashMessage(response.data);
+                } else {
+                    VuFind.flashTranslation('could_not_save_search_results_to_favorites');
+                }
+            },
+            complete() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'default';
+            },
+            error: function ( xmlHttpRequest, status, error ) {
+                console.error(error);
+                VuFind.flashTranslation('could_not_save_search_results_to_favorites');
+            }
+        });
     }
 
     static removeRecord(recordId, searchClassId) {
@@ -146,15 +204,15 @@ export default class Favorites {
                     },
                     success: function( response ) {
                         if (response.status == 200) {
-                            VuFind.flashMessage('record_removed_from_favorites');
+                            VuFind.flashTranslation('record_removed_from_favorites');
                             Favorites.swapButtons(recordId);
                         } else {
-                            VuFind.flashMessage('could_not_remove_record_from_favorites');
+                            VuFind.flashTranslation('could_not_remove_record_from_favorites');
                         }
                     },
                     error: function ( xmlHttpRequest, status, error ) {
                         console.error(error);
-                        VuFind.flashMessage('could_not_remove_record_from_favorites');
+                        VuFind.flashTranslation('could_not_remove_record_from_favorites');
                     }
                 });
             })
@@ -175,7 +233,7 @@ export default class Favorites {
 
                 Favorites.swapButtons(recordId);
 
-                VuFind.flashMessage('record_removed_from_favorites');
+                VuFind.flashTranslation('record_removed_from_favorites');
             });
     }
 

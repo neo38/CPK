@@ -114,8 +114,8 @@
   <? if(method_exists($this->driver, "getRecordType") && $this->driver->getRecordType() != "library"): ?>
     <? if ($this->userlist()->getMode() !== 'disabled'): ?>
       <li class="list-group-item">
-        <?=$this->render('favorites/buttons.phtml')?>
-        <?=$this->render('favorites/modal.phtml')?>
+        <?=$this->render('favorites/favorite-record/buttons.phtml')?>
+        <?=$this->render('favorites/favorite-record/modal.phtml')?>
       </li>
     <? endif; ?>
   <? endif; ?>

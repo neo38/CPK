@@ -17,8 +17,16 @@ VuFind.addToFavorites = function(recordId, online = false, searchClassId = undef
     Favorites.saveRecord(recordId, listId, note, searchClassId);
 };
 
-VuFind.openFavoritesModal = function(recordId, recordTitle) {
-    Favorites.openFavoritesModal(recordId, recordTitle);
+VuFind.addSearchToFavorites = function() {
+    Favorites.addSearchToFavorites();
+};
+
+VuFind.openFavoriteRecordModal = function(recordId, recordTitle) {
+    Favorites.openFavoriteRecordModal(recordId, recordTitle);
+};
+
+VuFind.openFavoriteSearchModal = function() {
+    Favorites.openFavoriteSearchModal();
 };
 
 VuFind.removeFromFavorites = function(recordId, searchClassId) {

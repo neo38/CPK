@@ -1,4 +1,4 @@
-<!-- Add to favorites Modal -->
+<!-- Add record to favorites Modal -->
 <div class='modal fade'
      id='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>'
      tabindex='-1'
@@ -19,10 +19,8 @@
         </button>
       </div>
       <div class='modal-body'>
-        <div>
-          <label for='favoritesList'><?=$this->transEsc('Choose a List') ?></label>
-        </div>
-        <div>
+        <div class='form-group'>
+          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'><?=$this->transEsc('Choose a List') ?></label>
           <? if (! empty($this->favoritesLists)): ?>
             <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label select2Select'>
               <? foreach ($this->favoritesLists as $list): ?>
@@ -49,10 +47,8 @@
         <? if (! empty($this->favoritesLists)): ?>
           <br>
           <div class='form-group'>
-            <label class='control-label' for='add_notes'><?=$this->transEsc('Add a Note') ?></label>
-            <div>
-              <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
-            </div>
+            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'><?=$this->transEsc('Add a Note') ?></label>
+            <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
           </div>
         <? endif; ?>
       </div>

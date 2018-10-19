@@ -1590,43 +1590,6 @@ jQuery( document ).ready( function( $ ) {
         }
     });
 
-    /*
-	* Add records from SearchResults to Favorites
-	* */
-    $( 'body' ).on( 'click', '#addResultsToFavorites', function( event ) {
-        event.preventDefault();
-
-        $.ajax({
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
-            data: {
-                numberOfRecords: $( '#numberOfRecordsToAdd' ).val(),
-                searchId: $( '.data-search-id' ).attr( 'data-search-id' ),
-                title: $( '#newFavoritesListTitle' ).val(),
-            },
-            beforeSend() {
-                $( document.body ).css( {'cursor' : 'wait' });
-            },
-            success: function( response ) {
-                if (response.status == 'ERROR') {
-                    $( '#addResultsToFavoritesModalFlasher' ).html( '<div class="alert alert-warning">' + response.data + '</div>' );
-                    $( '#addResultsToFavoritesModalFlasher' ).show( 'blind', {}, 500);
-                }
-
-                if (response.status == 'OK') {
-                    $( "#addResultsToFavoritesModal" ).modal( "hide" );
-                    $( '#addResultsToFavoritesModalFlasher' ).hide( 'blind', {}, 200);
-                }
-            },
-            complete() {
-                $( document.body ).css( {'cursor' : 'default' });
-            }
-        });
-
-    });
-
 	/**
 	 * Get param from url
 	 * 

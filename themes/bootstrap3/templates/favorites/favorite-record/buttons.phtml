@@ -4,7 +4,7 @@
    data-recordId='<?=$this->driver->getUniqueID()?>'
    class='add-record-to-favorites-link <?= in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>'
     <?= $this->isLoggedIn  ? 'data-toggle="modal"' : '' ?>
-    <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoritesModal(\''.$this->driver->getUniqueID().'\', \''
+    <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoriteRecordModal(\''.$this->driver->getUniqueID().'\', \''
         . htmlspecialchars($this->driver->getTitle()) . '\')"' : '' ?>
     <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$this->driver->getUniqueID().'\')"' : '' ?>>
     <i class='pr-interface-favoritestar'> </i>

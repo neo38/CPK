@@ -89,12 +89,12 @@ $accessUrl = $this->driver->getAccessUrl();
                 <div class='col-md-4 search-results-favorite-button hidden pull-right'>
                   <? if ($this->userlist()->getMode() !== 'disabled'): ?>
                   <li class="list-group-item">
-                    <?=$this->render('favorites/buttons.phtml')?>
+                    <?=$this->render('favorites/favorite-record/buttons.phtml')?>
                   </li>
                   <? endif; ?>
                 </div>
                 <? if ($this->userlist()->getMode() !== 'disabled'): ?>
-                  <?=$this->render('favorites/modal.phtml')?>
+                  <?=$this->render('favorites/favorite-record/modal.phtml')?>
                 <? endif; ?>
             </div>
           

@@ -111,6 +111,7 @@
 
 <!-- Facets -->
 <div class='hidden'>
+  <? /* @FIXME: Handle these data in LocalStorage */ ?>
     <? if (! empty($filters)): ?>
       <input type="hidden" name="limit" value="<?= (! empty($filters['limit']) ? is_array($filters['limit']) ? $this->escapeHtmlAttr($filters['limit'][0]) : $this->escapeHtmlAttr($filters['limit']) : $lastLimit) ?>">
       <input type="hidden" name="sort" value="<?= (! empty($filters['sort']) ? is_array($filters['sort']) ? $this->escapeHtmlAttr($filters['sort'][0]) : $this->escapeHtmlAttr($filters['sort']) : $lastSort) ?>">
@@ -131,7 +132,7 @@
       <input type="hidden" name="sort" value="<?= (! empty($_GET['sort']) ? $this->escapeHtmlAttr($_GET['sort']) : $lastSort) ?>">
       <input type="hidden" name="page" value="<?= (! empty($_GET['page']) ? $this->escapeHtmlAttr($_GET['page']) : '1') ?>">
       <!-- Set next lines just for first initial search made by PHP from lookfor. In next searches, JS will take care to put here first value from lookfor0[][0] -->
-      <input type="hidden" name="last_searched_lookfor0" value="<?= (isset($_GET['lookfor']) ? $this->escapeHtmlAttr($_GET['lookfor']) : '') ?>">
+      <input type="hidden" name="last_searched_lookfor0" value="<?= isset($_GET['lookfor']) ? $this->escapeHtmlAttr($_GET['lookfor']) : isset($_GET['lookfor0']) ? $this->escapeHtmlAttr($_GET['lookfor0'][0]) : '' ?>">
       <input type="hidden" name="last_searched_type0" value="<?= (! empty($_GET['type']) ? $this->escapeHtmlAttr($_GET['type']) : 'AllFields') ?>">
       <input type='hidden' name='keepFacetsEnabled' value='0'>
       <input type="hidden" name="searchTypeTemplate" value="<?= (! empty($_GET['searchTypeTemplate']) ? $this->escapeHtmlAttr($_GET['searchTypeTemplate']) : '') ?>">
