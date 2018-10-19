@@ -133,11 +133,6 @@ class RecordController extends RecordControllerBase
         $user = $this->getAuthManager()->isLoggedIn();
 
         $view->isLoggedIn = $user;
-        $view->offlineFavoritesEnabled = false;
-
-        if ($this->getConfig()->Site['offlineFavoritesEnabled'] !== null) {
-            $view->offlineFavoritesEnabled = (bool) $this->getConfig()->Site['offlineFavoritesEnabled'];
-        }
 
         /* Citation style fieldset */
         $citationStyleTable = $this->getTable('citationstyle');

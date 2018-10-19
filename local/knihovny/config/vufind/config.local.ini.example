@@ -26,9 +26,6 @@ theme		= bootstrap3
 notificationsEnabled = true
 ;notificationsEnabled = false
 
-offlineFavoritesEnabled = true
-;offlineFavoritesEnabled = false
-
 [Approval]
 emailEnabled		= 0
 emailFromName		= Centrální portál knihoven

@@ -1,9 +1,5 @@
 /*
 * TODO PLAN
-* Remove offlineFavorites
-* Remove template pro ulozeni do Oblibenych pri prihlasene (recordLink()->getActionUrl($this->driver, 'Save'))
-* Remove $_ENV['currentRecordNo']
-* Remove offlineFavoritesEnabled
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Install Babel - https://babeljs.io/setup#installation
 * Zobrazovat confirmation pri mazani z oblibenych?
@@ -25,8 +21,7 @@
 * TODO STEPS
 *
 * -------------------------------------------------------------
-* V navigaci zobrazovat NavItem Oblibene
-* Administrace ulozenych
+* Po prohlaseni prehodit oblibene ze Sessny do DB
 * Smazat themes/bootstrap3/js/ng-cpk/favorites
 */
 

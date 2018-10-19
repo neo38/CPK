@@ -623,7 +623,7 @@ class MyResearchController extends MyResearchControllerBase
      */
     public function mylistAction()
     {
-            // Fail if lists are disabled:
+        // Fail if lists are disabled:
         if (! $this->listsEnabled()) {
             throw new \Exception('Lists disabled');
         }
@@ -632,20 +632,13 @@ class MyResearchController extends MyResearchControllerBase
 
         $config = $this->getConfig();
 
-        // Are "offline favorites" enabled ?
-        $offlineFavoritesEnabled = false;
-
-        if ($config->Site['offlineFavoritesEnabled'] !== null) {
-            $offlineFavoritesEnabled = (bool) $config->Site['offlineFavoritesEnabled'];
-        }
-
         // Do we have request for a public list?
         $idEmpty = $this->params()->fromRoute('id') === null;
 
         // And is user not logged in ?
         $userNotLoggedIn = $this->getUser() === false;
 
-        if ($offlineFavoritesEnabled && $idEmpty && $userNotLoggedIn) {
+        if ($idEmpty && $userNotLoggedIn) {
             // Well then, render the favorites for not logged in user & let JS handle it ..
 
             return $this->createViewModel([

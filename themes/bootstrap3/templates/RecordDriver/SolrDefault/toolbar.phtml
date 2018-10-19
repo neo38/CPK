@@ -10,8 +10,6 @@
   $cart = $this->cart();
   $cartId = $this->driver->getResourceSource() . '|' . $id;
 
-  $handleOfflineFavorites = ! $this->isLoggedIn && $this->offlineFavoritesEnabled;
-
   $source = explode(".", $id)[0];
 
 ?>
