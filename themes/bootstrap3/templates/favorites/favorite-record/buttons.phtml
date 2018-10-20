@@ -6,7 +6,13 @@
     <?= $this->isLoggedIn  ? 'data-toggle="modal"' : '' ?>
     <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoriteRecordModal(\''.$this->driver->getUniqueID().'\', \''
         . htmlspecialchars($this->driver->getTitle()) . '\')"' : '' ?>
-    <?= !$this->isLoggedIn ? 'onclick="VuFind.addToFavorites(\''.$this->driver->getUniqueID().'\')"' : '' ?>>
+    <?= !$this->isLoggedIn
+        ? 'onclick="VuFind.addToFavorites(
+          \''.$this->driver->getUniqueID().'\',
+          false,
+          \''.$this->searchClassId.'\'
+        )"'
+        : '' ?>>
     <i class='pr-interface-favoritestar'> </i>
   <span>
     <?=$this->translate('Add to favorites')?>

@@ -2,16 +2,6 @@
 
 deps="
 
-favorites/module.js
-favorites/favsNotifications.service.js
-favorites/favorite.class.js
-favorites/favorites.factory.js
-favorites/storage.service.js
-favorites/broadcaster.service.js
-favorites/list.controller.js
-favorites/record.controller.js
-favorites/search.controller.js
-
 federative-login/module.js
 federative-login/login.controller.js
 

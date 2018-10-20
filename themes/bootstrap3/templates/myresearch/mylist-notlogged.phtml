@@ -54,28 +54,11 @@
   $currPage = isset($list) ? 'List' : 'Favorites';
   $this->layout()->breadcrumbs = '<li class="active">' . $this->transEsc($currPage) . '</li>';
 
-  $angularForbiddenForIE = true;
-
-  if ($angularForbiddenForIE && USES_IE):
 ?>
-<ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs ?></ul>
-<div class="row" >
-  <div class="<?=$this->layoutClass('mainbody')?>">
-    <div class="clearfix hidden-print">
-  	<h2 class="pull-left flip">Offline <?=$this->transEsc('Favorites')?></h2>
-    </div>
-  </div>
-
-	<div class="<?=$this->layoutClass('mainbody')?>">
-		<h2><?=$this->transEsc('ie_not_supported')?></h2>
-	</div>
-</div>
-<? else: ?>
-
 
 <?=$this->flashmessages()?>
 <ul class="breadcrumb hidden-print"><?=$this->layout()->breadcrumbs ?></ul>
-<div class="row" data-ng-controller="ListController as listCtrl">
+<div class="row">
   <div class="<?=$this->layoutClass('mainbody')?>" list-not-empty="true">
     <div class="clearfix hidden-print">
   	<h2 class="pull-left flip"><?=$this->transEsc('Favorites')?></h2>
@@ -87,7 +70,7 @@
     </div>
 		<div class="resulthead">
 			<div class="pull-right flip">
-				<select name="sort" class="form-control" data-ng-model="listCtrl.sortVal" data-ng-model-options="{ getterSetter: true }">
+				<select name="sort" class="form-control">
 					<option value='recent'><?=$this->transEsc('By Recent')?></option>
 					<option value='author'><?=$this->transEsc('By Author')?></option>
 					<option value='alphabetical'><?=$this->transEsc('sort_title')?></option>
@@ -118,4 +101,3 @@
 		<p><?=$this->transEsc('You do not have any saved resources')?></p>
 	</div>
 </div>
-<? endif; ?>

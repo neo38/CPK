@@ -859,8 +859,7 @@ class AjaxController extends AjaxControllerBase
      * @return \Zend\Http\Response
      */
     public function pushFavoritesAjax() {
-
-        $favorites = $this->params()->fromPost('favs');
+        $favorites = $this->params()->fromPost('favorites');
 
         // Check user is logged in ..
         if (! $user = $this->getAuthManager()->isLoggedIn()) {
@@ -885,29 +884,18 @@ class AjaxController extends AjaxControllerBase
         $results = [];
 
         foreach ($favorites as $favorite) {
+            if ($favorite->type == 'RECORD') {
+                $record = $recLoader->load($favorite->recordId, $favorite->searchClassId, false);
 
-            if (! isset($favorite['title']['link'])) {
-                return $this->output('Favorite client sent to server has not title link.', self::STATUS_ERROR);
+                $result = $record->saveToFavorites($params, $user);
+
+                array_push($results, $result);
             }
-
-            $titleLink = $favorite['title']['link'];
-
-            preg_match('/\/([^\/]+$)/', $titleLink, $matches);
-
-            if (count($matches) === 0) {
-                return $this->output('Invalid title link provided.', self::STATUS_ERROR);
-            }
-
-            $recId = $matches[1];
-
-            $record = $recLoader->load($recId, 'Solr', false);
-
-            $result = $record->saveToFavorites($params, $user);
-
-            array_push($results, $result);
         }
 
-        return $this->output($results, self::STATUS_OK);
+        $isOnMyProfile = stripos($this->getRequest()->getServer()->get('HTTP_REFERER'), "/MyResearch/") != false;
+
+        return $this->output(['isOnMyProfile' => $isOnMyProfile], self::STATUS_OK);
     }
 
     /**

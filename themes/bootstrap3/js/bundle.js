@@ -33,6 +33,10 @@ VuFind.removeFromFavorites = function(recordId, searchClassId) {
     Favorites.removeRecord(recordId, searchClassId);
 };
 
+VuFind.saveFavoritesToDb = function() {
+    Favorites.saveFavoritesToDb();
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     let mainContainerElement = document.getElementById('main-container')
     if (mainContainerElement) {

@@ -28,16 +28,6 @@ if (!($angularForbiddenForIE && USES_IE)) {
 
             'vendor/angular.min.js',
 
-            'ng-cpk/favorites/module.js',
-            'ng-cpk/favorites/favsNotifications.service.js',
-            'ng-cpk/favorites/favorite.class.js',
-            'ng-cpk/favorites/favorites.factory.js',
-            'ng-cpk/favorites/storage.service.js',
-            'ng-cpk/favorites/broadcaster.service.js',
-            'ng-cpk/favorites/list.controller.js',
-            'ng-cpk/favorites/record.controller.js',
-            'ng-cpk/favorites/search.controller.js',
-
             'ng-cpk/federative-login/module.js',
             'ng-cpk/federative-login/login.controller.js',
 

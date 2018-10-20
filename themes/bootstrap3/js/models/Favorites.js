@@ -1,11 +1,11 @@
 /*
-* TODO PLAN
+* @ENHANCEMENTS
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Install Babel - https://babeljs.io/setup#installation
-* Zobrazovat confirmation pri mazani z oblibenych?
+* !!!!!!!!Zobrazovat confirmation pri mazani z oblibenych?
 * Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
 *
-* FIXME
+* @FIXME
 * u odebirani favs v search results skace DIV
 * V modalu pro pridani Fav nefunguje vyhledavani
 * Vytvoreni noveho seznamu udelat do modalu
@@ -17,12 +17,10 @@
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 * Add favortites to modal - udelat jako componentu, ted se opakuje 3 krat stejny kod
 * Zobrazeni linku pro add/remove favorites - udelat take jako komponentu?
+* Po prihlaseni a prehozeni oblibenych do DB refreshovat menu se seznamy oblibenych a ne celou stranku,
+* jsem-li v Mem profilu.
+* Prekompilovat nebo nevolat ng-cpk.min
 *
-* TODO STEPS
-*
-* -------------------------------------------------------------
-* Po prohlaseni prehodit oblibene ze Sessny do DB
-* Smazat themes/bootstrap3/js/ng-cpk/favorites
 */
 
 import User from './User.js';
@@ -134,8 +132,9 @@ export default class Favorites {
 
                 if (!alreadyInFavorites) {
                     let item = {};
-                    item.type = Favorites.RECORD_TYPE;
-                    item.recordId = recordId;
+                    item.type          = Favorites.RECORD_TYPE;
+                    item.recordId      = recordId;
+                    item.searchClassId = searchClassId;
 
                     favorites.push(item);
                     sessionStorage.setItem('favorites', JSON.stringify(favorites));
@@ -253,5 +252,32 @@ export default class Favorites {
     static getRecordIdHash(recordId)
     {
         return recordId.replace(/[^A-Za-z0-9 ]/g, '');
+    }
+
+    /**
+     * Move favorites from session to database
+     */
+    static saveFavoritesToDb() {
+
+        let favorites = Favorites.getSessionFavorites();
+        if (favorites.length == 0) {
+            return;
+        }
+
+        favorites.forEach(favorite => {
+            if (favorite.recordId && favorite.recordId == recordId) {
+                alreadyInFavorites = true;
+            }
+        });
+
+        jQuery.post('/AJAX/JSON?method=pushFavorites', data)
+              .success(function(response) {
+                  if (response.status == 200) {
+                      location.reload();
+                  }
+                  // if (response.status == 200 && !response.data.isOnMyProfile) {
+                  // TODO reload favorites list in Menu instead previous location.reload(); Existing ticken in bugzilla.
+                  // }
+              });
     }
 }

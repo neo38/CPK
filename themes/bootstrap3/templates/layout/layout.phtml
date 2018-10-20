@@ -40,6 +40,7 @@
     <?=$this->headLink()?>
     <?=$this->render("layout/fonts.phtml")?>
     <?=$this->headStyle()?>
+    <script type='module' src='/themes/bootstrap3/js/bundle.js'></script>
     <?
       if (!isset($this->renderingError)) {
         // Add translation strings
@@ -165,18 +166,6 @@
         );
       }
 
-      // data-ng-app translations ..
-      $this->jsTranslations()->addStrings(
-          array(
-              'you_have_unsaved_favorites' => 'you_have_unsaved_favorites'
-          )
-      );
-
-      // Prompt 'offline' favorites to push to the server
-      if(isSeT($_ENV['justLoggedIn'])) {
-          $this->headScript()->appendScript('let sendMeFavs=()=>true');
-      }
-
       // Session keep-alive
       if ($this->KeepAlive()) {
           $this->headScript()->appendScript('var keepAliveInterval = '
@@ -217,11 +206,14 @@
       $root = rtrim($this->url('home'), '/');
       $translations = $this->jsTranslations()->getJSON();
       $dsb = DEFAULT_SEARCH_BACKEND;
-      $setupJS = "var VuFind = new VuFindNamespace('{$root}', {$translations}, '{$dsb}');";
+      $setupJS = "let VuFind = new VuFindNamespace('{$root}', {$translations}, '{$dsb}');";
       $this->headScript()->appendScript($setupJS);
+      if (isset($_ENV['justLoggedIn'])) {
+          $this->headScript()
+               ->appendScript("document.addEventListener('DOMContentLoaded',() => VuFind.saveFavoritesToDb());");
+      }
     ?>
     <?=$this->headScript()->appendFile("geolocation.js");?>
-    <script type='module' src='/themes/bootstrap3/js/bundle.js'></script>
   </head>
   <body data-ng-app="cpk" data-ng-controller="GlobalController as ctrl" class="<?=$this->layoutClass('offcanvas-row')?><? if ($this->layout()->rtl): ?> rtl<? endif; ?>">
 
@@ -266,6 +258,7 @@
     </script>
 
   <?=$this->render('cookies-agreement.phtml')?>
+
     <?=$this->render('info.phtml')?>
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box
