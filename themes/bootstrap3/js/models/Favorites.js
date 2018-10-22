@@ -14,18 +14,18 @@
 * @FIXME
 * Export oblibenych do souboru se renderuje spatne
 *
-* V modalu pro pridani Fav nefunguje vyhledavani
 * Vytvoreni noveho seznamu udelat do modalu
 * Kdyz neni zadny seznam, zobrzit rovnou vytvoreni noveho
-* Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
+*
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
+*
 * Po prihlaseni a prehozeni oblibenych do DB refreshovat menu se seznamy oblibenych a ne celou stranku,
 * jsem-li v Mem profilu.
 * SessionStorage funguje pouze pro tab, tj. nelze otevrit Oblibene v novem tabu
 *
 * @TODO
-* Actions
+* Odesilat oblibene emailem
 * Responsive
 */
 
@@ -214,6 +214,10 @@ export default class Favorites {
                     data: {
                         recordId, searchClassId
                     },
+                    beforeSend() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'wait';
+                    },
                     success: function( response ) {
                         if (response.status == 200) {
                             VuFind.flashTranslation('record_removed_from_favorites');
@@ -224,6 +228,10 @@ export default class Favorites {
                         } else {
                             VuFind.flashTranslation('could_not_remove_record_from_favorites');
                         }
+                    },
+                    complete() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'default';
                     },
                     error: function ( xmlHttpRequest, status, error ) {
                         console.error(error);
