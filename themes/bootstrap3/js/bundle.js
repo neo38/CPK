@@ -1,7 +1,7 @@
 import Favorites from './models/Favorites.js';
 import User from './models/User.js';
 
-VuFind.addToFavorites = function(recordId, online = false, searchClassId = undefined) {
+VuFind.addToFavorites = function(recordId, online = false, recordData = undefined) {
     let recordHash = Favorites.getRecordIdHash(recordId);
 
     let listId = undefined;
@@ -14,7 +14,25 @@ VuFind.addToFavorites = function(recordId, online = false, searchClassId = undef
         note = document.getElementById(`favoritesListFor${recordHash}Note`).value;
     }
 
-    Favorites.saveRecord(recordId, listId, note, searchClassId);
+    if (recordData) {
+        recordData.published = document.querySelector(`#resultFor${recordHash} .summDate`)
+            ? document.querySelector(`#resultFor${recordHash} .summDate`)
+                      .innerHTML.replace(/\s/g,'')
+                      .replace(/<(?:.|\n)*?>/gm, '')
+            : false;
+
+        recordData.author = document.querySelector(`#resultFor${recordHash} .author-info`)
+            ? document.querySelector(`#resultFor${recordHash} .author-info`).innerHTML.trim()
+            : false;
+        recordData.cover = document.querySelector(`#resultFor${recordHash} .cover_thumbnail`)
+            ? document.querySelector(`#resultFor${recordHash} .cover_thumbnail`).innerHTML
+            : false;
+        recordData.icon = document.querySelector(`#resultFor${recordHash} .iconlabel`)
+            ? document.querySelector(`#resultFor${recordHash} .iconlabel`).innerHTML
+            : false;
+    }
+
+    Favorites.saveRecord(recordId, listId, note, recordData);
 };
 
 VuFind.addSearchToFavorites = function() {
@@ -29,13 +47,15 @@ VuFind.openFavoriteSearchModal = function() {
     Favorites.openFavoriteSearchModal();
 };
 
-VuFind.removeFromFavorites = function(recordId, searchClassId) {
-    Favorites.removeRecord(recordId, searchClassId);
+VuFind.removeFromFavorites = function(recordId, searchClassId, removeFromFavorites = false, showConfirmation = true) {
+    Favorites.removeRecord(recordId, searchClassId, removeFromFavorites, showConfirmation);
 };
 
 VuFind.saveFavoritesToDb = function() {
     Favorites.saveFavoritesToDb();
 };
+
+VuFind.renderOfflineFavorites = () => Favorites.renderOfflineFavorites();
 
 document.addEventListener('DOMContentLoaded', function() {
     let mainContainerElement = document.getElementById('main-container')

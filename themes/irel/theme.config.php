@@ -12,40 +12,28 @@ $toRet = array(
  *
  * @var boolean
  */
-$useCompiledAngular = false;
 
-$angularForbiddenForIE = true;
+    $jsToInclude = [
 
-if (!($angularForbiddenForIE && USES_IE)) {
+        'vendor/angular.min.js',
 
-    if ($useCompiledAngular) {
+        'ng-cpk/federative-login/module.js',
+        'ng-cpk/federative-login/login.controller.js',
 
-        // Add compiled angular apps
-        array_push($toRet['js'], 'vendor/angular.min.js', 'ng-cpk/ng-cpk.min.js');
-    } else {
+        'ng-cpk/notifications/module.js',
+        'ng-cpk/notifications/notif.controller.js',
 
-        $jsToInclude = [
+        'ng-cpk/admin/module.js',
+        'ng-cpk/admin/configurations/conf.controller.js',
 
-            'vendor/angular.min.js',
+        'ng-cpk/history/module.js',
+        'ng-cpk/history/checkedouthistory.controller.js',
 
-            'ng-cpk/federative-login/module.js',
-            'ng-cpk/federative-login/login.controller.js',
+        'ng-cpk/module.js',
+        'ng-cpk/global.controller.js',
+        'ng-cpk/translate.filter.js'
+    ];
 
-            'ng-cpk/notifications/module.js',
-            'ng-cpk/notifications/notif.controller.js',
+    $toRet['js'] = array_merge($toRet['js'], $jsToInclude);
 
-            'ng-cpk/admin/module.js',
-            'ng-cpk/admin/configurations/conf.controller.js',
-
-            'ng-cpk/history/module.js',
-            'ng-cpk/history/checkedouthistory.controller.js',
-
-            'ng-cpk/module.js',
-            'ng-cpk/global.controller.js',
-            'ng-cpk/translate.filter.js'
-        ];
-
-        $toRet['js'] = array_merge($toRet['js'], $jsToInclude);
-    }
-}
-return $toRet;
+    return $toRet;

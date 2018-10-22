@@ -6,7 +6,7 @@
  */
 (function() {
     
-    var cpkApp = angular.module('cpk', [ 'favorites', 'federativeLogin', 'admin', 'history' ]);
+    var cpkApp = angular.module('cpk', [ 'federativeLogin', 'admin', 'history' ]);
     	
     cpkApp.config(['$locationProvider', function($locationProvider) {
 	$locationProvider.html5Mode({

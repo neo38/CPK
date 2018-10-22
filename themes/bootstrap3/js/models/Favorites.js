@@ -1,26 +1,31 @@
 /*
 * @ENHANCEMENTS
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
+* Sjednotit Ui Oblibenych prihlaseneho uzivatele s novym Ui neprihlaseneho uzivatele
 * Install Babel - https://babeljs.io/setup#installation
 * !!!!!!!!Zobrazovat confirmation pri mazani z oblibenych?
 * Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
+*
+* @REFACTORING
+* Nekdy se pri XHR dotazu pouziva jQuery, protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA,
+* takze axios a fetchAPI standardne nefunguje. Prepsat do JS fetch API a konvertovat zasilana data do FORM data podoby.
 *
 * @FIXME
 * u odebirani favs v search results skace DIV
 * V modalu pro pridani Fav nefunguje vyhledavani
 * Vytvoreni noveho seznamu udelat do modalu
 * Kdyz neni zadny seznam, zobrzit rovnou vytvoreni noveho
-* Pri pridavani fav do DB se pouziva jQuery,
-* protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA, takze axios a fetchAPI standardne nefunguje
 * Kdyz se klikne v modalu na Pridat fo oblibenych, zobrazovat loading
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
-* Add favortites to modal - udelat jako componentu, ted se opakuje 3 krat stejny kod
-* Zobrazeni linku pro add/remove favorites - udelat take jako komponentu?
 * Po prihlaseni a prehozeni oblibenych do DB refreshovat menu se seznamy oblibenych a ne celou stranku,
 * jsem-li v Mem profilu.
-* Prekompilovat nebo nevolat ng-cpk.min
+* SessionStorage funguje pouze pro tab, tj. nelze otevrit Oblibene v novem tabu
 *
+* @TODO
+* Sorting
+* Actions
+* Responsive
 */
 
 import User from './User.js';
@@ -63,7 +68,7 @@ export default class Favorites {
         jQuery(`#favoriteModalForSearch`).modal('show');
     };
 
-    static saveRecord(recordId, listId = undefined, note = undefined, searchClassId = undefined) {
+    static saveRecord(recordId, listId = undefined, note = undefined, recordData = undefined) {
         let alreadyInFavorites = false;
 
         User.isLoggedIn()
@@ -74,7 +79,8 @@ export default class Favorites {
                     dataType: 'json',
                     url: VuFind.getPath() + '/AJAX/JSON?method=addRecordToFavorites',
                     data: {
-                         recordId, listId, note, searchClassId
+                        recordId, listId, note,
+                        searchClassId: recordData.searchClassId
                     },
                     beforeSend() {
                         let bodyElement = document.getElementsByTagName('body')[0];
@@ -102,7 +108,7 @@ export default class Favorites {
                 // axios.post(
                 //     '/AJAX/JSON?method=addRecordToFavorites',
                 //     {
-                //         recordId, listId, note, searchClassId
+                //         recordId, listId, note, recordData.searchClassId
                 //     })
 
                     // .then((response) => response.json())
@@ -134,7 +140,13 @@ export default class Favorites {
                     let item = {};
                     item.type          = Favorites.RECORD_TYPE;
                     item.recordId      = recordId;
-                    item.searchClassId = searchClassId;
+                    item.searchClassId = recordData.searchClassId;
+                    item.title         = recordData.title,
+                    item.published     = recordData.published,
+                    item.link          = recordData.link,
+                    item.cover         = recordData.cover,
+                    item.author        = recordData.author,
+                    item.icon = recordData.icon,
 
                     favorites.push(item);
                     sessionStorage.setItem('favorites', JSON.stringify(favorites));
@@ -182,7 +194,11 @@ export default class Favorites {
         });
     }
 
-    static removeRecord(recordId, searchClassId) {
+    static removeRecord(recordId, searchClassId, removeElementId = false, showConfirmation = true) {
+        if (showConfirmation && ! window.confirm(VuFind.translate('Do you really want to delete record from favorites?'))) {
+            return;
+        }
+
         User.isLoggedIn()
             .then(() => {
                 /* Save to DB */
@@ -199,6 +215,9 @@ export default class Favorites {
                         if (response.status == 200) {
                             VuFind.flashTranslation('record_removed_from_favorites');
                             Favorites.swapButtons(recordId);
+                            if (removeElementId) {
+                                document.querySelector(`#${removeElementId}`).outerHTML = '';
+                            }
                         } else {
                             VuFind.flashTranslation('could_not_remove_record_from_favorites');
                         }
@@ -214,12 +233,16 @@ export default class Favorites {
                 let favorites = Favorites.getSessionFavorites();
 
                 if (favorites.length > 0) {
-                    favorites.some(function(favorite, key) {
-                        if (favorite.recordId && favorite.recordId == recordId) {
-                            favorites.splice(key, 1);
-                            return true;
-                        }
-                    });
+                    favorites = favorites.filter((favorite) => favorite.recordId != recordId)
+
+                    if (removeElementId) {
+                        document.querySelector(`#${removeElementId}`).outerHTML = '';
+                    }
+
+                    /* Chceck if there are any favorites left */
+                    if (favorites.length == 0 && /\/MyResearch\/Favorites/.test(window.location.href)) {
+                        Favorites.renderOfflineFavorites();
+                    }
                 }
 
                 sessionStorage.setItem('favorites', JSON.stringify(favorites));
@@ -245,8 +268,16 @@ export default class Favorites {
         let recordHash = Favorites.getRecordIdHash(recordId);
 
         /* Swap buttons */
-        document.getElementById('add-record-' + recordHash + '-to-favorites').classList.toggle('hidden');
-        document.getElementById('remove-record-' + recordHash    + '-from-favorites').classList.toggle('hidden');
+        let addRecordToFavoritesButtons = document.querySelector(`#add-record-${recordHash}-to-favorites`);
+        let removeRecordFromFavoritesButtons = document.querySelector(`#remove-record-${recordHash}-from-favorites`);
+
+        if (addRecordToFavoritesButtons) {
+            addRecordToFavoritesButtons.classList.toggle('hidden');
+        }
+
+        if (removeRecordFromFavoritesButtons) {
+            removeRecordFromFavoritesButtons.classList.toggle('hidden');
+        }
     }
 
     static getRecordIdHash(recordId)
@@ -263,21 +294,127 @@ export default class Favorites {
         if (favorites.length == 0) {
             return;
         }
+        //
+        // jQuery.ajax({
+        //     type: 'POST',
+        //     cache: false,
+        //     dataType: 'json',
+        //     url: VuFind.getPath() + '/AJAX/JSON?method=pushFavorites',
+        //     data: {
+        //         favorites
+        //     },
+        //     success: function(response) {
+        //         if (response.status == 200) {
+        //             //window.sessionStorage.removeItem('favorites');
+        //             location.reload();
+        //         }
+        //         // if (response.status == 200 && !response.data.isOnMyProfile) {
+        //         // TODO reload favorites list in Menu instead previous location.reload(); Existing ticken in bugzilla.
+        //         // }
+        //     }
+        // });
 
-        favorites.forEach(favorite => {
-            if (favorite.recordId && favorite.recordId == recordId) {
-                alreadyInFavorites = true;
-            }
-        });
-
-        jQuery.post('/AJAX/JSON?method=pushFavorites', data)
+        jQuery.post('/AJAX/JSON?method=pushFavorites', {favorites})
               .success(function(response) {
                   if (response.status == 200) {
+                      Favorites.removeSessionFavorites();
                       location.reload();
                   }
                   // if (response.status == 200 && !response.data.isOnMyProfile) {
                   // TODO reload favorites list in Menu instead previous location.reload(); Existing ticken in bugzilla.
                   // }
               });
+    }
+
+    /**
+     * Remove all session favorites
+     */
+    static removeSessionFavorites() {
+        window.sessionStorage.removeItem('favorites');
+    }
+
+    /**
+     * Render offline favorites
+     */
+    static renderOfflineFavorites() {
+        let favorites = Favorites.getSessionFavorites();
+        let html = '';
+
+        if (favorites.length == 0) {
+            document.querySelector('#offline-favorites-container')
+                    .innerHTML = `
+                        <div class='text-center'>
+                          <p>${VuFind.translate('You do not have any saved resources')}</p>
+                        </div>
+                    `;
+            document.querySelector('#favorites-list-header-content').classList.add('hidden');
+            return;
+        }
+
+        favorites.some(function(favorite) {
+            if (favorite.type == Favorites.RECORD_TYPE) {
+                html += `
+                  <div class='row well result' id='offlineFavoriteFor${Favorites.getRecordIdHash(favorite.recordId)}'>
+                      <div class='col-xs-2 left'>
+                        <label class='pull-left flip'>
+                          <input class='checkbox-select-item' 
+                                 type='checkbox' 
+                                 name='recordIds[]' 
+                                 data-search-class-id='${favorite.recordId}'
+                                 data-record-id-hash='${Favorites.getRecordIdHash(favorite.recordId)}'
+                                 value='${favorite.recordId}'>
+                        </label>
+                        <input type='hidden' value='${favorite.recordId}' class='hiddenId'/>
+                        <div class='coverThumbnail'>
+                          ${favorite.cover ? favorite.cover : favorite.icon}
+                        </div>
+                      </div>
+                      
+                      <div class='col-xs-8 middle'>
+                        <div class='root-title'>
+                          <a class='title' href='${favorite.link}'>
+                            ${favorite.title}
+                          </a>
+                        </div>
+                    
+                        <div class='author-info'>
+                            ${favorite.author ? favorite.author : ''}
+                        </div>
+                        <div class='summDate'>
+                            ${favorite.published ? favorite.published : favorite.published}
+                        </div>
+                      </div>
+                      
+                      <div class='col-xs-2 right'>
+                        <a onclick='VuFind.removeFromFavorites(
+                            "${favorite.recordId}",
+                            "${favorite.searchClassId}",
+                            "offlineFavoriteFor${Favorites.getRecordIdHash(favorite.recordId)}"
+                          );'>
+                          <i class='pr-editorial-trashcan'></i> 
+                          ${VuFind.translate('Delete')}
+                        </a>
+                      </div>
+                    </div>
+
+                `;
+            }
+        });
+
+        document.querySelector('#offline-favorites-container').innerHTML = html;
+        document.querySelector('#favorites-list-header-content').classList.remove('hidden');
+        jQuery.bootstrapGrowl(VuFind.translate('you_have_unsaved_favorites'), {
+            type: 'info',
+            ele: 'body',
+            offset: {
+                from: 'top',
+                amount: 40
+            },
+            align: 'right',
+            width: 300,
+            delay: 0,
+            allow_dismiss: true,
+            stackup_spacing: 10
+        });
     }
 }

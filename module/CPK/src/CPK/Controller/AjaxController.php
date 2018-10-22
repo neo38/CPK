@@ -884,8 +884,8 @@ class AjaxController extends AjaxControllerBase
         $results = [];
 
         foreach ($favorites as $favorite) {
-            if ($favorite->type == 'RECORD') {
-                $record = $recLoader->load($favorite->recordId, $favorite->searchClassId, false);
+            if ($favorite['type'] == 'RECORD') {
+                $record = $recLoader->load($favorite['recordId'], $favorite['searchClassId'], false);
 
                 $result = $record->saveToFavorites($params, $user);
 

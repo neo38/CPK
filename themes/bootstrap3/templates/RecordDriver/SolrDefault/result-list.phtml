@@ -156,7 +156,7 @@
   $firstRecordInInstitutions = reset($recordsInLibraries);
 ?>
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-12">
-    <div class="white-box clearfix">
+    <div class="white-box clearfix" id='resultFor<?=$this->driver->getRecordIdHash()?>'>
     <div class="row">
         <? $recordId =  preg_replace("/\./", "", $recordId)?>
         <? $recordId =  preg_replace("/:/", "", $recordId)?>

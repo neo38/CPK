@@ -189,7 +189,7 @@
                 <div id="map" class="hidden"></div>
             </div>
         <? endif; ?>
-		 <div id='result-list-placeholder' <? if(isset($_GET['type0'][0]) && $_GET['type0'][0] != 'Libraries'): ?>data-ng-controller="SearchFavController as searchFavCtrl"<? endif; ?>>
+		 <div id='result-list-placeholder'>
 		   <? if ($recordTotal > 0): ?>
              <?=$this->render('search/list-' . $this->params->getView() . '.phtml')?>
 		   <? endif; ?>
