@@ -1,4 +1,22 @@
-document.addEventListener('DOMContentLoaded',() => VuFind.renderOfflineFavorites());
+document.addEventListener('DOMContentLoaded',() => {
+    VuFind.renderOfflineFavorites();
+
+    if (VuFind.hasOfflineFavorites) {
+        jQuery.bootstrapGrowl(VuFind.translate('you_have_unsaved_favorites'), {
+            type: 'info',
+            ele: 'body',
+            offset: {
+                from: 'top',
+                amount: 40
+            },
+            align: 'right',
+            width: 300,
+            delay: 0,
+            allow_dismiss: true,
+            stackup_spacing: 10
+        });
+    }
+});
 
 function deleteSelectedFavorites() {
 

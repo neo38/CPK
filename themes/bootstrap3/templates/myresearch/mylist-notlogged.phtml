@@ -19,7 +19,7 @@
         </div>
 
         <div class='pull-right flip'>
-          <div class='dropdown'>
+          <div class='dropdown favorites-sort-dropdown'>
             <button class='btn btn-default dropdown-toggle ajax-update-sort'
                     type='button'
                     id='offline-favorites-sort'
@@ -27,15 +27,15 @@
                     aria-haspopup='true'
                     aria-expanded='true'>
               <span><?=$this->translate('Sort').' '?></span>
-              <span class='value'>
-                  <?=$this->translate($sortData['desc']);?>
+              <span class='value' id='sort-favorites-by-param-container'>
+                  <?=$this->translate('By addition time');?>
               </span>
               <span class='caret'></span>
             </button>
             <ul class='dropdown-menu' aria-labelledby='offline-favorites-sort'>
-              <li><a><?=$this->transEsc('By Recent')?></a></li>
-              <li><a><?=$this->transEsc('By Author')?></a></li>
-              <li><a><?=$this->transEsc('sort_title')?></a></li>
+              <li><a onclick='VuFind.sortOfflineFavoritesBy("created")'><?=$this->transEsc('By addition time')?></a></li>
+              <li><a onclick='VuFind.sortOfflineFavoritesBy("author")'><?=$this->transEsc('By Author')?></a></li>
+              <li><a onclick='VuFind.sortOfflineFavoritesBy("title")'><?=$this->transEsc('By Title')?></a></li>
             </ul>
           </div>
         </div>
@@ -48,8 +48,6 @@
         </div>
       </div>
 		</div>
-
-
 
     <div>
       <div id='offline-favorites-container'>

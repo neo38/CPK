@@ -5,6 +5,7 @@
 * Install Babel - https://babeljs.io/setup#installation
 * !!!!!!!!Zobrazovat confirmation pri mazani z oblibenych?
 * Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
+* Sort offline favorites ASC/DESC
 *
 * @REFACTORING
 * Nekdy se pri XHR dotazu pouziva jQuery, protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA,
@@ -23,7 +24,6 @@
 * SessionStorage funguje pouze pro tab, tj. nelze otevrit Oblibene v novem tabu
 *
 * @TODO
-* Sorting
 * Actions
 * Responsive
 */
@@ -80,7 +80,8 @@ export default class Favorites {
                     url: VuFind.getPath() + '/AJAX/JSON?method=addRecordToFavorites',
                     data: {
                         recordId, listId, note,
-                        searchClassId: recordData.searchClassId
+                        searchClassId: recordData.searchClassId,
+                        created: new Date().getTime(),
                     },
                     beforeSend() {
                         let bodyElement = document.getElementsByTagName('body')[0];
@@ -146,7 +147,8 @@ export default class Favorites {
                     item.link          = recordData.link,
                     item.cover         = recordData.cover,
                     item.author        = recordData.author,
-                    item.icon = recordData.icon,
+                    item.icon          = recordData.icon,
+                    item.created       = new Date().getTime();
 
                     favorites.push(item);
                     sessionStorage.setItem('favorites', JSON.stringify(favorites));
@@ -245,12 +247,20 @@ export default class Favorites {
                     }
                 }
 
-                sessionStorage.setItem('favorites', JSON.stringify(favorites));
+                Favorites.saveFavoritesToSession(favorites);
 
                 Favorites.swapButtons(recordId);
 
                 VuFind.flashTranslation('record_removed_from_favorites');
             });
+    }
+
+    /**
+     * Save favorites to session
+     * @param array favorites
+     */
+    static saveFavoritesToSession(favorites) {
+        sessionStorage.setItem('favorites', JSON.stringify(favorites));
     }
 
     static getSessionFavorites() {
@@ -403,18 +413,24 @@ export default class Favorites {
 
         document.querySelector('#offline-favorites-container').innerHTML = html;
         document.querySelector('#favorites-list-header-content').classList.remove('hidden');
-        jQuery.bootstrapGrowl(VuFind.translate('you_have_unsaved_favorites'), {
-            type: 'info',
-            ele: 'body',
-            offset: {
-                from: 'top',
-                amount: 40
-            },
-            align: 'right',
-            width: 300,
-            delay: 0,
-            allow_dismiss: true,
-            stackup_spacing: 10
-        });
+    }
+
+     /**
+     * Sort session favorites
+     * @param string param [title|author|created]
+     * @return array Sorted Favorites
+     */
+    static sortFavoritesBy(param) {
+        if (['title', 'author'].includes(param)) {
+            Favorites.saveFavoritesToSession(
+                Favorites.getSessionFavorites().sort((a, b) => a[param].localeCompare(b[param]))
+            );
+        }
+
+        if (['created'].includes(param)) {
+            Favorites.saveFavoritesToSession(
+                Favorites.getSessionFavorites().sort((a, b) => a[param] - b[param])
+            );
+        }
     }
 }

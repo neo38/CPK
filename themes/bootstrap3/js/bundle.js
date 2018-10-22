@@ -1,7 +1,7 @@
 import Favorites from './models/Favorites.js';
 import User from './models/User.js';
 
-VuFind.addToFavorites = function(recordId, online = false, recordData = undefined) {
+VuFind.addToFavorites = (recordId, online = false, recordData = undefined) => {
     let recordHash = Favorites.getRecordIdHash(recordId);
 
     let listId = undefined;
@@ -35,24 +35,26 @@ VuFind.addToFavorites = function(recordId, online = false, recordData = undefine
     Favorites.saveRecord(recordId, listId, note, recordData);
 };
 
-VuFind.addSearchToFavorites = function() {
-    Favorites.addSearchToFavorites();
-};
+VuFind.addSearchToFavorites = () => Favorites.addSearchToFavorites();
 
-VuFind.openFavoriteRecordModal = function(recordId, recordTitle) {
-    Favorites.openFavoriteRecordModal(recordId, recordTitle);
-};
+VuFind.openFavoriteRecordModal = (recordId, recordTitle) => Favorites.openFavoriteRecordModal(recordId, recordTitle);
 
-VuFind.openFavoriteSearchModal = function() {
-    Favorites.openFavoriteSearchModal();
-};
+VuFind.openFavoriteSearchModal = () => Favorites.openFavoriteSearchModal();
 
-VuFind.removeFromFavorites = function(recordId, searchClassId, removeFromFavorites = false, showConfirmation = true) {
+VuFind.hasOfflineFavorites = () => Favorites.getSessionFavorites().length > 0;
+
+VuFind.removeFromFavorites = (recordId, searchClassId, removeFromFavorites = false, showConfirmation = true) => {
     Favorites.removeRecord(recordId, searchClassId, removeFromFavorites, showConfirmation);
 };
 
-VuFind.saveFavoritesToDb = function() {
-    Favorites.saveFavoritesToDb();
+VuFind.saveFavoritesToDb = () => Favorites.saveFavoritesToDb();
+
+VuFind.sortOfflineFavoritesBy = (param) => {
+    Favorites.sortFavoritesBy(param);
+    Favorites.renderOfflineFavorites();
+    document.querySelector('#sort-favorites-by-param-container').innerHTML = VuFind.translate(
+        param == 'created' ? 'By addition time' : param == 'title' ? 'By Title' : param == 'author' ? 'By Author' : ''
+    );
 };
 
 VuFind.renderOfflineFavorites = () => Favorites.renderOfflineFavorites();
