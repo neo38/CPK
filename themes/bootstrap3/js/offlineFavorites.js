@@ -42,16 +42,30 @@ function deleteSelectedFavorites() {
 
 function emailSelectedFavorites() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
+
+    if (checkedBoxes.length == 0) {
+        return;
+    }
+
     checkedBoxes.forEach((checkbox) => {
         //
     });
 }
 
-function exportSelectedFavorites() {
+function showExportFavoritesModal() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
+
+    if (checkedBoxes.length == 0) {
+        return;
+    }
+
+    let html = '';
     checkedBoxes.forEach((checkbox) => {
-        //
+        html += `<input type='hidden' name='ids[]' value='${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}'>`;
     });
+    document.querySelector('#export-ids-container').innerHTML = html;
+
+    jQuery(`#exportFavoritesModal`).modal('show');
 }
 
 function printSelectedFavorites() {

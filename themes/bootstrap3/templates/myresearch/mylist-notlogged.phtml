@@ -41,11 +41,14 @@
         </div>
 
         <div class='favorites-list-actions'>
-          <a href='#' onclick='deleteSelectedFavorites();'><?=$this->transEsc('Delete')?></a> |
-          <a href='#' onclick='emailSelectedFavorites();'><?=$this->transEsc('email_selected')?></a> |
-          <a href='#' onclick='exportSelectedFavorites();'><?=$this->transEsc('export_selected')?></a> |
-          <a href='#' onclick='printSelectedFavorites();'><?=$this->transEsc('print_selected')?></a>
+          <a onclick='deleteSelectedFavorites();'><?=$this->transEsc('Delete')?></a> |
+          <a onclick='emailSelectedFavorites();'><?=$this->transEsc('email_selected')?></a> |
+          <a onclick='showExportFavoritesModal();'><?=$this->transEsc('export_selected')?></a> |
+          <a onclick='printSelectedFavorites();'><?=$this->transEsc('print_selected')?></a>
         </div>
+
+        <?=$this->render('favorites/my-profile/export-modal.phtml')?>
+        <?=$this->render('favorites/my-profile/send-email-modal.phtml')?>
       </div>
 		</div>
 

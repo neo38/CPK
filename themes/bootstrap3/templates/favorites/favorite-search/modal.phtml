@@ -18,7 +18,7 @@
       </div>
       <div class='modal-body'>
         <div class='form-group'>
-          <label class='control-label' for='numberOfRecordsToAdd'><?=$this->transEsc('Select number of results to save') ?></label>
+          <label class='control-label' for='numberOfRecordsToAdd'><?=$this->translate('Select number of results to save') ?></label>
           <select id='numberOfRecordsToAdd' class='form-control'>
             <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
               <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>><?=$limit?></option>
@@ -27,7 +27,7 @@
         </div>
 
         <div class='form-group'>
-          <label class='control-label' for='newFavoritesListTitle'><?=$this->transEsc('Favorites list title') ?></label>
+          <label class='control-label' for='newFavoritesListTitle'><?=$this->translate('Favorites list title') ?></label>
           <input type='text'
                  id='newFavoritesListTitle'
                  value=''

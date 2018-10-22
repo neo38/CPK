@@ -641,8 +641,11 @@ class MyResearchController extends MyResearchControllerBase
         if ($idEmpty && $userNotLoggedIn) {
             // Well then, render the favorites for not logged in user & let JS handle it ..
 
+            $exportOptions = $config['Favorites']['export_options'];
+
             return $this->createViewModel([
-                'loggedIn' => false
+                'loggedIn' => false,
+                'exportOptions' => explode(':', $exportOptions)
             ]);
         } else {
             // Nope, let's behave the old-style :)
