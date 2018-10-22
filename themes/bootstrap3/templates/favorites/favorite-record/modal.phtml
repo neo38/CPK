@@ -1,5 +1,5 @@
 <!-- Add record to favorites Modal -->
-<div class='modal fade'
+<div class='modal fade favoriteModalForRecord'
      id='favoriteModalForRecord<?=$this->driver->getRecordIdHash()?>'
      tabindex='-1'
      role='dialog'
@@ -22,7 +22,7 @@
         <div class='form-group'>
           <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'><?=$this->transEsc('Choose a List') ?></label>
           <? if (! empty($this->favoritesLists)): ?>
-            <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label select2Select'>
+            <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label form-control select2Select'>
               <? foreach ($this->favoritesLists as $list): ?>
                 <option value='<?=$list['id']?>'>
                   <?=htmlspecialchars($list['title'])?>

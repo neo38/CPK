@@ -654,8 +654,6 @@ jQuery( document ).ready( function( $ ) {
                             $( this ).find( '.search-results-favorite-button' ).addClass( 'hidden' );
                         });
 
-                        $( '.select2Select' ).select2();
-
                         // If logged in, show new button for adding search results to favorites
                         fetch('/AJAX/JSON?method=isLoggedIn')
                             .then((response) => response.json())
@@ -1751,9 +1749,6 @@ jQuery( document ).ready( function( $ ) {
             }
           }
     });
-
-	// On page load initialize select2
-    $( '.select2Select' ).select2();
 });
 
 function escapeHtml(text) {

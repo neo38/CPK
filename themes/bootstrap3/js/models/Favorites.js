@@ -13,7 +13,7 @@
 *
 * @FIXME
 * Export oblibenych do souboru se renderuje spatne
-* 
+*
 * V modalu pro pridani Fav nefunguje vyhledavani
 * Vytvoreni noveho seznamu udelat do modalu
 * Kdyz neni zadny seznam, zobrzit rovnou vytvoreni noveho
