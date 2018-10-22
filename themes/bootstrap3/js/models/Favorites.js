@@ -360,7 +360,7 @@ export default class Favorites {
                           <input class='checkbox-select-item' 
                                  type='checkbox' 
                                  name='recordIds[]' 
-                                 data-search-class-id='${favorite.recordId}'
+                                 data-search-class-id='${favorite.searchClassId}'
                                  data-record-id-hash='${Favorites.getRecordIdHash(favorite.recordId)}'
                                  value='${favorite.recordId}'>
                         </label>
