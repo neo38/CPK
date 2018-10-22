@@ -38,9 +38,17 @@ function exportSelectedFavorites() {
 
 function printSelectedFavorites() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
+
+    if (checkedBoxes.length == 0) {
+        return;
+    }
+
+    let printLocation = '/Records/Home?print=1';
+
     checkedBoxes.forEach((checkbox) => {
-        //
+        printLocation += `&id[]=${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}`;
     });
+    window.open(printLocation, '_blank').focus();
 }
 
 function selectAllFavorites(source) {
