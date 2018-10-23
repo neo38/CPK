@@ -177,4 +177,59 @@ class Record extends ParentRecord
         }
         return $recordId;
     }
+
+    public function getEnabled7xxFields($id, $field733)
+    {
+        $enabled7xxFields = explode(",", $this->config->Record->fields_in_core);
+        $fieldsOf7xx = [];
+        foreach($enabled7xxFields as $enabledField) {
+            $varName = 'field'.$enabledField;
+            $fieldsOf7xx[$enabledField] = $this->$varName;
+        }
+
+        foreach($fieldsOf7xx as $number => $activeField) {
+            $i = 0;
+            if (! $activeField) continue;
+            foreach ($activeField as $field) {
+
+                if (null === $field)
+                    continue;
+
+                if (count($activeField)) {
+                    ++$i;
+                    if($i === 1)
+                        echo "<tr><th>".$this->translate('field'.$number)."</th><td>";
+                }
+
+                if ( ! empty($field['t']) || ! empty($field['g']) ) {
+
+                    if($activeField === $field733) {
+                        $anchor = join(" ", $field);
+                    } else {
+                        $anchor = $field['t']." ".$field['g'];
+                    }
+
+                    if (! empty($field['x']) || ! empty($field['z']) || ! empty($field['t'])) {
+
+                        if (! empty($field['x'])) {
+                            $link = '/Search/Results?join=AND&bool0[]=AND&lookfor0[]="'.$field['x'].'"&type0[]=isn&bool1[]=NOT&lookfor1[]="'.$id.'"&type1[]=id&sort=title&view=list';
+                        } else if (! empty($field['z'])) {
+                            $link = '/Search/Results?join=AND&bool0[]=AND&lookfor0[]="'.$field['z'].'"&type0[]=isn&bool1[]=NOT&lookfor1[]="'.$id.'"&type1[]=id&sort=title&view=list';
+                        } else if (! empty($field['t'])) {
+                            $link = '/Search/Results?join=AND&bool0[]=AND&lookfor0[]="'.$field['t'].'"&type0[]=AllFields&bool1[]=NOT&lookfor1[]="'.$id.'"&type1[]=id&sort=title&view=list';
+                        }
+
+                        echo "<a href='".$link."' title='".$anchor."'>".$anchor."</a><br>\n";
+                    } else {
+                        echo $anchor."<br>\n";
+                    }
+
+                }
+
+            }
+            echo "</td>";
+            echo "</tr>";
+
+        }
+    }
 }

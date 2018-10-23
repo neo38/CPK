@@ -252,11 +252,12 @@ class RecordController extends RecordControllerBase
         $_SESSION['VuFind\Search\Solr\Options']['lastLimit'] = $this->layout()->limit;
         $_SESSION['VuFind\Search\Solr\Options']['lastSort']  = $this->layout()->sort;
 
-        $view->filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('local_institution_facet_str_mv:"'.$this->driver->getBookSearchFilter().'"'));
-
-        // For Google Maps
-        $view->lat = $this->driver->getGpsLat();
-        $view->lng = $this->driver->getGpsLng();
+        if ($this->driver instanceof \CPK\RecordDriver\SolrLibrary) {
+            $view->filter = specialUrlEncode(\LZCompressor\LZString::compressToBase64('local_institution_facet_str_mv:"'.$this->driver->getBookSearchFilter().'"'));
+            // For Google Maps
+            $view->lat = $this->driver->getGpsLat();
+            $view->lng = $this->driver->getGpsLng();
+        }
 
         $view->id = $this->driver->getUniqueID();
         $view->source = explode(".", $view->id)[0];
