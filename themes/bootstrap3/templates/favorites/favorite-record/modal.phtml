@@ -20,7 +20,7 @@
       </div>
       <div class='modal-body'>
         <div class='form-group'>
-          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'><?=$this->transEsc('Choose a List') ?></label>
+          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'><?=$this->translate('Choose a List') ?></label>
           <? if (! empty($this->favoritesLists)): ?>
             <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label form-control select2Select'>
               <? foreach ($this->favoritesLists as $list): ?>
@@ -47,7 +47,7 @@
         <? if (! empty($this->favoritesLists)): ?>
           <br>
           <div class='form-group'>
-            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'><?=$this->transEsc('Add a Note') ?></label>
+            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'><?=$this->translate('Add a Note') ?></label>
             <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
           </div>
         <? endif; ?>

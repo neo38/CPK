@@ -3,28 +3,28 @@
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Sjednotit Ui Oblibenych prihlaseneho uzivatele s novym Ui neprihlaseneho uzivatele
 * Install Babel - https://babeljs.io/setup#installation
-* !!!!!!!!Zobrazovat confirmation pri mazani z oblibenych?
 * Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
 * Sort offline favorites ASC/DESC
+* Vytvoreni noveho seznamu udelat do modalu. Pri otevreni modalu pro pridani Oblibenych nacitat seznam asynchronne, protoze kdyz si vytvorim seznam a pridam
+* zaznam, zavru a pak pridam dalsi, vidim porad stare seznamy nactene z PHP on page load.
 *
 * @REFACTORING
 * Nekdy se pri XHR dotazu pouziva jQuery, protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA,
 * takze axios a fetchAPI standardne nefunguje. Prepsat do JS fetch API a konvertovat zasilana data do FORM data podoby.
 *
 * @FIXME
-* Export oblibenych do souboru se renderuje spatne
-*
-* Vytvoreni noveho seznamu udelat do modalu
-* Kdyz neni zadny seznam, zobrzit rovnou vytvoreni noveho
-*
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 *
-* SessionStorage funguje pouze pro tab, tj. nelze otevrit Oblibene v novem tabu
+* SessionStorage se po prihlaseni smaze jenom v aktualnim tabu. V jinych tabech zustavaju oblibene nadale
+* v sessionStorage a po otevreni dalsich tabu se z nich sessionStorage siri dal. Je potreba rozpoznavat ktery je master
+* tab a ktery slave. Po prihlaseni by se ve slave tabech mela upravit sessionStorage podle master tabu.
+*
+* Responsive (zejmena na mobilech)
 *
 * @TODO
+* Export oblibenych do souboru se renderuje spatne
 * Odesilat oblibene emailem
-* Responsive
 */
 
 import User from './User.js';

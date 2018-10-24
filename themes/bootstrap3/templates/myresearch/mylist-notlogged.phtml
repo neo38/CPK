@@ -11,14 +11,14 @@
     </div>
 
 		<div class='favorites-list-header'>
-      <div id='favorites-list-header-content' class='hidden'>
+      <div id='favorites-list-header-content' class='row hidden'>
 
-        <div class='pull-left select-all-favorites'>
+        <div class='col-md-2 pull-left select-all-favorites'>
           <input type='checkbox' onclick='selectAllFavorites(this);'>
           <?=$this->translate('Select all favorites')?> | <?=$this->translate('Selected favorites')?>
         </div>
 
-        <div class='pull-right flip'>
+        <div class='col-md-2 pull-right'>
           <div class='dropdown favorites-sort-dropdown'>
             <button class='btn btn-default dropdown-toggle ajax-update-sort'
                     type='button'
@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <div class='favorites-list-actions'>
+        <div class='col-md-8 favorites-list-actions'>
           <a onclick='deleteSelectedFavorites();'><?=$this->transEsc('Delete')?></a> |
           <a onclick='emailSelectedFavorites();'><?=$this->transEsc('email_selected')?></a> |
           <a onclick='showExportFavoritesModal();'><?=$this->transEsc('export_selected')?></a> |
