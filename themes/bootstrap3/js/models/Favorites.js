@@ -21,6 +21,8 @@
 * tab a ktery slave. Po prihlaseni by se ve slave tabech mela upravit sessionStorage podle master tabu.
 *
 * Responsive (zejmena na mobilech)
+* Do GA se pripisuje pouze klik na Pridani do oblibenych ve vysledcich vyhledavani. Ne v uplnem zobrazeni ani v profilu,
+* a take na odstraneni z oblibenych ani zadne dalsi akce s Oblibenymi.
 *
 * @TODO
 * Export oblibenych do souboru se renderuje spatne
