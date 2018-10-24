@@ -1,5 +1,4 @@
 <?
-//  $maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
   $this->headScript()->appendFile("jquery-ui.min.js");
   $this->layout()->headerType = "newlibraries";
 ?>
@@ -8,15 +7,15 @@
   <div class="col-md-6 library-detail">
 
     <!-- Library name -->
-    <h2 class='record-title' property="name">
+    <h2 class="record-title" property="name">
       <strong><?= $this->escapeHtml($this->driver->getLibraryNames()) ?></strong>
     </h2>
 
     <!-- Alternative Names Format -->
     <? $bookSearch = $this->driver->getBookSearchFilter() ?>
     <? if ( ! empty($bookSearch)): ?>
-      <a href='/Search/Results?lookFor0[]=&type0[]=AllFields&bool0[]=AND&join=AND&searchTypeTemplate=basic&page=1&keepEnabledFilters=true&limit=<?= $this->layout()->limit ?>&sort=<?= $this->layout()->sort ?>&filter=<?= $this->filter ?>'
-         title='<?= $this->translate('Search in library') ?>'>
+      <a href="/Search/Results?lookFor0[]=&type0[]=AllFields&bool0[]=AND&join=AND&searchTypeTemplate=basic&page=1&keepEnabledFilters=true&limit=<?= $this->layout()->limit ?>&sort=<?= $this->layout()->sort ?>&filter=<?= $this->filter ?>"
+         title="<?= $this->translate('Search in library') ?>">
         <?= $this->transEsc('Search in library') ?>
       </a>
     <? endif; ?>

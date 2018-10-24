@@ -40,9 +40,9 @@
     </div>
 
     <div class="col-sm-9">
-      <h2 class='record-title' property="name"><strong><?= $this->escapeHtml($this->driver->getTitle()) ?></strong></h2>
+      <h2 class="record-title" property="name"><strong><?= $this->escapeHtml($this->driver->getTitle()) ?></strong></h2>
       <div class="row">
-        <div class='col-xs-12 col-lg-4 want-it'>
+        <div class="col-xs-12 col-lg-4 want-it">
           <?= $this->translate('Want it') ?>
         </div>
       </div>
@@ -53,8 +53,8 @@
 
       <? if (strlen($summary) > 300): ?>
           <p>
-            <a href='<?= $this->recordLink()->getTabUrl($this->driver,
-              'Description') ?>#tabnav'>
+            <a href="<?= $this->recordLink()->getTabUrl($this->driver, 'Description') ?>#tabnav"
+               title="<?= $this->transEsc('Full description') ?>">
               <?= $this->transEsc('Full description') ?>
             </a>
           </p>
@@ -77,13 +77,13 @@
               <td>
                 <? $containerID = $this->driver->getContainerRecordID(); ?>
                 <a href="<?= ($containerID ? $this->recordLink()->getUrl("VuFind|$containerID") : $this->record($this->driver)->getLink('journaltitle',
-                  $journalTitle)) ?>">
+                  $journalTitle)) ?>" title="<?= $this->escapeHtmlAttr($journalTitle) ?>">
                   <?= $this->escapeHtml($journalTitle) ?>
                 </a>
-                <? $ref = $this->driver->getContainerReference();
-                  if ( ! empty($ref)) {
-                    echo $this->escapeHtml($ref);
-                  } ?>
+                <? $ref = $this->driver->getContainerReference() ?>
+                <? if ( ! empty($ref)): ?>
+                  <?= $this->escapeHtml($ref) ?>
+                <?endif;?>
               </td>
             </tr>
           <? endif; ?>
@@ -95,7 +95,8 @@
             <th class="col-md-4"><?= $this->transEsc('New Title') ?>: </th>
             <td>
               <? foreach ($nextTitles as $field): ?>
-                <a href="<?= $this->record($this->driver)->getLink('title', $field) ?>">
+                <a href="<?= $this->record($this->driver)->getLink('title', $field) ?>"
+                   title="<?= $this->escapeHtmlAtrr($field) ?>">
                   <?= $this->escapeHtml($field) ?>
                 </a>
                 <br />
@@ -109,7 +110,8 @@
             <th class="col-md-4"><?= $this->transEsc('Previous Title') ?>: </th>
             <td>
               <? foreach ($prevTitles as $field): ?>
-                <a href="<?= $this->record($this->driver)->getLink('title', $field) ?>">
+                <a href="<?= $this->record($this->driver)->getLink('title', $field) ?>"
+                   title="<?= $this->escapeHtmlAttr($field) ?>">
                   <?= $this->escapeHtml($field) ?>
                 </a>
                 <br />
@@ -123,7 +125,8 @@
           <tr>
             <th class="col-md-4"><?= $this->transEsc('Main Author') ?>: </th>
             <td property="author">
-              <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($authors['main']) ?>">
+              <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($authors['main']) ?>"
+                 title="<?= $this->escapeHtmlAttr($authors['main']) ?>">
                 <?= $this->escapeHtml($authors['main']) ?>
               </a>
             </td>
@@ -134,7 +137,8 @@
           <tr>
             <th class="col-md-4"><?= $this->transEsc('Corporate Author') ?>: </th>
             <td property="creator">
-              <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($authors['corporate']) ?>">
+              <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($authors['corporate']) ?>"
+                 title="<?= $this->escapeHtmlAttr($authors['corporate']) ?>">
                 <?= $this->escapeHtml($authors['corporate']) ?>
               </a>
             </td>
@@ -146,9 +150,11 @@
             <th class="col-md-4"><?= $this->transEsc('Other Authors') ?>: </th>
             <td>
               <? $i = 0;
-                foreach ($authors['secondary'] as $field): ?><?= ($i++ == 0) ? '' : ', ' ?>
+                foreach ($authors['secondary'] as $field): ?>
+                  <?= ($i++ == 0) ? '' : ', ' ?>
                   <span property="contributor">
-                    <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($field) ?>">
+                    <a href="/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=<?= urlencode($field) ?>"
+                       title="<?= $this->escapeHtmlAttr($field) ?>">
                       <?= $this->escapeHtml($field) ?>
                     </a>
                   </span>
@@ -238,7 +244,8 @@
                      name.  We should account for both cases to maximize compatibility. */ ?>
                   <? if (is_array($field)): ?>
                     <? if ( ! empty($field['name'])): ?>
-                      <a href="<?= $this->record($this->driver)->getLink('series', $field['name']) ?>">
+                      <a href="<?= $this->record($this->driver)->getLink('series', $field['name']) ?>"
+                         title="<?= $this->escapeHtmlAttr($field['name']) ?>">
                         <?= $this->escapeHtml($field['name']) ?>
                       </a>
                       <? if ( ! empty($field['number'])): ?>
@@ -247,7 +254,8 @@
                       <br />
                     <? endif; ?>
                   <? else: ?>
-                    <a href="<?= $this->record($this->driver)->getLink('series', $field) ?>">
+                    <a href="<?= $this->record($this->driver)->getLink('series', $field) ?>"
+                       title="<?= $this->escapeHtml($field) ?>">
                       <?= $this->escapeHtml($field) ?>
                     </a><br />
                   <? endif; ?>
@@ -259,7 +267,7 @@
         <? $subjects       = $this->driver->getAllSubjectHeadings();
           if ( ! empty($subjects)): $iteration = 0;
             $subjectsCount = count($subjects); ?>
-            <tr id='subjects-tr'>
+            <tr id="subjects-tr">
               <th><?= $this->transEsc('Subjects') ?>: </th>
               <td>
                 <? foreach ($subjects as $field): $iteration++; ?>
@@ -279,8 +287,8 @@
                       <? endforeach; ?>
                   </div>
                   <? if (($iteration == $maxSubjectsInCore) && ($maxSubjectsInCore < $subjectsCount)): ?>
-                    <a class="modal-link" id='show-all-subjects' title="<?= $this->translate('Show all subjects') ?>">
-                      <b><?= $this->translate('Show all subjects') ?></b>&nbsp;<i class='fa fa-caret-down'></i>
+                    <a class="modal-link" id="show-all-subjects" title="<?= $this->translate('Show all subjects') ?>">
+                      <b><?= $this->translate('Show all subjects') ?></b>&nbsp;<i class="fa fa-caret-down"></i>
                     </a>
                     <? break; ?>
                   <? endif; ?>
@@ -582,7 +590,10 @@
             <td>
               <? foreach ($recordLinks as $recordLink): ?>
                 <?= $this->transEsc($recordLink['title']) ?>:
-                <a href="<?= $this->recordLink()->related($recordLink['link']) ?>"><?= $this->escapeHtml($recordLink['value']) ?></a>
+                <a href="<?= $this->recordLink()->related($recordLink['link']) ?>"
+                   title="<?= $this->escapeHtmlAttr($recordLink['value']) ?>">
+                  <?= $this->escapeHtml($recordLink['value']) ?>
+                </a>
                 <br />
               <? endforeach; ?>
               <? /* if we have record links, display relevant explanatory notes */
