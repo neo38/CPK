@@ -882,6 +882,7 @@ class AjaxController extends AjaxControllerBase
         $recLoader = $this->getRecordLoader();
 
         $results = [];
+        $newListCount = 0;
 
         foreach ($favorites as $favorite) {
             if ($favorite['type'] == 'RECORD') {
@@ -890,12 +891,19 @@ class AjaxController extends AjaxControllerBase
                 $result = $record->saveToFavorites($params, $user);
 
                 array_push($results, $result);
+                $newListCount++;
             }
         }
 
         $isOnMyProfile = stripos($this->getRequest()->getServer()->get('HTTP_REFERER'), "/MyResearch/") != false;
+        $newListId = $results[0]['listId'];
 
-        return $this->output(['isOnMyProfile' => $isOnMyProfile], self::STATUS_OK);
+        return $this->output([
+            'isOnMyProfile' => $isOnMyProfile,
+            'newListId' => $newListId,
+            'newListCount' => $newListCount,
+            'newListTitle' => $list->title,
+        ], self::STATUS_OK);
     }
 
     /**

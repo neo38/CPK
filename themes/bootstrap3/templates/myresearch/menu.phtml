@@ -85,7 +85,7 @@
       <span class="pull-right flip"><i class="pr-interface-favoritestar2"></i></span>
     </a>
     <? $lists = $user->getLists() ?>
-    <div style=" margin-left: 15px; ">
+    <div style=" margin-left: 15px; " id="favorites-menu-list">
     <? foreach ($lists as $list): ?>
         <a href="<?=$this->url('userList', array('id' => $list['id']))?>" class="list-group-item<?=$this->active == 'list' . $list['id'] ? ' active' : ''?>">
           <?=$this->escapeHtml($list['title'])?>

@@ -20,8 +20,6 @@
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
 * takze po zavreni okna ztrati oblibene. Je potreba do flashMessage pridat hlasku, at se pak i prihlasi.
 *
-* Po prihlaseni a prehozeni oblibenych do DB refreshovat menu se seznamy oblibenych a ne celou stranku,
-* jsem-li v Mem profilu.
 * SessionStorage funguje pouze pro tab, tj. nelze otevrit Oblibene v novem tabu
 *
 * @TODO
@@ -313,36 +311,33 @@ export default class Favorites {
         if (favorites.length == 0) {
             return;
         }
-        //
-        // jQuery.ajax({
-        //     type: 'POST',
-        //     cache: false,
-        //     dataType: 'json',
-        //     url: VuFind.getPath() + '/AJAX/JSON?method=pushFavorites',
-        //     data: {
-        //         favorites
-        //     },
-        //     success: function(response) {
-        //         if (response.status == 200) {
-        //             //window.sessionStorage.removeItem('favorites');
-        //             location.reload();
-        //         }
-        //         // if (response.status == 200 && !response.data.isOnMyProfile) {
-        //         // TODO reload favorites list in Menu instead previous location.reload(); Existing ticken in bugzilla.
-        //         // }
-        //     }
-        // });
 
-        jQuery.post('/AJAX/JSON?method=pushFavorites', {favorites})
-              .success(function(response) {
-                  if (response.status == 200) {
-                      Favorites.removeSessionFavorites();
-                      location.reload();
-                  }
-                  // if (response.status == 200 && !response.data.isOnMyProfile) {
-                  // TODO reload favorites list in Menu instead previous location.reload(); Existing ticken in bugzilla.
-                  // }
-              });
+        jQuery.ajax({
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            url: '/AJAX/JSON?method=pushFavorites',
+            data: {favorites},
+            success: function(response) {
+                if (response.status == 'OK' && response.data.isOnMyProfile) {
+                    // Add new list
+                    let anchorElement = document.createElement('a');
+                    anchorElement.href = `/MyResearch/MyList/${response.data.newListId}`;
+                    anchorElement.classList.add('list-group-item');
+                    anchorElement.innerHTML = `
+                        ${response.data.newListTitle} 
+                        <span class='badge'>${response.data.newListCount}</span>
+                    `;
+                    document.querySelector('#favorites-menu-list').prepend(anchorElement);
+                    Favorites.removeSessionFavorites();
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error(jqXHR);
+                console.error(textStatus);
+                console.error(errorThrown);
+            }
+        });
     }
 
     /**
