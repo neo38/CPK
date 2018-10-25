@@ -1523,6 +1523,15 @@ class AjaxController extends AjaxControllerBase
         return $this->output($viewData, self::STATUS_OK);
     }
 
+    public function updateExtraSearchResultsAjax()
+    {
+        $postParams = $this->params()->fromPost();
+        $searchController = $this->getServiceLocator()->get('searchController');
+        $viewData = $searchController->ajaxExtraResultsAction($postParams);
+
+        return $this->output($viewData, self::STATUS_OK);
+    }
+
     /**
      * Save chosen institutions to DB
      *
@@ -1566,7 +1575,6 @@ class AjaxController extends AjaxControllerBase
             return $this->forceLogin();
         }
 
-        $savedInstitutions = '';
         try {
             $userSettingsTable = $this->getTable("usersettings");
             $savedInstitutions = $userSettingsTable->getSavedInstitutions($user);
@@ -2460,6 +2468,9 @@ class AjaxController extends AjaxControllerBase
     protected function sortLinksByMyLibraries($htmlLinks)
     {
         $myLibs = $this->getUsersHomeLibraries();
+        $available = isset($this->getConfig()->Preferred_Institutions->list);
+        $preferred = ($available)? $this->getConfig()->Preferred_Institutions->list->toArray() : [];
+        $myLibs = array_merge($myLibs, $preferred);
 
         if (! empty($myLibs)) {
             $preferredLinks = [];
