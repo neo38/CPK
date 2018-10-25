@@ -81,7 +81,8 @@ $toRet = array(
  */
 
     $jsToInclude = [
-        'vendor/angular.js',
+        //'vendor/angular.js',
+        'vendor/angular.min.js',
 
         'ng-cpk/federative-login/module.js',
         'ng-cpk/federative-login/login.controller.js',

@@ -12,47 +12,24 @@ $toRet = array(
  *
  * @var boolean
  */
-$useCompiledAngular = false;
+    $jsToInclude = [
+        //'vendor/angular.js',
+        'vendor/angular.min.js',
 
-$angularForbiddenForIE = true;
+        'ng-cpk/federative-login/module.js',
+        'ng-cpk/federative-login/login.controller.js',
 
-if (!($angularForbiddenForIE && USES_IE)) {
+        'ng-cpk/admin/module.js',
+        'ng-cpk/admin/configurations/conf.controller.js',
 
-    if ($useCompiledAngular) {
+        'ng-cpk/history/module.js',
+        'ng-cpk/history/checkedouthistory.controller.js',
 
-        // Add compiled angular apps
-        array_push($toRet['js'], 'vendor/angular.min.js', 'ng-cpk/ng-cpk.min.js');
-    } else {
+        'ng-cpk/module.js',
+        'ng-cpk/global.controller.js',
+        'ng-cpk/translate.filter.js'
+    ];
 
-        $jsToInclude = [
+    $toRet['js'] = array_merge($toRet['js'], $jsToInclude);
 
-            'vendor/angular.min.js',
-
-            'ng-cpk/favorites/module.js',
-            'ng-cpk/favorites/favsNotifications.service.js',
-            'ng-cpk/favorites/favorite.class.js',
-            'ng-cpk/favorites/favorites.factory.js',
-            'ng-cpk/favorites/storage.service.js',
-            'ng-cpk/favorites/broadcaster.service.js',
-            'ng-cpk/favorites/list.controller.js',
-            'ng-cpk/favorites/record.controller.js',
-            'ng-cpk/favorites/search.controller.js',
-
-            'ng-cpk/federative-login/module.js',
-            'ng-cpk/federative-login/login.controller.js',
-
-            'ng-cpk/admin/module.js',
-            'ng-cpk/admin/configurations/conf.controller.js',
-
-            'ng-cpk/history/module.js',
-            'ng-cpk/history/checkedouthistory.controller.js',
-
-            'ng-cpk/module.js',
-            'ng-cpk/global.controller.js',
-            'ng-cpk/translate.filter.js'
-        ];
-
-        $toRet['js'] = array_merge($toRet['js'], $jsToInclude);
-    }
-}
-return $toRet;
+    return $toRet;
