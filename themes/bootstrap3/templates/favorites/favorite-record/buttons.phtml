@@ -2,7 +2,10 @@
    id='add-record-<?=$this->driver->getRecordIdHash()?>-to-favorites'
    rel='nofollow'
    data-recordId='<?=$this->driver->getUniqueID()?>'
-   class='add-record-to-favorites-link <?= in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>'
+   class='
+   add-record-to-favorites-link
+   <?= in_array($this->driver->getUniqueID(), $this->favorites) ? 'hidden' : '' ?>
+   '
     <?= $this->isLoggedIn  ? 'data-toggle="modal"' : '' ?>
     <?= $this->isLoggedIn  ? 'onclick="VuFind.openFavoriteRecordModal(\''.$this->driver->getUniqueID().'\', \''
         . htmlspecialchars($this->driver->getTitle()) . '\')"' : '' ?>

@@ -630,18 +630,25 @@ jQuery( document ).ready( function( $ ){
         stackup_spacing: 10
     };
 
+    /**
+     * Translate and Flash message
+     * @param String message
+     */
     VuFind.flashTranslation = function(message) {
         jQuery.bootstrapGrowl(VuFind.translate(message), VuFind.bootstrapGrowlOptions);
     };
-
+    /**
+     * Flash message without translating
+     * @param String message
+     */
     VuFind.flashMessage = function(message) {
         jQuery.bootstrapGrowl(message, VuFind.bootstrapGrowlOptions);
     };
 
     /**
      * Escape HTML
-     * @param string unsafeString
-     * @return string
+     * @param String unsafeString
+     * @return String
      */
     VuFind.escapeHtml = function(unsafeString) {
         return unsafeString

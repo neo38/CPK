@@ -1,4 +1,8 @@
 export default class User {
+    /**
+     * Returns whether user is logged in
+     * @return {Promise<any>}
+     */
     static isLoggedIn() {
         return new Promise((resolve, reject) => {
             fetch(

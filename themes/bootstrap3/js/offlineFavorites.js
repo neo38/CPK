@@ -1,3 +1,6 @@
+/**
+ * On page load render offline favorites
+ */
 document.addEventListener('DOMContentLoaded',() => {
     VuFind.renderOfflineFavorites();
 
@@ -18,8 +21,10 @@ document.addEventListener('DOMContentLoaded',() => {
     }
 });
 
+/**
+ * Delete selected favorites
+ */
 function deleteSelectedFavorites() {
-
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
 
     if (checkedBoxes.length > 1
@@ -42,6 +47,9 @@ function deleteSelectedFavorites() {
     });
 }
 
+/**
+ * Show emailFavoritesModal
+ */
 function emailSelectedFavorites() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
 
@@ -60,6 +68,9 @@ function emailSelectedFavorites() {
     jQuery(`#emailFavoritesModal`).modal('show');
 }
 
+/**
+ * Show ExportFavoritesModal
+ */
 function showExportFavoritesModal() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
 
@@ -107,6 +118,9 @@ function showExportFavoritesModal() {
     jQuery(`#exportFavoritesModal`).modal('show');
 }
 
+/**
+ * Print selected favorites
+ */
 function printSelectedFavorites() {
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
 
@@ -122,6 +136,10 @@ function printSelectedFavorites() {
     window.open(printLocation, '_blank').focus();
 }
 
+/**
+ * Select all favorites checkboxes
+ * @param Event source
+ */
 function selectAllFavorites(source) {
     let checkboxes = document.querySelectorAll('input[name="recordIds[]"]');
     for (let i = 0; i < checkboxes.length; i++) {
