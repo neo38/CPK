@@ -20,9 +20,12 @@
       </div>
       <div class='modal-body'>
         <div class='form-group'>
-          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'><?=$this->translate('Choose a List') ?></label>
+          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'>
+              <?=$this->translate('Choose a List') ?>
+          </label>
           <? if (! empty($this->favoritesLists)): ?>
-            <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>' class='control-label form-control select2Select'>
+            <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>'
+                    class='control-label form-control select2Select'>
               <? foreach ($this->favoritesLists as $list): ?>
                 <option value='<?=$list['id']?>'>
                   <?=htmlspecialchars($list['title'])?>
@@ -47,8 +50,11 @@
         <? if (! empty($this->favoritesLists)): ?>
           <br>
           <div class='form-group'>
-            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'><?=$this->translate('Add a Note') ?></label>
-            <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
+            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'>
+              <?=$this->translate('Add a Note') ?>
+            </label>
+            <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'>
+            </textarea>
           </div>
         <? endif; ?>
       </div>
@@ -56,7 +62,11 @@
         <button type='button'
                 class='btn btn-primary'
                 data-dismiss='modal'
-                onclick='VuFind.addToFavorites("<?=$this->driver->getUniqueID()?>", true, {searchClassId: "<?=$this->searchClassId?>"})'>
+                onclick='VuFind.addToFavorites(
+                    "<?=$this->driver->getUniqueID()?>",
+                    true,
+                    {searchClassId: "<?=$this->searchClassId?>"}
+                )'>
           <?= $this->translate('Add to favorites'); ?>
         </button>
       </div>

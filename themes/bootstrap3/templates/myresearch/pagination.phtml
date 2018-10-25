@@ -58,7 +58,11 @@
             <? if (isset($this->next)): ?>
               <? if (!isset($this->options['disableLast']) || !$this->options['disableLast']): ?>
                 <? if (! isset($this->pagesInRange[$this->pageCount])): ?>
-                  <li><a href="<?=$baseHref?>?page=<?=$this->pageCount?><?=$sort?>"><?=$this->localizedNumber($this->pageCount)?></a></li>
+                  <li>
+                    <a href="<?=$baseHref?>?page=<?=$this->pageCount?><?=$sort?>">
+                      <?=$this->localizedNumber($this->pageCount)?>
+                    </a>
+                  </li>
                 <? endif; ?>
               <? endif; ?>
             <? endif; ?>
@@ -66,10 +70,13 @@
       </div>
 
       <div class='col-md-2'>
-          <ul class="pagination" style='float: right'>
+          <ul class="pagination" class='pull-right'>
             <? if (isset($this->next)): ?>
-              <li style='float: right;'><a href="<?=$baseHref?>?page=<?=$this->next?><?=$sort?>"><?=$this->transEsc('Next');?> <i class="pr-interface-arrowright"></i>
-    </a></li>
+              <li class='pull-right'>
+                <a href="<?=$baseHref?>?page=<?=$this->next?><?=$sort?>">
+                  <?=$this->transEsc('Next');?> <i class="pr-interface-arrowright"></i>
+                </a>
+              </li>
             <? endif; ?>
           </ul>
       </div>

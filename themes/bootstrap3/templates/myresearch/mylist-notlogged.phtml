@@ -33,9 +33,15 @@
               <span class='caret'></span>
             </button>
             <ul class='dropdown-menu' aria-labelledby='offline-favorites-sort'>
-              <li><a onclick='VuFind.sortOfflineFavoritesBy("created")'><?=$this->transEsc('By addition time')?></a></li>
-              <li><a onclick='VuFind.sortOfflineFavoritesBy("author")'><?=$this->transEsc('By Author')?></a></li>
-              <li><a onclick='VuFind.sortOfflineFavoritesBy("title")'><?=$this->transEsc('By Title')?></a></li>
+              <li>
+                <a onclick='VuFind.sortOfflineFavoritesBy("created")'><?=$this->transEsc('By addition time')?></a>
+              </li>
+              <li>
+                <a onclick='VuFind.sortOfflineFavoritesBy("author")'><?=$this->transEsc('By Author')?></a>
+              </li>
+              <li>
+                <a onclick='VuFind.sortOfflineFavoritesBy("title")'><?=$this->transEsc('By Title')?></a>
+              </li>
             </ul>
           </div>
         </div>

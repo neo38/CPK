@@ -288,12 +288,18 @@
             <span class='save-basic-search-results'>
               <? if (is_numeric($this->results->getSearchId())): ?>
                   <? if ($this->results->isSavedSearch()): ?>
-                      <a class="save-search-link data-search-id" id='remove-from-saved-searches' data-search-id='<?=urlencode($this->results->getSearchId())?>' title='<?=$this->translate('Delete saved search')?>'>
+                      <a class='save-search-link data-search-id'
+                         id='remove-from-saved-searches'
+                         data-search-id='<?=urlencode($this->results->getSearchId())?>'
+                         title='<?=$this->translate('Delete saved search')?>'>
                           <?=$this->translate('Delete saved search')?>
                       </a>
                   <? else: ?>
-                      <a class="save-search-link data-search-id" id='add-to-saved-searches' data-search-id='<?=urlencode($this->results->getSearchId())?>' title='<?=$this->translate('Save search')?>'>
-                          <i class="pr-web-downloadarrow"></i>
+                      <a class='save-search-link data-search-id'
+                         id='add-to-saved-searches'
+                         data-search-id='<?=urlencode($this->results->getSearchId())?>'
+                         title='<?=$this->translate('Save search')?>'>
+                          <i class='pr-web-downloadarrow'></i>
                           <span><?=$this->translate('Save search')?></span>
                       </a>
                   <? endif; ?>

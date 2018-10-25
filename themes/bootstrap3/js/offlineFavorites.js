@@ -22,11 +22,13 @@ function deleteSelectedFavorites() {
 
     let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
 
-    if (checkedBoxes.length > 1 && ! window.confirm(VuFind.translate('Do you really want to delete selected records from favorites?'))) {
+    if (checkedBoxes.length > 1
+        && ! window.confirm(VuFind.translate('Do you really want to delete selected records from favorites?'))) {
         return;
     }
 
-    if (checkedBoxes.length == 1 && ! window.confirm(VuFind.translate('Do you really want to delete record from favorites?'))) {
+    if (checkedBoxes.length == 1
+        && ! window.confirm(VuFind.translate('Do you really want to delete record from favorites?'))) {
         return;
     }
 
@@ -49,7 +51,9 @@ function emailSelectedFavorites() {
 
     let html = '';
     checkedBoxes.forEach((checkbox) => {
-        html += `<input type='hidden' name='ids[]' value='${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}'>`;
+        html += `<input type='hidden' 
+                        name='ids[]' 
+                        value='${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}'>`;
     });
     document.querySelector('#email-ids-container').innerHTML = html;
 
