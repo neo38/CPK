@@ -27,8 +27,6 @@
 * Do GA se pripisuje pouze klik na Pridani do oblibenych ve vysledcich vyhledavani. Ne v uplnem zobrazeni ani v profilu,
 * a take na odstraneni z oblibenych ani zadne dalsi akce s Oblibenymi.
 *
-* Export oblibenych do souboru se renderuje spatne
-*
 * Je potreba upravit sablonu stranky, na ktere se zobrazuji Oblibene odeslane emailem. Napr.:
 * https://knihovny.cz/Records/Home?email=1&id%5B%5D=Solr%7Cvkol.SVK01-001162058&id%5B%5D=Solr%7Csvkpk.PNA01-000701007
 *
@@ -493,6 +491,50 @@ export default class Favorites {
                 console.error(status);
                 console.error(error);
                 VuFind.flashTranslation('could_not_send_favorites');
+            }
+        });
+    }
+
+    static exportOfflineFavorites() {
+        let formatElement = document.querySelector('#favorites-export-options');
+        let format = formatElement.options[formatElement.selectedIndex].value;
+
+        let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
+
+        let ids = [];
+        checkedBoxes.forEach((checkbox) => {
+            ids.push(`${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}`);
+        });
+
+        jQuery.ajax({
+            type: 'POST',
+            cache: false,
+            url: '/AJAX/JSON?method=exportOfflineFavorites',
+            dataType: 'json',
+            data: {format, ids},
+            beforeSend: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'wait';
+            },
+            success: function( response ) {
+                if (response.status == 200) {
+                    VuFind.flashTranslation('export_success');
+                    document.querySelector('#favorites-export-file-container').innerHTML = response.data.html;
+                } else if (response.status == 307) {
+                    let tab = window.open(response.data.redirection_link, '_blank');
+                    if (tab) {
+                        tab.focus();
+                    }
+                }
+            },
+            complete: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'default';
+            },
+            error: function ( xmlHttpRequest, status, error ) {
+                console.error(xmlHttpRequest);
+                console.error(status);
+                console.error(error);
             }
         });
     }

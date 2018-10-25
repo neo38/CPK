@@ -2,7 +2,7 @@
 <div class='modal fade' id='exportFavoritesModal' tabindex='-1' role='dialog' aria-labelledby='exportFavoritesLabel'>
   <div class='modal-dialog' role='document'>
     <div class='modal-content'>
-      <form action='/Cart/Export' method='post'>
+      <form>
           <div id='export-ids-container'>
           </div>
           <div class='modal-header'>
@@ -15,16 +15,19 @@
 
             <div class='form-group'>
               <label class='control-label' for='exportFormat'><?=$this->translate('Format') ?></label>
-              <select name='format' class='form-control'>
-                <? foreach ($this->exportOptions as $exportOption): ?>
-                  <option value='<?=$exportOption?>'><?=$this->translate($exportOption)?></option>
-                <? endforeach; ?>
+              <select class='form-control' id='favorites-export-options'>
               </select>
+            </div>
+
+            <div id='favorites-export-file-container'>
             </div>
 
           </div>
           <div class='modal-footer'>
-            <input type='submit' class='btn btn-primary' name='submit' value='<?=$this->translate('Export')?>'>
+            <input type='button'
+                   class='btn btn-primary'
+                   onclick='VuFind.exportOfflineFavorites()'
+                   value='<?=$this->translate('Export')?>'>
           </div>
       </form>
     </div>

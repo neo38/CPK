@@ -2725,4 +2725,42 @@ class AjaxController extends AjaxControllerBase
             return $this->output(['message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Get available export options for given records
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function getAvailableExportOptionsAjax()
+    {
+        $records = $this->getRecordLoader()->loadBatch($this->params()->fromPost('ids'));
+        $export = $this->getServiceLocator()->get('VuFind\Export');
+        return $this->output(['exportOptions' => $export->getFormatsForRecords($records)], 200);
+    }
+
+    /**
+     * Export selected offline favorites
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function exportOfflineFavoritesAjax()
+    {
+        $format = $this->params()->fromPost('format');
+        $export = $this->getServiceLocator()->get('VuFind\Export');
+
+        $url = $export->getBulkUrl(
+            $this->getViewRenderer(),
+            $format,
+            $this->params()->fromPost('ids'));
+
+        if ($export->needsRedirect($format)) {
+            return $this->output(['redirection_link' => $url], 307);
+        }
+
+        $html = $this->getViewRenderer()->render(
+            'cart/export-success.phtml', ['url' => $url]
+        );
+
+        return $this->output(['html' => $html], 200);
+    }
 }

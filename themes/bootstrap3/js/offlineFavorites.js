@@ -63,6 +63,43 @@ function showExportFavoritesModal() {
         return;
     }
 
+    let ids = [];
+    checkedBoxes.forEach((checkbox) => {
+        ids.push(`${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}`);
+    });
+
+    jQuery.ajax({
+        type: 'POST',
+        cache: false,
+        url: '/AJAX/JSON?method=getAvailableExportOptions',
+        dataType: 'json',
+        data: {ids},
+        beforeSend: function() {
+            let bodyElement = document.getElementsByTagName('body')[0];
+            bodyElement.style.cursor = 'wait';
+        },
+        success: function( response ) {
+            if (response.status == 200) {
+                let html = '';
+                response.data.exportOptions.forEach((option) => {
+                    html += `<option value='${option}'>${VuFind.translate(option)}</option>`;
+                });
+                document.querySelector('#favorites-export-options').innerHTML = html;
+            }
+        },
+        complete: function() {
+            let bodyElement = document.getElementsByTagName('body')[0];
+            bodyElement.style.cursor = 'default';
+        },
+        error: function ( xmlHttpRequest, status, error ) {
+            console.error(xmlHttpRequest);
+            console.error(status);
+            console.error(error);
+        }
+    });
+
+    document.querySelector('#favorites-export-file-container').innerHTML = '';
+
     jQuery(`#exportFavoritesModal`).modal('show');
 }
 
