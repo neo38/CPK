@@ -49,6 +49,11 @@ export default class Favorites {
         return SEARCH_TYPE;
     }
 
+    /**
+     * Open FavoriteRecordModal
+     * @param String recordId
+     * @param String title
+     */
     static openFavoriteRecordModal(recordId, title) {
         let recordHash = Favorites.getRecordIdHash(recordId);
 
@@ -61,6 +66,9 @@ export default class Favorites {
         jQuery(`#favoriteModalForRecord${recordHash}`).modal('show');
     };
 
+    /**
+     * Open FavoriteSearchModal
+     */
     static openFavoriteSearchModal() {
         let lookForElement = undefined;
         if (lookForElement = document.getElementsByName('last_searched_lookfor0')[0]) {
@@ -74,6 +82,13 @@ export default class Favorites {
         jQuery(`#favoriteModalForSearch`).modal('show');
     };
 
+    /**
+     * Save record to favorites
+     * @param String recordId
+     * @param Integer listId
+     * @param String note
+     * @param Object recordData
+     */
     static saveRecord(recordId, listId = undefined, note = undefined, recordData = undefined) {
         let alreadyInFavorites = false;
 
@@ -166,6 +181,9 @@ export default class Favorites {
             });
     }
 
+    /**
+     * Add search results to favorites
+     */
     static addSearchToFavorites() {
         $.ajax({
             type: 'POST',
@@ -202,6 +220,13 @@ export default class Favorites {
         });
     }
 
+    /**
+     * Remove record from favorites
+     * @param String recordId
+     * @param String searchClassId
+     * @param String removeElementId
+     * @param Boolean showConfirmation
+     */
     static removeRecord(recordId, searchClassId, removeElementId = false, showConfirmation = true) {
         if (showConfirmation && ! window.confirm(VuFind.translate('Do you really want to delete record from favorites?'))) {
             return;
@@ -270,13 +295,17 @@ export default class Favorites {
     }
 
     /**
-     * Save favorites to session
-     * @param array favorites
+     * Save offline favorites to session storage
+     * @param Array favorites
      */
     static saveFavoritesToSession(favorites) {
         sessionStorage.setItem('favorites', JSON.stringify(favorites));
     }
 
+    /**
+     * Get offline favorites from session storage
+     * @return Array favorites
+     */
     static getSessionFavorites() {
         let favorites = JSON.parse(sessionStorage.getItem('favorites'));
 
@@ -287,6 +316,10 @@ export default class Favorites {
         return favorites;
     }
 
+    /**
+     * Swap buttons
+     * @param String recordId
+     */
     static swapButtons(recordId)
     {
         let recordHash = Favorites.getRecordIdHash(recordId);
@@ -304,6 +337,11 @@ export default class Favorites {
         }
     }
 
+    /**
+     * Get sanitized record ID
+     * @param String recordId
+     * @return String
+     */
     static getRecordIdHash(recordId)
     {
         return recordId.replace(/[^A-Za-z0-9 ]/g, '');
@@ -428,8 +466,8 @@ export default class Favorites {
 
      /**
      * Sort session favorites
-     * @param string param [title|author|created]
-     * @return array Sorted Favorites
+     * @param String param [title|author|created]
+     * @return Array Sorted Favorites
      */
     static sortFavoritesBy(param) {
         if (['title', 'author'].includes(param)) {
@@ -445,6 +483,10 @@ export default class Favorites {
         }
     }
 
+    /**
+     * Send favorites via email
+     * @return {boolean}
+     */
     static sendFavoritesViaEmail() {
         let to = document.querySelector('#email-favorites-to').value;
         let from = document.querySelector('#email-favorites-from').value;
@@ -495,6 +537,9 @@ export default class Favorites {
         });
     }
 
+    /**
+     * Export offline favorites
+     */
     static exportOfflineFavorites() {
         let formatElement = document.querySelector('#favorites-export-options');
         let format = formatElement.options[formatElement.selectedIndex].value;
