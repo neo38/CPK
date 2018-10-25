@@ -5,12 +5,15 @@
 * Install Babel - https://babeljs.io/setup#installation
 * Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
 * Sort offline favorites ASC/DESC
-* Vytvoreni noveho seznamu udelat do modalu. Pri otevreni modalu pro pridani Oblibenych nacitat seznam asynchronne, protoze kdyz si vytvorim seznam a pridam
+* Vytvoreni noveho seznamu udelat do modalu. Pri otevreni modalu pro pridani Oblibenych nacitat seznam asynchronne,
+* protoze kdyz si vytvorim seznam a pridam
 * zaznam, zavru a pak pridam dalsi, vidim porad stare seznamy nactene z PHP on page load.
+* Pridat strankovani
 *
 * @REFACTORING
 * Nekdy se pri XHR dotazu pouziva jQuery, protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA,
 * takze axios a fetchAPI standardne nefunguje. Prepsat do JS fetch API a konvertovat zasilana data do FORM data podoby.
+* Zkusit pomoci new FormData() https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
 *
 * @FIXME
 * Kdyz je uzivatel po delsi dobe odhlasen a reloaduje vysledky, pak se uklada do SessionStorage,
@@ -24,9 +27,13 @@
 * Do GA se pripisuje pouze klik na Pridani do oblibenych ve vysledcich vyhledavani. Ne v uplnem zobrazeni ani v profilu,
 * a take na odstraneni z oblibenych ani zadne dalsi akce s Oblibenymi.
 *
-* @TODO
 * Export oblibenych do souboru se renderuje spatne
-* Odesilat oblibene emailem
+*
+* Je potreba upravit sablonu stranky, na ktere se zobrazuji Oblibene odeslane emailem. Napr.:
+* https://knihovny.cz/Records/Home?email=1&id%5B%5D=Solr%7Cvkol.SVK01-001162058&id%5B%5D=Solr%7Csvkpk.PNA01-000701007
+*
+* @TODO
+* Kontrola compare pull request
 */
 
 import User from './User.js';
@@ -84,7 +91,7 @@ export default class Favorites {
                         searchClassId: recordData.searchClassId,
                         created: new Date().getTime(),
                     },
-                    beforeSend() {
+                    beforeSend: function() {
                         let bodyElement = document.getElementsByTagName('body')[0];
                         bodyElement.style.cursor = 'wait';
                     },
@@ -96,7 +103,7 @@ export default class Favorites {
                             VuFind.flashTranslation('could_not_save_record_to_favorites');
                         }
                     },
-                    complete() {
+                    complete: function() {
                         let bodyElement = document.getElementsByTagName('body')[0];
                         bodyElement.style.cursor = 'default';
                     },
@@ -172,7 +179,7 @@ export default class Favorites {
                 searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
                 title: document.getElementById('newFavoritesListTitle').value,
             },
-            beforeSend() {
+            beforeSend: function() {
                 let bodyElement = document.getElementsByTagName('body')[0];
                 bodyElement.style.cursor = 'wait';
             },
@@ -186,7 +193,7 @@ export default class Favorites {
                     VuFind.flashTranslation('could_not_save_search_results_to_favorites');
                 }
             },
-            complete() {
+            complete: function() {
                 let bodyElement = document.getElementsByTagName('body')[0];
                 bodyElement.style.cursor = 'default';
             },
@@ -214,7 +221,7 @@ export default class Favorites {
                     data: {
                         recordId, searchClassId
                     },
-                    beforeSend() {
+                    beforeSend: function() {
                         let bodyElement = document.getElementsByTagName('body')[0];
                         bodyElement.style.cursor = 'wait';
                     },
@@ -229,7 +236,7 @@ export default class Favorites {
                             VuFind.flashTranslation('could_not_remove_record_from_favorites');
                         }
                     },
-                    complete() {
+                    complete: function() {
                         let bodyElement = document.getElementsByTagName('body')[0];
                         bodyElement.style.cursor = 'default';
                     },
@@ -438,5 +445,55 @@ export default class Favorites {
                 Favorites.getSessionFavorites().sort((a, b) => a[param] - b[param])
             );
         }
+    }
+
+    static sendFavoritesViaEmail() {
+        let to = document.querySelector('#email-favorites-to').value;
+        let from = document.querySelector('#email-favorites-from').value;
+        let message = document.querySelector('#email-favorites-message').value;
+
+        let checkedBoxes = document.querySelectorAll('input[name="recordIds[]"]:checked');
+
+        let ids = [];
+        checkedBoxes.forEach((checkbox) => {
+            ids.push(`${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}`);
+        });
+
+        if (!ids || !to || !from) {
+            VuFind.flashTranslation('required fields not filled');
+            return false;
+        }
+
+        jQuery.ajax({
+            type: 'POST',
+            cache: false,
+            url: '/AJAX/JSON?method=sendFavoritesViaEmail',
+            dataType: 'json',
+            data: {to, from, message, ids},
+            beforeSend: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'wait';
+            },
+            success: function( response ) {
+                if (response.status == 200) {
+                    VuFind.flashTranslation('Email sent');
+                    jQuery(`#emailFavoritesModal`).modal('hide' );
+                } else if (response.status == 400) {
+                    VuFind.flashTranslation(response.data.message);
+                } else {
+                    VuFind.flashTranslation('could_not_send_favorites');
+                }
+            },
+            complete: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'default';
+            },
+            error: function ( xmlHttpRequest, status, error ) {
+                console.error(xmlHttpRequest);
+                console.error(status);
+                console.error(error);
+                VuFind.flashTranslation('could_not_send_favorites');
+            }
+        });
     }
 }

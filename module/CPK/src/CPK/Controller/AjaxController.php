@@ -2682,4 +2682,47 @@ class AjaxController extends AjaxControllerBase
 
         return $this->output([], 200);
     }
+
+    /**
+     * Send favorites via email
+     * @return \Zend\Http\Response
+     * @throws \Exception
+     */
+    public function sendFavoritesViaEmailAjax()
+    {
+        if (! ($this->recaptcha()->active('email') || $this->recaptcha()->validate())) {
+            return $this->output(['message' => 'recaptcha is not valid'], 400);
+        }
+
+        $ids = $this->params()->fromPost('ids');
+        $to = $this->params()->fromPost('to');
+        $from = $this->params()->fromPost('from');
+        $message = $this->params()->fromPost('message');
+
+        if (empty($ids) || empty($to) || empty($from)) {
+            return $this->output(['message' => 'required fields not filled', 400]);
+        }
+
+        // Build the URL to share:
+        $params = [];
+        foreach ($ids as $current) {
+            $params[] = urlencode('id[]') . '=' . urlencode($current);
+        }
+        $url = $this->getServerUrl('records-home') . '?email=1&' . implode('&', $params);
+
+        // Attempt to send the email and show an appropriate flash message:
+        try {
+            // If we got this far, we're ready to send the email:
+            $mailer = $this->getServiceLocator()->get('VuFind\Mailer');
+            $cc = $this->params()->fromPost('ccself') && $from != $to
+                ? $from : null;
+            $mailer->sendLink(
+                $to, $from, $message,
+                $url, $this->getViewRenderer(), $this->translate('bulk_email_title'), $cc
+            );
+            return $this->output([], 200);
+        } catch (MailException $e) {
+            return $this->output(['message' => $e->getMessage()], 500);
+        }
+    }
 }

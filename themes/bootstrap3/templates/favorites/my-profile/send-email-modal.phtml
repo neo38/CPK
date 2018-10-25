@@ -1,0 +1,45 @@
+<!-- Modal -->
+<div class='modal fade' id='emailFavoritesModal' tabindex='-1' role='dialog' aria-labelledby='emailFavoritesModalLabel'>
+  <div class='modal-dialog' role='document'>
+    <div class='modal-content'>
+      <form method='post'>
+          <div id='email-ids-container'>
+          </div>
+          <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+              <span aria-hidden='true'>&times;</span>
+            </button>
+            <h4 class='modal-title' id='emailFavoritesModalLabel'><?=$this->translate('Send via email')?></h4>
+          </div>
+          <div class='modal-body'>
+
+            <div class='form-group'>
+              <label class='control-label' for='exportFormat'><?=$this->translate('Email to') ?>*</label>
+              <input id='email-favorites-to' type='email' name='to' class='form-control' required>
+            </div>
+
+            <div class='form-group'>
+              <label class='control-label' for='exportFormat'><?=$this->translate('From') ?>*</label>
+              <input id='email-favorites-from' type='email' name='from' class='form-control' required>
+            </div>
+
+            <div class='form-group'>
+              <label class='control-label' for='exportFormat'><?=$this->translate('Message') ?></label>
+              <textarea id='email-favorites-message' name='message' class='form-control' rows='4'></textarea>
+            </div>
+
+            <div class='form-group'>
+              <?=$this->recaptcha()->html($this->useRecaptcha) ?>
+            </div>
+
+          </div>
+          <div class='modal-footer'>
+            <input type='button'
+                   class='btn btn-primary'
+                   onclick='VuFind.sendFavoritesViaEmail()'
+                   value='<?=$this->translate('Send')?>'>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>

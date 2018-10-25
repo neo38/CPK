@@ -645,7 +645,8 @@ class MyResearchController extends MyResearchControllerBase
 
             return $this->createViewModel([
                 'loggedIn' => false,
-                'exportOptions' => explode(':', $exportOptions)
+                'exportOptions' => explode(':', $exportOptions),
+                'useRecaptcha' => $this->recaptcha()->active('email'),
             ]);
         } else {
             // Nope, let's behave the old-style :)

@@ -59,6 +59,8 @@ VuFind.sortOfflineFavoritesBy = (param) => {
 
 VuFind.renderOfflineFavorites = () => Favorites.renderOfflineFavorites();
 
+VuFind.sendFavoritesViaEmail = () => Favorites.sendFavoritesViaEmail();
+
 document.addEventListener('DOMContentLoaded', function() {
     let mainContainerElement = document.getElementById('main-container')
     if (mainContainerElement) {

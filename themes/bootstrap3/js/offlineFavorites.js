@@ -47,9 +47,13 @@ function emailSelectedFavorites() {
         return;
     }
 
+    let html = '';
     checkedBoxes.forEach((checkbox) => {
-        //
+        html += `<input type='hidden' name='ids[]' value='${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}'>`;
     });
+    document.querySelector('#email-ids-container').innerHTML = html;
+
+    jQuery(`#emailFavoritesModal`).modal('show');
 }
 
 function showExportFavoritesModal() {
@@ -58,12 +62,6 @@ function showExportFavoritesModal() {
     if (checkedBoxes.length == 0) {
         return;
     }
-
-    let html = '';
-    checkedBoxes.forEach((checkbox) => {
-        html += `<input type='hidden' name='ids[]' value='${checkbox.getAttribute('data-search-class-id')}|${checkbox.value}'>`;
-    });
-    document.querySelector('#export-ids-container').innerHTML = html;
 
     jQuery(`#exportFavoritesModal`).modal('show');
 }

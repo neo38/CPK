@@ -349,6 +349,10 @@ class AbstractSearch extends AbstractBase
         //if we show results from email message
         $view->fromEmailSearch = $this->fromEmailSearch;
 
+        // Get favorites
+        $view->favorites      = $user ? $user->getFavorites() : [];
+        $view->favoritesLists = $user ? $user->getFavoritesLists() : [];
+
         return $view;
     }
 
