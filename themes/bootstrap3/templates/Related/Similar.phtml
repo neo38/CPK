@@ -1,75 +1,90 @@
-<? if(! ($this->driver instanceof CPK\RecordDriver\SolrAuthority)): ?>
-    <h4 class='similar-items-header'><?=$this->transEsc('Similar Items')?></h4>
-    <? $similarRecords = $this->related->getResults(); ?>
-    <? if (!empty($similarRecords)): ?>
-      <div class='similar-items-container list-group'>
-        <? foreach ($similarRecords as $similarRecordDriver): ?>
+<? if ( ! ($this->driver instanceof CPK\RecordDriver\SolrAuthority)): ?>
+  <h4 class="similar-items-header"><?= $this->transEsc('Similar Items') ?></h4>
+  <? $similarRecords = $this->related->getResults(); ?>
+  <? if ( ! empty($similarRecords)): ?>
+    <div class="similar-items-container list-group">
+      <? foreach ($similarRecords as $similarRecordDriver): ?>
 
-            <?
-              $recordId = $similarRecordDriver->getUniqueID();
-              $formats = $similarRecordDriver->getFormats();
-              $format = empty($formats) ? '' : $formats[0];
-              if (empty($lookfor)) {
-                  $lookfor = $this->record($similarRecordDriver)->getObalkyKnihAdvert('record');
-              }
-              $similarRecordUrl = $this->recordLink()->getUrl($similarRecordDriver)."?referer=".$this->referer;
-            ?>
-        	<div class="row list-group-item clearfix">
-              <? if(! ($this->driver instanceof CPK\RecordDriver\SolrLibrary)): ?>
-              <div class="col-xs-12 col-sm-12 col-md-12 col-lg-3 similar-item">
-    			<? $recordId =  preg_replace("/\./", "", $recordId)?>
-                    <? $recordId =  preg_replace("/:/", "", $recordId)?>
-              		<a href='<?=$this->recordLink()->getUrl($similarRecordDriver)?><?="?referer=".$this->referer?>' title='<?=$this->escapeHtml($similarRecordDriver->getTitle())?> (<?=$this->translate($format)?>)' class="coverThumbnail cover_<?=$recordId?>" tabindex='-1'>
-                        <? if ($bibinfo = $this->record($similarRecordDriver)->getObalkyKnihJSONV3()): ?>
-                            <script type="text/javascript">
-                                obalky.display_thumbnail_cover_without_links(".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($lookfor)?>);
-                            </script>
-                        <? endif;?>
+        <?
+        $recordId = $similarRecordDriver->getUniqueID();
+        $formats  = $similarRecordDriver->getFormats();
+        $format   = empty($formats) ? '' : $formats[0];
+        if (empty($lookfor)) {
+          $lookfor = $this->record($similarRecordDriver)->getObalkyKnihAdvert('record');
+        }
+        $similarRecordUrl = $this->recordLink()->getUrl($similarRecordDriver)."?referer=".$this->referer;
+        ?>
+        <div class="row list-group-item clearfix">
+          <? if ( ! ($this->driver instanceof CPK\RecordDriver\SolrLibrary)): ?>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-3 similar-item">
+              <? $recordId = preg_replace("/\./", "", $recordId) ?>
+              <? $recordId = preg_replace("/:/", "", $recordId) ?>
+              <a href="<?= $this->recordLink()->getUrl($similarRecordDriver) ?><?= "?referer=".$this->referer ?>"
+                 title="<?= $this->escapeHtml($similarRecordDriver->getTitle()) ?> (<?= $this->translate($format) ?>)"
+                 class="coverThumbnail cover_<?= $recordId ?>"
+                 tabindex="-1">
+                <? if ($bibinfo = $this->record($similarRecordDriver)->getObalkyKnihJSONV3()): ?>
+                  <script type="text/javascript">
+                    obalky.display_thumbnail_cover_without_links(
+                      ".cover_<?=$recordId?>", <?=$bibinfo?>, <?=json_encode($lookfor)?>);
+                  </script>
+                <? endif; ?>
 
-                        <? if (! empty($formats)): ?>
-                            <div class="iconlabel"><i style='font-size: 300%; color: #CCCCCC;' class="pr-format-<?=$this->record($similarRecordDriver)->getFormatClass($format)?>"></i></div>
-                        <? elseif ($summThumb = $this->record($similarRecordDriver)->getThumbnail('small')): ?>
-                            <img class="recordcover" src="<?=$this->escapeHtmlAttr($summThumb)?>" alt="<?=$this->transEsc('Cover Image')?>"/>
-                        <? else: ?>
-                            <img class="recordcover" src="<?=$this->url('cover-unavailable')?>" alt="<?=$this->transEsc('No Cover Image')?>"/>
-                        <? endif; ?>
+                <? if ( ! empty($formats)): ?>
+                  <div class="iconlabel">
+                    <i class="pr-format-<?= $this->record($similarRecordDriver)->getFormatClass($format) ?> similar"></i>
+                  </div>
+                <? elseif ($summThumb = $this->record($similarRecordDriver)->getThumbnail('small')): ?>
+                  <img class="recordcover"
+                       src="<?= $this->escapeHtmlAttr($summThumb) ?>"
+                       alt="<?= $this->transEsc('Cover Image') ?>" />
+                <? else: ?>
+                  <img class="recordcover"
+                       src="<?= $this->url('cover-unavailable') ?>"
+                       alt="<?= $this->transEsc('No Cover Image') ?>" />
+                <? endif; ?>
 
-                    </a>
-              </div>
+              </a>
+            </div>
+          <? endif; ?>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-9 similar-item content">
+            <h5 class="list-group-item-heading">
+              <? $similarRecordUrlTitle = $similarRecordDriver->getTitle() ?>
+              <a href="<?= $similarRecordUrl ?>"
+                 title="<?= $this->escapeHtml($similarRecordUrlTitle) ?> (<?= $this->translate($format) ?>)">
+                <strong><?= $this->escapeHtml($similarRecordUrlTitle) ?></strong>
+              </a>
+              <? if ($similarRecordDriver instanceof CPK\RecordDriver\SolrLibrary): ?>
+                <? $similarLibraryName = $similarRecordDriver->getLibraryNames() ?>
+                <a href="<?= $similarRecordUrl ?>"
+                   title="<?= $this->escapeHtml($similarLibraryName) ?> (<?= $this->escapeHtml($similarRecordDriver->getSigla()) ?>)">
+                  <strong><?= $this->escapeHtml($similarLibraryName) ?></strong>
+                </a>
               <? endif; ?>
-              <div class="col-xs-12 col-sm-12 col-md-12 col-lg-9 similar-item content">
-                <h5 class="list-group-item-heading">
-                  <a href='<?=$similarRecordUrl?>'
-                    	title='<?=$this->escapeHtml($similarRecordDriver->getTitle())?> (<?=$this->translate($format)?>)'>
-                    <strong><?=$this->escapeHtml($similarRecordDriver->getTitle())?></strong>
-                  </a>
-                  <? if ($similarRecordDriver instanceof CPK\RecordDriver\SolrLibrary): ?>
-                  <a href='<?=$similarRecordUrl?>'
-                     title='<?=$this->escapeHtml($similarRecordDriver->getLibraryNames())?> (<?=$this->escapeHtml($similarRecordDriver->getSigla())?>)'>
-                      <strong><?=$this->escapeHtml($similarRecordDriver->getLibraryNames())?></strong>
-                  </a>
-                  <? endif; ?>
-                </h5>
-                <p class="list-group-item-text">
-                  <!--
-                  <? $pubDates = $similarRecordDriver->getPublicationDates(); if (!empty($pubDates)): ?>
-                    <?=$this->escapeHtml($pubDates[0])?>
-                  <? endif; ?>
-                  -->
-                  <? $author = $similarRecordDriver->getPrimaryAuthor(); if (!empty($author)): ?>
-                    <?=$this->escapeHtml($author)?>
-                  <? endif; ?>
-                  <? if ($similarRecordDriver instanceof CPK\RecordDriver\SolrLibrary): ?>
-                  <? $addresses = $similarRecordDriver->getLibraryAddress(); if (!empty($addresses)): ?>
-                      <? foreach ($addresses as $address): ?><?= $this->escapeHtml($address)?><br/><? endforeach; ?>
-                  <? endif; ?>
-                  <? endif; ?>
-                </p>
-              </div>
+            </h5>
+            <p class="list-group-item-text">
+              <!--
+              <? $pubDates = $similarRecordDriver->getPublicationDates();
+                if ( ! empty($pubDates)): ?>
+                  <?= $this->escapeHtml($pubDates[0]) ?>
+                <? endif; ?>
+              -->
+              <? $author = $similarRecordDriver->getPrimaryAuthor();
+                if ( ! empty($author)): ?>
+                  <?= $this->escapeHtml($author) ?>
+                <? endif; ?>
+              <? if ($similarRecordDriver instanceof CPK\RecordDriver\SolrLibrary): ?>
+                <? $addresses = $similarRecordDriver->getLibraryAddress();
+                if ( ! empty($addresses)): ?>
+                  <? foreach ($addresses as $address): ?><?= $this->escapeHtml($address) ?><br /><? endforeach; ?>
+                <? endif; ?>
+              <? endif; ?>
+            </p>
           </div>
-        <? endforeach; ?>
-      </div>
-    <? else: ?>
-      <p><?=$this->transEsc('Cannot find similar records')?></p>
-    <? endif; ?>
+        </div>
+      <? endforeach; ?>
+    </div>
+  <? else: ?>
+    <p><?= $this->transEsc('Cannot find similar records') ?></p>
+  <? endif; ?>
 <? endif; ?>
