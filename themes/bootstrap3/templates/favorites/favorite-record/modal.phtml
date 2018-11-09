@@ -38,6 +38,9 @@
         <div>
           <a class='btn btn-link'
              id='create-favorite-list'
+             href='<?= "/MyResearch/EditList/NEW?"
+                  . "recordId=" . $this->driver->getUniqueId()
+                  . "&recordSource=" . $this->searchClassId ?>'
              title='<?= empty($this->favoritesLists)
                  ? $this->translate('Create a List')
                  : $this->translate('or create a new list') ?>'>
