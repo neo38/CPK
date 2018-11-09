@@ -528,8 +528,10 @@ jQuery( document ).ready( function( $ ) {
                             $('#remove-from-saved-searches').attr('title', VuFind.translate('Save search'));
                             $('#remove-from-saved-searches').text(VuFind.translate('Save search'));
                             $('#remove-from-saved-searches').attr('id', 'add-to-saved-searches');
-                            document.getElementById('favoriteModalForSearch')
-                                .setAttribute('data-search-id', responseData.searchId);
+                            let favoriteModalForSearch = false;
+                            if (favoriteModalForSearch = document.getElementById('favoriteModalForSearch')) {
+                                favoriteModalForSearch.setAttribute('data-search-id', responseData.searchId);
+                            }
 
                             $(' #flashedMessage div .alert').hide('blind', {}, 500);
 
