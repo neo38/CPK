@@ -273,22 +273,20 @@ export default class Favorites {
                 /* Remove from SessionStorage */
                 let favorites = Favorites.getSessionFavorites();
 
-                if (favorites.length > 0) {
-                    favorites = favorites.filter((favorite) => favorite.recordId != recordId)
+                favorites = favorites.filter((favorite) => favorite.recordId != recordId);
 
-                    if (removeElementId) {
-                        document.querySelector(`#${removeElementId}`).outerHTML = '';
-                    }
-
-                    /* Chceck if there are any favorites left */
-                    if (favorites.length == 0 && /\/MyResearch\/Favorites/.test(window.location.href)) {
-                        Favorites.renderOfflineFavorites();
-                    }
+                if (removeElementId) {
+                    document.querySelector(`#${removeElementId}`).outerHTML = '';
                 }
 
                 Favorites.saveFavoritesToSession(favorites);
 
                 Favorites.swapButtons(recordId);
+
+                /* Chceck if there are any favorites left */
+                if (favorites.length == 0 && /\/MyResearch\/Favorites/.test(window.location.href)) {
+                    Favorites.renderOfflineFavorites();
+                }
 
                 VuFind.flashTranslation('record_removed_from_favorites');
             });
