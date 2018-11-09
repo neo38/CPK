@@ -185,39 +185,110 @@ export default class Favorites {
      * Add search results to favorites
      */
     static addSearchToFavorites() {
-        $.ajax({
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
-            data: {
-                numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
-                searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
-                title: document.getElementById('newFavoritesListTitle').value,
-            },
-            beforeSend: function() {
-                let bodyElement = document.getElementsByTagName('body')[0];
-                bodyElement.style.cursor = 'wait';
-            },
-            success: function( response ) {
-                if (response.status == 'OK') {
-                    VuFind.flashTranslation('search_results_added_to_favorites');
-                    document.getElementById('add-search-results-to-favorites-container').classList.add('hidden');
-                } else if (response.status == 'ERROR') {
-                    VuFind.flashMessage(response.data);
-                } else {
-                    VuFind.flashTranslation('could_not_save_search_results_to_favorites');
+        User.isLoggedIn()
+            .then(() => {
+                $.ajax({
+                    type: 'POST',
+                    cache: false,
+                    dataType: 'json',
+                    url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
+                    data: {
+                        numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
+                        searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
+                        title: document.getElementById('newFavoritesListTitle').value,
+                    },
+                    beforeSend: function() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'wait';
+                    },
+                    success: function( response ) {
+                        if (response.status == 'OK') {
+                            VuFind.flashTranslation('search_results_added_to_favorites');
+                            document.getElementById('add-search-results-to-favorites-container').classList.add('hidden');
+                        } else if (response.status == 'ERROR') {
+                            VuFind.flashMessage(response.data);
+                        } else {
+                            VuFind.flashTranslation('could_not_save_search_results_to_favorites');
+                        }
+                    },
+                    complete: function() {
+                        let bodyElement = document.getElementsByTagName('body')[0];
+                        bodyElement.style.cursor = 'default';
+                    },
+                    error: function ( xmlHttpRequest, status, error ) {
+                        console.error(error);
+                        VuFind.flashTranslation('could_not_save_search_results_to_favorites');
+                    }
+                });
+            })
+            .catch(() => {
+
+                let numberOfRecords = parseInt(document.querySelector('input[name="limit"]').value);
+
+                for (let i = 0; i < numberOfRecords; i++) {
+
+                    let result = document.querySelector(`#result${i}`);
+                    if (!result) {
+                        return false;
+                    }
+
+                    let recordId = document.querySelector(`#result${i} .search-result-placeholder`)
+                        .getAttribute('data-record-id');
+                    let recordHash = Favorites.getRecordIdHash(recordId);
+
+                    let recordData = {};
+                    recordData.searchClassId = document.querySelector(`#result${i} .search-result-placeholder`)
+                        .getAttribute('data-search-class-id');
+                    recordData.title = document.querySelector(`#result0 a.title`).innerText.trim();
+                    recordData.link = document.querySelector(`#result0 a.title`).getAttribute('href');
+                    recordData.published = document.querySelector(`#resultFor${recordHash} .summDate`)
+                        ? document.querySelector(`#resultFor${recordHash} .summDate`)
+                            .innerHTML.replace(/\s/g, '')
+                            .replace(/<(?:.|\n)*?>/gm, '')
+                        : false;
+
+                    recordData.author = document.querySelector(`#resultFor${recordHash} .author-info`)
+                        ? document.querySelector(`#resultFor${recordHash} .author-info`).innerHTML.trim()
+                        : false;
+                    recordData.cover = document.querySelector(`#resultFor${recordHash} .cover_thumbnail`)
+                        ? document.querySelector(`#resultFor${recordHash} .cover_thumbnail`).innerHTML
+                        : false;
+                    recordData.icon = document.querySelector(`#resultFor${recordHash} .iconlabel`)
+                        ? document.querySelector(`#resultFor${recordHash} .iconlabel`).innerHTML
+                        : false;
+
+                    let favorites = Favorites.getSessionFavorites();
+                    let alreadyInFavorites = false;
+                    if (favorites.length > 0) {
+                        favorites.forEach(favorite => {
+                            if (favorite.recordId && favorite.recordId == recordId) {
+                                alreadyInFavorites = true;
+                            }
+                        });
+                    }
+
+                    if (!alreadyInFavorites) {
+                        let item = {};
+                        item.type          = Favorites.RECORD_TYPE;
+                        item.recordId      = recordId;
+                        item.searchClassId = recordData.searchClassId;
+                        item.title         = recordData.title,
+                        item.published     = recordData.published,
+                        item.link          = recordData.link,
+                        item.cover         = recordData.cover,
+                        item.author        = recordData.author,
+                        item.icon          = recordData.icon,
+                        item.created       = new Date().getTime();
+
+                        favorites.push(item);
+                        sessionStorage.setItem('favorites', JSON.stringify(favorites));
+
+                        Favorites.swapButtons(recordId);
+
+                    }
                 }
-            },
-            complete: function() {
-                let bodyElement = document.getElementsByTagName('body')[0];
-                bodyElement.style.cursor = 'default';
-            },
-            error: function ( xmlHttpRequest, status, error ) {
-                console.error(error);
-                VuFind.flashTranslation('could_not_save_search_results_to_favorites');
-            }
-        });
+                VuFind.flashTranslation('search_results_added_to_favorites');
+            });
     }
 
     /**

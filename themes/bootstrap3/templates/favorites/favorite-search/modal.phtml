@@ -23,9 +23,11 @@
           </label>
           <select id='numberOfRecordsToAdd' class='form-control'>
             <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
-              <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>>
-                <?=$limit?>
-              </option>
+              <? if ($limit <= $this->layout()->limit): ?>
+                <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>>
+                  <?=$limit?>
+                </option>
+              <? endif; ?>
             <? endforeach; ?>
           </select>
         </div>

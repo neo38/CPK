@@ -224,13 +224,11 @@
     <div class='row' id='search-result-list'>
       <div class='col-sm-12 pull-right'>
           <div class='result-list-toolbar hidden-print'>
-            <? if ($this->auth()->isLoggedIn()): ?>
               <span id='add-search-results-to-favorites-container'>
                 <?=$this->render('favorites/favorite-search/buttons.phtml')?>
                 <?=$this->render('favorites/favorite-search/modal.phtml')?>
               |
               </span>
-            <? endif; ?>
               <a href="<?=$this->url('search-history')?>" title='<?=$this->transEsc('Search History')?>'><i class="pr-interface-search"></i> <?=$this->transEsc('Search History')?></a>
               |&nbsp;
               <a href="<?=$this->url('search-email')?>" class="mailSearch modal-link mail-record-link" id="mailSearch<?=$this->escapeHtmlAttr($this->results->getSearchId())?>" title="<?=$this->transEsc('Email this Search')?>">

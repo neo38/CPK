@@ -1,6 +1,9 @@
 <a data-toggle='modal'
    rel='nofollow'
-   onclick='VuFind.openFavoriteSearchModal()'
+   onclick='<?= $this->auth()->isLoggedIn()
+       ? "VuFind.openFavoriteSearchModal()"
+       : "VuFind.addSearchToFavorites()"
+   ?>'
    title='<?=$this->translate('Add search results to favorites')?>'
    id='add-search-results-to-favorites'>
   <i class="pr-interface-favoritestar"> </i>

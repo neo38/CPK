@@ -22,7 +22,10 @@ $sourceTitle = $this->driver->getSourceTitle();
 $volume = $this->driver->getVolume();
 $accessUrl = $this->driver->getAccessUrl();
 ?>
-<div class="white-box clearfix eds-record-container" id="resultFor<?=$this->driver->getRecordIdHash()?>">
+<div class="white-box clearfix eds-record-container search-result-placeholder"
+     id="resultFor<?=$this->driver->getRecordIdHash()?>"
+     data-search-class-id="<?=$this->searchClassId?>"
+     data-record-id="<?=$this->driver->getUniqueID()?>">
     <div class="row col-xs-12 source<?=$this->escapeHtmlAttr($this->driver->getSourceIdentifier())?> recordId<?=$this->driver->supportsAjaxStatus()?' ajaxItemId':''?>">
         <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
         <div class="col-sm-2 col-xs-3 left">

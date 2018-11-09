@@ -41,6 +41,8 @@ VuFind.openFavoriteRecordModal = (recordId, recordTitle) => Favorites.openFavori
 
 VuFind.openFavoriteSearchModal = () => Favorites.openFavoriteSearchModal();
 
+VuFind.addSearchToFavorites = () => Favorites.addSearchToFavorites();
+
 VuFind.hasOfflineFavorites = () => Favorites.getSessionFavorites().length > 0;
 
 VuFind.removeFromFavorites = (recordId, searchClassId, removeFromFavorites = false, showConfirmation = true) => {
