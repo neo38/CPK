@@ -23,7 +23,8 @@
           </label>
           <select id='numberOfRecordsToAdd' class='form-control'>
             <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
-              <? if ($limit <= $this->layout()->limit): ?>
+              <? if ($this->auth()->isLoggedIn() ||
+                    (!$this->auth()->isLoggedIn() && $limit <= $this->layout()->limit)): ?>
                 <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>>
                   <?=$limit?>
                 </option>

@@ -8,6 +8,7 @@
 * protoze kdyz si vytvorim seznam a pridam
 * zaznam, zavru a pak pridam dalsi, vidim porad stare seznamy nactene z PHP on page load.
 * Pridat strankovani
+* V modalu pro pridavani vysledku do Oblibenych prihlaseneho zuivatele udelat Select pro vyber existujici skupiny
 *
 * @REFACTORING
 * Nekdy se pri XHR dotazu pouziva jQuery, protoze VuFind umi z POSTu ziskat data jenom kdyz je vstup FORM DATA,

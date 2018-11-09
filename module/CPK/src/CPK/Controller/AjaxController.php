@@ -2560,9 +2560,12 @@ class AjaxController extends AjaxControllerBase
 
         $table = $this->getDbTable('UserList');
 
-        $list = $table->getNew($user);
-        $list->title = $title;
-        $list->save($user);
+        $list = $table->getByUserAndTitle($user, $title);
+        if (! $list) {
+            $list = $table->getNew($user);
+            $list->title = $title;
+            $list->save($user);
+        }
 
         $params = [
             'list' => $list->id
