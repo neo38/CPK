@@ -3,7 +3,6 @@
 * Notifikace bootstrapGrowl - pridat before content ikony pro rozliseni stavu - info, danger..
 * Sjednotit Ui Oblibenych prihlaseneho uzivatele s novym Ui neprihlaseneho uzivatele
 * Install Babel - https://babeljs.io/setup#installation
-* Pridat moznost ukladat vysledky do SessionStorage? Pujde to pak vubec? Ulozi se searchId pro neprihlaseneho uzivatele?
 * Sort offline favorites ASC/DESC
 * Vytvoreni noveho seznamu udelat do modalu. Pri otevreni modalu pro pridani Oblibenych nacitat seznam asynchronne,
 * protoze kdyz si vytvorim seznam a pridam
@@ -29,9 +28,6 @@
 *
 * Je potreba upravit sablonu stranky, na ktere se zobrazuji Oblibene odeslane emailem. Napr.:
 * https://knihovny.cz/Records/Home?email=1&id%5B%5D=Solr%7Cvkol.SVK01-001162058&id%5B%5D=Solr%7Csvkpk.PNA01-000701007
-*
-* @TODO
-* Kontrola compare pull request
 */
 
 import User from './User.js';
@@ -433,17 +429,23 @@ export default class Favorites {
             url: '/AJAX/JSON?method=pushFavorites',
             data: {favorites},
             success: function(response) {
-                if (response.status == 'OK' && response.data.isOnMyProfile) {
-                    // Add new list
-                    let anchorElement = document.createElement('a');
-                    anchorElement.href = `/MyResearch/MyList/${response.data.newListId}`;
-                    anchorElement.classList.add('list-group-item');
-                    anchorElement.innerHTML = `
-                        ${response.data.newListTitle} 
-                        <span class='badge'>${response.data.newListCount}</span>
-                    `;
-                    document.querySelector('#favorites-menu-list').prepend(anchorElement);
+                if (response.status == 'OK') {
                     Favorites.removeSessionFavorites();
+
+                    if (response.data.isOnMyProfile) {
+                        let favoritesMenuList = false;
+                        if (favoritesMenuList = document.querySelector('#favorites-menu-list')) {
+                            // Add new list
+                            let anchorElement = document.createElement('a');
+                            anchorElement.href = `/MyResearch/MyList/${response.data.newListId}`;
+                            anchorElement.classList.add('list-group-item');
+                            anchorElement.innerHTML = `
+                                ${response.data.newListTitle} 
+                                <span class='badge'>${response.data.newListCount}</span>
+                            `;
+                            favoritesMenuList.prepend(anchorElement);
+                        }
+                    }
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
