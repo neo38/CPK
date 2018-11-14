@@ -1711,30 +1711,30 @@ jQuery( document ).ready( function( $ ) {
   	    txt.innerHTML = html;
   	    return txt.value;
   	}
-  	
-  	/* Search email form client-side validation */
-	$( '#email-search-results' ).validate({ // initialize the plugin
-        rules: {
-            from: {
-                required: true,
-                email: true
-            },
-            to: {
-                required: true,
-                email: true
-            }
-        },
-        messages: {
-        	from: {
-              required: VuFind.translate( 'Enter email' ),
-              email: VuFind.translate( 'Wrong email format' )
-            },
-            to: {
-              required: VuFind.translate( 'Enter email' ),
-              email: VuFind.translate( 'Wrong email format' )
-            }
-          }
-    });
+
+    /* Search email form client-side validation */
+  $( '#email-search-results' ).validate( { // initialize the plugin
+    rules: {
+      from: {
+        required: true,
+        email: true,
+      },
+      to: {
+        required: true,
+        email: true,
+      },
+    },
+    messages: {
+      from: {
+        required: VuFind.translate( 'Enter email' ),
+        email: VuFind.translate( 'Wrong email format' ),
+      },
+      to: {
+        required: VuFind.translate( 'Enter email' ),
+        email: VuFind.translate( 'Wrong email format' ),
+      },
+    },
+  } );
 });
 
 function escapeHtml(text) {
