@@ -2,7 +2,7 @@
   $links = $this->recommend->getLinks();
 ?>
 <? if (count($links) > 0): ?>
-  <div class='info'>
+  <div class='info' id='recommended-links'>
     <?=$this->transEsc('recommend_links_text')?>
       <? foreach ($links as $title => $href): ?>
         <p>

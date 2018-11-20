@@ -574,6 +574,7 @@ jQuery( document ).ready( function( $ ) {
                                 $( '#map' ).show('blind', {}, 200);
                             }
 
+                            ADVSEARCH.updateRecommendedLinks(data['lookfor0']);
                         } else {
                             console.error(response.data);
                             console.error(response);
@@ -785,6 +786,34 @@ jQuery( document ).ready( function( $ ) {
                     lastUsedIdps[i].href = ADVSEARCH.shibbolethizedUrl(lastUsedIdps[i].href);
                 }
                 localStorage.setItem('__luidps', JSON.stringify(lastUsedIdps));
+            }
+        },
+
+        /**
+         * Update recommended Links
+         */
+        updateRecommendedLinks(lookfor = []) {
+            let recommendedLinks = document.querySelectorAll('#recommended-links a');
+            if (recommendedLinks) {
+
+                let recommendedLinksQueries = {};
+
+                recommendedLinks.forEach((link) => {
+                    if (link.href.includes('google.')) {
+                        recommendedLinksQueries = {
+                            'q': lookfor.join(' AND '),
+                        };
+                    }
+                    if (link.href.includes('jib.cz')) {
+                        lookfor.forEach((query, index) => {
+                            recommendedLinksQueries[`find_request_${index+1}`] = query;
+                        });
+                    }
+
+                    if (link.href.includes('google.com') || link.href.includes('jib.cz')) {
+                        link.href = changeParamsInUrlString(link.href, recommendedLinksQueries, true);
+                    }
+                });
             }
         },
 
