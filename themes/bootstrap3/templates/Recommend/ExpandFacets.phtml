@@ -4,14 +4,18 @@
   $blankResults = $this->recommend->getEmptyResults();
 ?>
 <? if ($expandFacetSet): ?>
-  <div class="sidegroup">
- <? foreach ($expandFacetSet as $title=>$cluster): ?>
-    <h4><?=$this->transEsc($cluster['label']) ?></h4>
-    <div class="list-group">
-      <? foreach ($cluster['list'] as $thisFacet): ?>
-        <a class="list-group-item link" href="<?=$this->url('search-results') . $blankResults->getUrlQuery()->addFacet($title, $thisFacet['value'])?>"><?=$this->escapeHtml($thisFacet['displayText'])?></a>
-      <? endforeach; ?>
-    </div>
- <? endforeach; ?>
+  <div class='sidegroup'>
+    <? foreach ($expandFacetSet as $title => $cluster): ?>
+      <h4><?=$this->transEsc($cluster['label'])?></h4>
+      <div class='list-group'>
+        <? foreach ($cluster['list'] as $thisFacet): ?>
+          <a class='list-group-item link'
+             href='<?=$this->url('search-results').
+             $blankResults->getUrlQuery()->addFacet($title, $thisFacet['value'])?>'>
+            <?=$this->escapeHtml($thisFacet['displayText'])?>
+          </a>
+        <? endforeach; ?>
+      </div>
+    <? endforeach; ?>
   </div>
 <? endif; ?>
