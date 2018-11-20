@@ -130,4 +130,61 @@ class RecommendLinks implements RecommendInterface
         return $this->links;
     }
 
+    /**
+     * Get lookfor query
+     *
+     * @return String
+     */
+    public function getQuery() {
+        return $_GET['lookfor'] ?? $_GET['lookfor0'][0] ?? '';
+    }
+
+    /**
+     * Generate random token
+     *
+     * @return String
+     */
+    public function generateToken() {
+        return md5('CPK' . date('Y-m-d H:i:s'));
+    }
+
+    /**
+     * Get JIB url
+     *
+     * @param String href
+     *
+     * @return String
+     */
+    public function getJibUrl($href) {
+        return $href . '/V/' . $this->generateToken() . '-' . rand(10000, 99999) .
+            '?func=quick-1-check1&mode=simple&find_request_1=' . urlencode($this->getQuery());
+    }
+
+    /**
+     * Get Google url
+     *
+     * @param String href
+     *
+     * @return String
+     */
+    public function getGoogleUrl($href) {
+        return $href . '?q=' . urlencode($this->getQuery());
+    }
+
+    /**
+     * Get recommend url
+     *
+     * @param String href
+     *
+     * @return String
+     */
+    public function getUrl($href) {
+        if ($href == 'http://www.jib.cz') {
+            return $this->getJibUrl($href);
+        } elseif ($href == 'https://www.google.cz') {
+            return $this->getGoogleUrl($href);
+        } else {
+            return $href;
+        }
+    }
 }
