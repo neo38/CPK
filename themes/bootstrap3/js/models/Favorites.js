@@ -486,7 +486,7 @@ export default class Favorites {
         favorites.some(function(favorite) {
             if (favorite.type == Favorites.RECORD_TYPE) {
                 html += `
-                  <div class='row well result' id='offlineFavoriteFor${Favorites.getRecordIdHash(favorite.recordId)}'>
+                    <div class='row well result' id='offlineFavoriteFor${Favorites.getRecordIdHash(favorite.recordId)}'>
                       <div class='col-xs-2 left'>
                         <label class='pull-left flip'>
                           <input class='checkbox-select-item' 
@@ -510,10 +510,10 @@ export default class Favorites {
                         </div>
                     
                         <div class='author-info'>
-                            ${favorite.author ? favorite.author : ''}
+                          ${favorite.author ? favorite.author : ''}
                         </div>
                         <div class='summDate'>
-                            ${favorite.published ? favorite.published : favorite.published}
+                          ${favorite.published ? favorite.published : ''}
                         </div>
                       </div>
                       
@@ -528,7 +528,6 @@ export default class Favorites {
                         </a>
                       </div>
                     </div>
-
                 `;
             }
         });
