@@ -113,7 +113,10 @@
         <th><?=$this->transEsc('Publications')?>: </th>
         <td>
           <div>
-            <a title="<?=$this->transEsc('Show publications about this person')?>" href="<?=$this->driver->getAboutPublicationsUrl()?>"><?=$this->translate('Show publications about this person')?></a>
+            <a title="<?=$this->transEsc('Show publications about this person')?>"
+               href="<?=$this->driver->getAboutPublicationsUrl()?>">
+              <?=$this->translate('Show publications about this person')?>
+            </a>
           </div>
         </td>
       </tr>
