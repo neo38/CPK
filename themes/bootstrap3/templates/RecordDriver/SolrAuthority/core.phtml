@@ -9,7 +9,11 @@
 <? endif; ?>
 
 <div class="well">
-<div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
+<div class="row"
+     vocab="http://schema.org/"
+     resource="#record"
+     typeof="<?=$this->driver->getSchemaOrgFormats()?> Product"
+     id="resultFor<?=$this->driver->getRecordIdHash()?>">
   <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
     <div class="text-center #cover" id="cover">
         <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-user-single5"></i></div>

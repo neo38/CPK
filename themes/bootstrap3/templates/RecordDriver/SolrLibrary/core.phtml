@@ -17,7 +17,7 @@ $this->layout()->headerType = "newlibraries";
 <? endif; ?>
 
 
-<div class="row">
+<div class="row" id="resultFor<?=$this->driver->getRecordIdHash()?>">
     <div class="col-md-6 library-detail">
 <!-- Library name -->
         <h2 class='record-title' property="name"><strong><?=$this->escapeHtml($this->driver->getLibraryNames())?></strong></h2>
