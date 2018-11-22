@@ -15,11 +15,9 @@
           $this->transEsc('Administration').
         '</a>'.
       '</li>'.
-      '<li>'.
-        '<a href="/Admin/PortalPages" title="'.$this->transEsc('Portal pages').'">'.
-          $this->transEsc('Portal pages').
-        '</a>'.
-      '</li>'.
+      '<li class="active">'.
+        $this->transEsc('Portal pages').
+      '</li>';
 
   $this->layout()->title = $this->transEsc('Portal pages');
 ?>
