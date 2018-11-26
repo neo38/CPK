@@ -457,8 +457,8 @@ jQuery( document ).ready( function( $ ) {
                             $('.list-group').addClass('load-facet');
                             // turn off all action on facets
                             $('.sidebar a').removeAttr("href");
-                            $('.sidebar a').removeAttr("data-facet");
-                            $('.sidebar li').removeAttr("id");
+                            //$('.sidebar a').removeAttr("data-facet");
+                            //$('.sidebar li').removeAttr("id");
                         }
 
                         if ((data['type0'] == "Libraries") && (undefined != data['lookfor0'][0])) {
@@ -687,16 +687,18 @@ jQuery( document ).ready( function( $ ) {
         addFacetFilter: function (value, updateResults) {
             var enabledFacets = 0;
             $('#hiddenFacetFilters input').each(function (index, element) {
-                if ($(element).val() == value) {
+                if ($(element).val() === value) {
                     ++enabledFacets;
                     return false; // javascript equivalent to php's break;
                 }
             });
+            //~cpk_detected_format_facet_str_mv:"0/ARTICLES/
 
-            if (enabledFacets == 0) { /* This filter not applied yet, apply it now */
+            //if (enabledFacets == 0) { /* This filter not applied yet, apply it now */
                 var html = "<input type='hidden' class='hidden-filter' name='filter[]' value='" + value + "'>";
                 $('#hiddenFacetFilters').append(html);
-            }
+                //console.log(html);
+            //}
 
             if (updateResults) {
                 ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
@@ -714,7 +716,7 @@ jQuery( document ).ready( function( $ ) {
 
             var extraData = {};
             $('#hiddenFacetFilters input').each(function (index, element) {
-                if ($(element).val() == value) {
+                if ($(element).val() === value) {
                     $(this).remove();
                 }
 
@@ -1095,101 +1097,93 @@ jQuery( document ).ready( function( $ ) {
         ADVSEARCH.removeAllFilters( true );
     });
 
+
 	/*
 	 * Add or remove clicked facet
 	 */
-	$( 'body' ).on( 'click', '.facet-filter-or', function( event ) {
+	// @TODO tady se to vyhledava... a jeste zkontrolovt ty dalsi minimalne dve funkce
+	$( 'body' ).on( 'click', '.facet-filter', function( event ) {
 		event.preventDefault();
-		
+
 		if ( event.ctrlKey ){
 		     window.open( $( this ).attr( 'href' ), '_blank' );
-		     $( this ).removeClass( 'jstree-clicked active' );
 		     return false;
 		}
-
+		
 		$( "input[name='page']" ).val( '1' );
 
-		if ($('#facet_cpk_detected_format_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all statuses
-			var allStatuses = $('#facet_cpk_detected_format_facet_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allStatuses, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
-
-			//add selected statuses
-			var selectedStatuses = $('#facet_cpk_detected_format_facet_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedStatuses, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		};
-
-		if ($('#facet_local_statuses_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all statuses
-			var allStatuses = $('#facet_local_statuses_facet_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allStatuses, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
-
-			//add selected statuses
-			var selectedStatuses = $('#facet_local_statuses_facet_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedStatuses, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		};
-
-		if ($('#facet_conspectus_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all conspectus
-			var allConspectus = $('#facet_conspectus_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allConspectus, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
-
-			//add selected conspectus
-			var selectedConspectus = $('#facet_conspectus_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedConspectus, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		}
-        if ($('#facet_region_disctrict_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-            //remove all region disctrict
-            var allDisctrict = $('#facet_region_disctrict_facet_str_mv').jstree(true).get_json('#', {flat: true});
-            $.each(allDisctrict, function (index, value) {
-                ADVSEARCH.removeFacetFilter(value['id'], false);
+        compare = $(this);
+        if (compare.closest('.list-group').attr('id') === 'side-panel-Institution' ) {
+            $('.facet-filter').each(function(){
+                if ($(this).closest('.list-group').attr('id') !== 'side-panel-Institution' ) {
+                    $(this).removeClass('facet-filter');
+                }
             });
-
-            //add selected region disctrict
-            var selectedDisctrict = $('#facet_region_disctrict_facet_str_mv').jstree(true).get_bottom_selected();
-            $.each(selectedDisctrict, function (index, value) {
-                ADVSEARCH.addFacetFilter(value, false);
+        } else {
+            $('.facet-filter').each(function(){
+                $(this).removeClass('facet-filter');
             });
         }
 
-		ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
-
-	});
-
-	/*
-	 * Add or remove clicked facet
-	 */
-	$( 'body' ).on( 'click', '.facet-filter', function( event ) {
-		event.preventDefault();
-		
-		if ( event.ctrlKey ){
-		     window.open( $( this ).attr( 'href' ), '_blank' );
-		     return false;
-		}
-		
-		$( "input[name='page']" ).val( '1' );
-
+        // @TODO projet vsechny facet-fiter porovnat s id a pokud porovnavana faceta obsahuje id tohoto tak pridat do addfacetfilter s druhou hodnotou false
 		var useFacet = 1;
 		if ( $( this ).hasClass( 'active' ) ) {
 			//console.log( 'Removing facet filter.' );
 			useFacet = 0;
-			ADVSEARCH.removeFacetFilter( $( this ).attr( 'data-facet' ), true );
+            parent = createParent($(this).attr('data-facet'), + 1);
+            //console.log(parent);
+            var parrr = $(this);
+            if ($(this).hasClass('or-facet')) {
+                count = 0;
+                // TODO u odklikavani zakazat vicero odkliknuti najednout - dela to bordel
+                // @TODO toto hodit do rekurze musi prohledat vsechny pod a odebrat je
+                $('.or-facet').each(function(index, value) {
+                    //console.log($(this).attr('data-facet'));
+                    //console.log(parent);
+                    if($(this).attr('data-facet').search(parent) >= 0) {
+                        count = count + 1;
+                        console.log(count);
+                        ADVSEARCH.removeFacetFilter($(this).attr('data-facet'), false);
+                    }
+                });
+                if (count > 0)
+                    ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
+                else
+                    console.log('jsem tu');
+                    ADVSEARCH.removeFacetFilter(parrr.attr('data-facet'), true );
+            } else {
+                ADVSEARCH.removeFacetFilter($( this ).attr( 'data-facet' ), true );
+            }
 		} else {
 			//console.log( 'Adding facet filter.' );
-			ADVSEARCH.addFacetFilter( $( this ).attr( 'data-facet' ), true );
-		}
+            // TODO pri zaklikavani zvedat nekde cislo kolik jich bylo zakliknuto a dokud neprijde tolik vyledku ze serveru zpatky tak mit reload
+            //  ??a povoleny jen a pouze zaklikavani instituci??
+            //console.log(parent);
+            if ($(this).hasClass('or-facet')) {
+                var count = 0;
+                var parent = createParent($(this).attr('data-facet'), +1);
+                console.log(parent);
+                var parent2 = createParent($(this).attr('data-facet'), +2);
+                // @TODO toto hodit do rekurze musi prohledat vsechny pod a pridat je
+                $('.or-facet').each(function(index, value) {
+                    //console.log($(this).attr('data-facet'));
+                    //console.log(parent);
+                    if($(this).attr('data-facet').search(parent) >= 0 || $(this).attr('data-facet').search(parent2) >= 0) {
+                        count = count + 1;
+                        //console.log(value);
+                        ADVSEARCH.addFacetFilter($(this).attr('data-facet'), false);
+                    }
+                });
+
+                //console.log(count);
+                if (count > 0)
+                    ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
+                else
+                    ADVSEARCH.addFacetFilter($(this).attr('data-facet'), true );
+            } else {
+                ADVSEARCH.addFacetFilter($( this ).attr( 'data-facet' ), true );
+            }
+        }
 
         dataLayer.push({
             'event': 'action.facet',
@@ -1202,6 +1196,17 @@ jQuery( document ).ready( function( $ ) {
             }
         });
 	});
+
+    function createParent(value, change) {
+        pre = value.substring(0, value.search(':')+2);
+        level = value.substring(value.search(':')+2, value.search(':')+3);
+        post = value.substring(value.search(':')+3, value.length-1);
+
+        level = parseInt(level) + change;
+        parent = pre + String(level) + post;
+        return parent
+    }
+
 
     /*
      * Add or remove clicked facet
