@@ -25,8 +25,10 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/vufind2:recommendation_modules Wiki
  */
+
 namespace CPK\Recommend;
 
+use Exception;
 use \VuFind\Recommend\SideFacets as SideFacetsBase;
 
 /**
@@ -64,8 +66,18 @@ class SideFacets extends SideFacetsBase
      */
     protected $facetSettings = [];
 
+    /**
+     *
+     */
+    protected $facetFilter = [];
 
-  /**
+    /**
+     *
+     */
+    protected $usedFacetFilter = [];
+
+
+    /**
      * Store the configuration of the recommendation module.
      *
      * @param string $settings Settings from searches.ini.
@@ -86,8 +98,7 @@ class SideFacets extends SideFacetsBase
 
         // All standard facets to display:
         $this->mainFacets = isset($config->$mainSection) ?
-            $config->$mainSection->toArray() : [];
-
+                $config->$mainSection->toArray() : [];
 
 
         // Load boolean configurations:
@@ -103,11 +114,11 @@ class SideFacets extends SideFacetsBase
         }
         if (isset($config->SpecialFacets->genericRange)) {
             $this->genericRangeFacets
-                = $config->SpecialFacets->genericRange->toArray();
+                    = $config->SpecialFacets->genericRange->toArray();
         }
         if (isset($config->SpecialFacets->numericRange)) {
             $this->numericRangeFacets
-                = $config->SpecialFacets->numericRange->toArray();
+                    = $config->SpecialFacets->numericRange->toArray();
         }
 
         // Checkbox facets:
@@ -116,8 +127,8 @@ class SideFacets extends SideFacetsBase
             $flipCheckboxes = true;
         }
         $this->checkboxFacets
-            = ($checkboxSection && isset($config->$checkboxSection))
-            ? $config->$checkboxSection->toArray() : [];
+                = ($checkboxSection && isset($config->$checkboxSection))
+                ? $config->$checkboxSection->toArray() : [];
         if (isset($flipCheckboxes) && $flipCheckboxes) {
             $this->checkboxFacets = array_flip($this->checkboxFacets);
         }
@@ -130,13 +141,13 @@ class SideFacets extends SideFacetsBase
         // Hierarchical facets:
         if (isset($config->SpecialFacets->hierarchical)) {
             $this->hierarchicalFacets
-                = $config->SpecialFacets->hierarchical->toArray();
+                    = $config->SpecialFacets->hierarchical->toArray();
         }
 
         // Hierarchical facet sort options:
         if (isset($config->SpecialFacets->hierarchicalFacetSortOptions)) {
             $this->hierarchicalFacetSortOptions
-                = $config->SpecialFacets->hierarchicalFacetSortOptions->toArray();
+                    = $config->SpecialFacets->hierarchicalFacetSortOptions->toArray();
         }
         // End of version from module VuFind
 
@@ -155,7 +166,7 @@ class SideFacets extends SideFacetsBase
 
 
         if (isset($config->Facet_Settings)) {
-          $this->facetSettings = $config->Facet_Settings->toArray();
+            $this->facetSettings = $config->Facet_Settings->toArray();
         }
 
     }
@@ -166,8 +177,8 @@ class SideFacets extends SideFacetsBase
      * recommendation module and for reading any existing search parameters that may
      * be needed.
      *
-     * @param \VuFind\Search\Base\Params $params  Search parameter object
-     * @param \Zend\StdLib\Parameters    $request Parameter object representing user
+     * @param \VuFind\Search\Base\Params $params Search parameter object
+     * @param \Zend\StdLib\Parameters $request Parameter object representing user
      * request.
      *
      * @return void
@@ -191,7 +202,7 @@ class SideFacets extends SideFacetsBase
         $newFacetSet = [];
         foreach ($this->mainFacets as $name => $desc) {
             if (in_array($name, $this->ajaxFacets)) {
-                $newFacetSet[$name] = ['label' => $desc, 'list' => [], 'ajax' => true ];
+                $newFacetSet[$name] = ['label' => $desc, 'list' => [], 'ajax' => true];
             } else {
                 $newFacetSet[$name] = &$facetSet[$name];
             }
@@ -199,7 +210,8 @@ class SideFacets extends SideFacetsBase
         return $newFacetSet;
     }
 
-    public function getInstutitionMapping($institution) {
+    public function getInstutitionMapping($institution)
+    {
         if (isset($this->institutionsMappings[$institution]))
             return $this->institutionsMappings[$institution];
         return $institution;
@@ -215,8 +227,114 @@ class SideFacets extends SideFacetsBase
         return $this->timelineFacets;
     }
 
-    public function facetSettings(){
-      return $this->facetSettings;
+    public function facetSettings()
+    {
+        return $this->facetSettings;
     }
 
+    public function getFacetFilter() {
+        $facetSet = parent::getFacetSet();
+
+        $keys=array_keys($facetSet);
+
+        $filter = array_fill_keys($keys,['label' => '', 'show' => '', 'list' => array()]);
+
+        foreach ($facetSet as $key => $facets) {
+            $filter[$key]['label'] = $facets['label'];
+
+            $filter[$key]['show'] = false;
+            if (in_array($facets['label'], $this->facetSettings['open'])) {
+                $filter[$key]['show'] = true;
+            }
+
+            try {
+                $maxItems = $this->facetSettings['count'][$facets['label']];
+            } catch (Exception $e) {
+                $maxItems = $this->facetSettings['count']['default'];
+            }
+
+            foreach ($facets['list'] as $id => $facet) {
+                $name = $facets['label'].':'.$facet['value'];
+                $children = false;
+                if ($facet['operator'] == "OR") {
+                    if (is_numeric($facet['value'][0])) {
+                        if ($facet['value'][0] == "0") {
+                            $parent = $facets['label'];
+                            $active = $facet['isApplied'];
+                            if ($active) {
+                                $filter[$key]['show'] = True;
+                            }
+                        } else {
+                            $retezec = (string)(((int)$facet['value'][0]) - 1).substr($facet['value'], 1, strlen($facet['value']) - 3);
+                            $pole = explode('/', $retezec);
+                            $koks = array_pop($pole);
+                            $zbytek = implode('/', $pole);
+                            $parent = $facets['label'] . ':' . $zbytek . '/';
+
+                            if ($filter[$key]['list'][$parent]['isApplied']) {
+                                $active = True;
+                            } else {
+                                $active = $facet['isApplied'];
+                                $filter[$key]['list'][$parent]['children'] = true;
+                            }
+                        }
+                    } else {
+                        $active = $facet['isApplied'];
+                        $parent = '';
+                    }
+                } else {
+                    $active = $facet['isApplied'];
+                    $parent = '';
+                }
+
+                $link = ''; // TODO vlozit odkaz ktery se pote vlozi do href=""
+
+                $count = null;
+                if (in_array($facets['label'], $this->facetSettings['number'])) {
+                    $count = $facet['count'];
+                }
+                $show = true;
+                if ($maxItems != -1 && $id > $maxItems) {
+                    $show = false;
+                }
+
+                $open = false;
+                if (in_array($facet['displayText'], $this->facetSettings['subOpen'])) {
+                    $open = True;
+                }
+
+                $bold = false;
+                if (in_array($facet['displayText'], $this->facetSettings['bold'])) {
+                    $bold = true;
+                }
+
+                if ($active) {
+                    array_push($this->usedFacetFilter, $name);
+                }
+
+                $filter[$key]['list'][$name] = [
+                        'value' => $facet['value'],
+                        'displayText' => $facet['displayText'],
+                        'tooltipText' => $facet['tooltiptext'],
+                        'count' => $count,
+                        'operator' => $facet['operator'],
+                        'isApplied' => $active,
+                        'show' => $show,
+                        'open' => $open,
+                        'parent' => $parent,
+                        'children' => $children,
+                        'link' => $link,
+                        'bold' => $bold,
+                    ];
+            }
+        }
+
+        $this->facetFilter = $filter;
+        return $this->facetFilter;
+        //return $facetSet;
+    }
+
+    public function getUsedFacetFilter() {
+        return $this->usedFacetFilter;
+    }
 }

@@ -1,3 +1,73 @@
+<?
+$results = $this->recommend->getResults();
+
+$extraFilters = isset($this->extraSideFacetFilters) ? $this->extraSideFacetFilters : array();
+$queryParams = $results->getUrlQuery()->getParamArray();
+unset($queryParams['filter']);
+$i = '?';
+$removeFilterUrl = '/Search/Results';
+foreach ($queryParams as $key => $value) {
+  if (is_array($value)) {
+    $value = $value[0];
+    $key .= "[]";
+  }
+  $removeFilterUrl .= $i . $key . '=' . urlencode($value);
+  if ($i === '?') {
+    $i = '&';
+  }
+}
+
+$facetSettings = $this->recommend->facetSettings();
+
+$sideFacetSet = $this->recommend->getFacetSet();
+$rangeFacets = $this->recommend->getAllRangeFacets();
+
+$facetFilter = $this->recommend->getFacetFilter();
+$usedFacetFilter = $this->recommend->getUsedFacetFilter();
+
+
+?>
+<!-- hlavni nadpis facet hledani BEGIN -->
+<? if ($results->getResultTotal() > 0): ?>
+  <h3 class='side-facets-header facets-questionmark-help'>
+    <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
+    <?= ($this->librarySearch)? ('adr-facets') : ($filterClass)? $this->help()->getQuestionMarkHelp('ci-facets') : $this->help()->getQuestionMarkHelp('facets') ;?>
+  </h3>
+<? endif; ?>
+<!-- hlavni nadpis facet hledani END -->
+<!-- TODO kouknout co je to extra filters a jestli by ty pouzity filtry nesli vyresit jednoduseji...
+      napriklad pritom vytvareni pole facet uz rovnou si zapamatovavat ktere maji active -->
+<? $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
+<!-- vypis filtr BEGIN -->
+<? if (!empty($filterList)): ?>
+  <div class="list-group filters">
+    <? foreach ($filterList as $field => $filters): ?>
+      <? foreach ($filters as $i => $filter): ?>
+        <?= $filter['displayText'].'<br>'; ?>
+      <? endforeach; ?>
+    <? endforeach; ?>
+    <div class='text-center'>
+      <a id='remove-all-filters-async' href='<?=$removeFilterUrl?>'><div class="btn btn-primary btn-sm"><?=$this->transEsc('Remove Filters')?></div></a>
+    </div>
+  </div>
+<? endif; ?>
+<?
+foreach ($usedFacetFilter as $filter) {
+    echo $filter . '<br>';
+}
+?>
+<!-- vypis filtr END -->
+<?
+foreach ($facetFilter as $filter) {
+  var_dump($filter);
+}
+
+//var_dump($facetFilter);
+
+?>
+
+
+
 <script>
   // @TODO nechapu proc ale kdyz je to pouze v doc.ready tak to po prvnim vyhledavani prestane fungovat
 
