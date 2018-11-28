@@ -235,15 +235,17 @@ class SideFacets extends SideFacetsBase
     public function getFacetFilter() {
         $facetSet = parent::getFacetSet();
 
-        $keys=array_keys($facetSet);
+        $keys = array_keys($facetSet);
 
         $filter = array_fill_keys($keys,['label' => '', 'show' => '', 'list' => array()]);
 
         foreach ($facetSet as $key => $facets) {
+            $filter[$key]['display'] = $facets['label'];
+            $facets['label'] = str_replace(' ', '', $facets['label']);
             $filter[$key]['label'] = $facets['label'];
 
             $filter[$key]['show'] = false;
-            if (in_array($facets['label'], $this->facetSettings['open'])) {
+            if (in_array($facets['label'], $this->facetSettings['open'], true)) {
                 $filter[$key]['show'] = true;
             }
 
@@ -253,23 +255,30 @@ class SideFacets extends SideFacetsBase
                 $maxItems = $this->facetSettings['count']['default'];
             }
 
+            $number = false;
+            if (in_array($facets['label'], $this->facetSettings['number'], true)) {
+                $number = true;
+            }
+
             foreach ($facets['list'] as $id => $facet) {
+                //$facet['displayText'] = str_replace(' ', '', $facet['displayText']);
                 $name = $facets['label'].':'.$facet['value'];
                 $children = false;
                 if ($facet['operator'] == "OR") {
                     if (is_numeric($facet['value'][0])) {
-                        if ($facet['value'][0] == "0") {
+                        if ($facet['value'][0] == '0') {
                             $parent = $facets['label'];
                             $active = $facet['isApplied'];
                             if ($active) {
                                 $filter[$key]['show'] = True;
                             }
                         } else {
-                            $retezec = (string)(((int)$facet['value'][0]) - 1).substr($facet['value'], 1, strlen($facet['value']) - 3);
+                            $retezec = (string)(((int)$facet['value'][0]) - 1) . substr($facet['value'], 1, strlen($facet['value']) - 2);
                             $pole = explode('/', $retezec);
                             $koks = array_pop($pole);
                             $zbytek = implode('/', $pole);
-                            $parent = $facets['label'] . ':' . $zbytek . '/';
+                            $parent = $facets['label'] . ':' . $zbytek;
+                            $parent = str_replace('/', '-', $parent);
 
                             if ($filter[$key]['list'][$parent]['isApplied']) {
                                 $active = True;
@@ -280,17 +289,17 @@ class SideFacets extends SideFacetsBase
                         }
                     } else {
                         $active = $facet['isApplied'];
-                        $parent = '';
+                        $parent = $facets['label'];
                     }
                 } else {
                     $active = $facet['isApplied'];
-                    $parent = '';
+                    $parent = $facets['label'];
                 }
 
                 $link = ''; // TODO vlozit odkaz ktery se pote vlozi do href=""
 
                 $count = null;
-                if (in_array($facets['label'], $this->facetSettings['number'])) {
+                if ($number) {
                     $count = $facet['count'];
                 }
                 $show = true;
@@ -299,32 +308,44 @@ class SideFacets extends SideFacetsBase
                 }
 
                 $open = false;
-                if (in_array($facet['displayText'], $this->facetSettings['subOpen'])) {
+                if (in_array($facet['displayText'], $this->facetSettings['subOpen'], true)) {
                     $open = True;
                 }
 
                 $bold = false;
-                if (in_array($facet['displayText'], $this->facetSettings['bold'])) {
+                if (in_array($facet['displayText'], $this->facetSettings['bold'], true)) {
                     $bold = true;
                 }
 
+                $dataFacet = (($facet['operator'] == "OR")? '~' : '') . $key . ':"' . $facet['value'] . '"';
+
                 if ($active) {
-                    array_push($this->usedFacetFilter, $name);
+                    array_push($this->usedFacetFilter, ['category' => $facets['label'], 'dataFacet' => $dataFacet, 'displayText' => $facet['displayText'], 'operator' => $facet['operator']]);
                 }
 
+                if ($active) { // TODO rozlisit full a half
+                    $fullActive = true;
+                }
+
+                $name = substr(str_replace('/', '-', $name),0, strlen($name)-1);
+
+
                 $filter[$key]['list'][$name] = [
+                        'name' => $name, // TODO nahradit diakritiku a mezery, upravy co se provadi s name musi se provadet aji s parent
                         'value' => $facet['value'],
                         'displayText' => $facet['displayText'],
                         'tooltipText' => $facet['tooltiptext'],
                         'count' => $count,
                         'operator' => $facet['operator'],
-                        'isApplied' => $active,
+                        'isApplied' => $active, // TODO rozlisit jestli full-active nebo jen half-active
+                        'fullActive' => $fullActive,
                         'show' => $show,
                         'open' => $open,
                         'parent' => $parent,
                         'children' => $children,
                         'link' => $link,
                         'bold' => $bold,
+                        'dataFacet' => $dataFacet,
                     ];
             }
         }
