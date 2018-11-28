@@ -77,13 +77,12 @@ foreach ($usedFacetFilter as $filter) {
     </li>
     <ul id="ul-facet-<?=$filter['label']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
       <? foreach ($filter['list'] as $facet) { ?>
-        <? if ($facet['parent'] == $filter['label']) { ?>
         <li class="list-group-item" id="facet-<?=str_replace(':', '', $facet['name'])?>">
-          <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
+            <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
           <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['isApplied'])? 'full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
             <span class="<?=($facet['operator'] == "OR")? 'item' : ''?>">
               <?=($facet['bold'])? '<b>' : '';?>
-                <?=$facet['displayText']?>
+              <?=$facet['displayText']?>
               <?=($facet['bold'])? '</b>' : '';?>
             </span>
             <b class="badge"><?=(!is_null($facet['count'])) ? $facet['count'] : ''?></b>
@@ -91,25 +90,11 @@ foreach ($usedFacetFilter as $filter) {
         </li>
         <?if ($facet['children']) {?>
           <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['show'] && !$facet['open'])? 'hide': ''?>"></ul>
-        <?}
-        } else {
-          // TODO vytvaret to jednou v PHP funkci a tu pak volat jak vys tak niz... s tim ze niz se to prevede do JSON a zavola se JS funkce ktera to vlozi na spravne misto?>
+        <?}?>
+        <? if ($facet['parent'] != $filter['label']) { ?>
           <script>
-            var html = '<li class="list-group-item" id="facet-';
-            html += "<?=str_replace(':', '', $facet['name'])?>";
-            html += '">';
-            html += '<?=($facet['children'])? '<b class="arrow"></b>' : ''?>';
-            html += '<a href="' + "<?=$facet['link']?>" + '" class="facet-filter list-group-item or-facet ' + "<?=($facet['isApplied'])? 'full-active' : ''?>" + '" data-facet="' + '<?=$facet['dataFacet']?>' + '">';
-            html += '<span class="item">' + "<?=($facet['bold'])? '<b>' : '';?>";
-            html += "<?=$facet['displayText']?>";
-            html += "<?=($facet['bold'])? '</b>' : '';?>" + '</span>';
-            html += '<b class="badge"><?=(!is_null($facet['count'])) ? $facet['count'] : ''?></b></a></li>';
-            //html += "<?=($facet['children'])? '<ul id="ul-facet-' . str_replace(':', '', $facet['name']) . '" class="' . (!$facet['show'] && !$facet['open'])? 'hide': '' . '"></ul>' : ''?>";
-
-            html += '<?=($facet['children'])? '<ul id="ul-facet-' . str_replace(':', '', $facet['name']) . '" class="' : ''?>';
-            html += '<?=($facet['children'] && !$facet['show'] && !$facet['open'])? 'hide': ''?>';
-            html += '<?=($facet['children'])? '"></ul>' : ''?>';
-            $('#ul-facet-<?=str_replace(':', '', $facet['parent']);?>').append(html);
+            $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
+            $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
           </script>
         <? }
       } ?>
