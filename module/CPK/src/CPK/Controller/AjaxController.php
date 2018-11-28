@@ -2530,6 +2530,7 @@ class AjaxController extends AjaxControllerBase
     public function addResultsToFavoritesAjax()
     {
         $numberOfRecords = $this->params()->fromPost('numberOfRecords');
+        $page            = $this->params()->fromPost('numberOfRecords');
         $searchId        = $this->params()->fromPost('searchId');
         $title           = $this->params()->fromPost('title');
 
@@ -2643,6 +2644,18 @@ class AjaxController extends AjaxControllerBase
     public function isLoggedInAjax()
     {
         return $this->output([], $this->getAuthManager()->isLoggedIn() ? 200 : 404);
+    }
+
+    /**
+     * Get user's favorites lists
+     * @return array
+     */
+    public function getFavoritesListsAjax()
+    {
+        if (! $user = $this->getAuthManager()->isLoggedIn()) {
+            return $this->output([], self::STATUS_NEED_AUTH);
+        }
+        return $this->output($user->getFavoritesLists(), 200);
     }
 
     /**
@@ -2776,5 +2789,37 @@ class AjaxController extends AjaxControllerBase
         );
 
         return $this->output(['html' => $html], 200);
+    }
+
+    public function createNewFavoritesListAjax() {
+        // Retrieve user object and force login if necessary:
+        if (! ($user = $this->getUser())) {
+            return $this->forceLogin();
+        }
+
+        $listTitle       = $this->params()->fromPost('title');
+        $listDescription = $this->params()->fromPost('description');
+
+        if (!$listTitle) {
+            return $this->output('Favorites list title is not set', self::STATUS_NOT_OK);
+        }
+
+        try {
+            $userListTable = $this->getTable('UserList');
+            $list = $userListTable->getByUserAndTitle($user, $listTitle);
+
+            if ($list == null) {
+                $list = $userListTable->getNew($user);
+                $list->title = $listTitle;
+                if ($listDescription) {
+                    $list->description = $listDescription;
+                }
+                $list->save($user);
+            }
+        } catch (\Exception $exception) {
+            return $this->output($exception->getMessage(), self::STATUS_NOT_OK);
+        }
+
+        return $this->output(['newListId' => $list->id], 200);
     }
 }

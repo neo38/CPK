@@ -4,11 +4,8 @@
 * Sjednotit Ui Oblibenych prihlaseneho uzivatele s novym Ui neprihlaseneho uzivatele
 * Install Babel - https://babeljs.io/setup#installation
 * Sort offline favorites ASC/DESC
-* Vytvoreni noveho seznamu udelat do modalu. Pri otevreni modalu pro pridani Oblibenych nacitat seznam asynchronne,
-* protoze kdyz si vytvorim seznam a pridam
-* zaznam, zavru a pak pridam dalsi, vidim porad stare seznamy nactene z PHP on page load.
 * Pridat strankovani
-* V modalu pro pridavani vysledku do Oblibenych prihlaseneho zuivatele udelat Select pro vyber existujici skupiny
+* V modalu pro pridavani vysledku do Oblibenych prihlaseneho uzivatele udelat Select pro vyber existujici skupiny
 * Pridat moznost hromadne mazat seznamy Oblibenych
 *
 * @REFACTORING
@@ -60,8 +57,42 @@ export default class Favorites {
             recordId: recordId,
             title: title,
         });
-        document.getElementById(`favoriteModalForRecord${recordHash}Title`).innerHTML = title;
+        document.getElementById(`favoriteModalForRecord${recordHash}Title`).innerHTML = VuFind.escapeHtml(title);
+
+        let html = '<i class="fa fa-spinner fa-spin">';
+        document.getElementById(`favoritesListsModalPlaceholderFor${recordHash}`).innerHTML = html;
         jQuery(`#favoriteModalForRecord${recordHash}`).modal('show');
+
+        User.getFavoritesLists()
+            .then((lists) => {
+
+                if (lists.length > 0) {
+                    html = `<select id='favoritesListFor${recordHash}'>`;
+
+                    lists.forEach((list) => {
+                        html += `
+                            <option value='${list.id}'>
+                                ${VuFind.escapeHtml(list.title)}
+                            </option>
+                        `;
+                     });
+
+                    html += `</select>`;
+                } else {
+                    html = VuFind.translate('You dont have favorites list yet');
+                }
+
+                document.getElementById(`favoritesListsModalPlaceholderFor${recordHash}`).innerHTML = html;
+                jQuery(`#favoritesListFor${recordHash}`).select2();
+
+                jQuery(`#favoritesListFor${recordHash}`).on('select2:open', function (e) {
+                    // Remove autocomplete from Select2
+                    let select2Autocomplete = document.querySelector(`.select2-search--dropdown`);
+                    if (select2Autocomplete) {
+                        select2Autocomplete.outerHTML = '';
+                    }
+                });
+            });
     };
 
     /**
@@ -80,6 +111,64 @@ export default class Favorites {
         jQuery(`#favoriteModalForSearch`).modal('show');
     };
 
+    static sendFavoriteRecordToAjaxController(recordId, listId, note, recordData) {
+        jQuery.ajax({
+            type: 'POST',
+            cache: false,
+            dataType: 'json',
+            url: VuFind.getPath() + '/AJAX/JSON?method=addRecordToFavorites',
+            data: {
+                recordId, listId, note,
+                searchClassId: recordData.searchClassId,
+                created: new Date().getTime(),
+            },
+            beforeSend: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'wait';
+            },
+            success: function( response ) {
+                if (response.status == 200) {
+                    VuFind.flashTranslation('record_added_to_favorites');
+                    Favorites.swapButtons(recordId);
+                } else {
+                    VuFind.flashTranslation('could_not_save_record_to_favorites');
+                }
+            },
+            complete: function() {
+                let bodyElement = document.getElementsByTagName('body')[0];
+                bodyElement.style.cursor = 'default';
+            },
+            error: function ( xmlHttpRequest, status, error ) {
+                console.error(error);
+                VuFind.flashTranslation('could_not_save_record_to_favorites');
+            }
+        });
+    };
+
+    static createNewList(title, description) {
+        return new Promise((resolve, reject) => {
+            jQuery.ajax({
+                type: 'POST',
+                cache: false,
+                dataType: 'json',
+                url: VuFind.getPath() + '/AJAX/JSON?method=createNewFavoritesList',
+                data: {
+                    title, description,
+                },
+                success: function( response ) {
+                    if (response.status == 200) {
+                        resolve(response.data);
+                    } else {
+                        reject('Could not create new favorites list');
+                    }
+                },
+                error: function ( xmlHttpRequest, status, error ) {
+                    reject('Could not create new favorites list');
+                }
+            });
+        });
+    };
+
     /**
      * Save record to favorites
      * @param String recordId
@@ -87,62 +176,31 @@ export default class Favorites {
      * @param String note
      * @param Object recordData
      */
-    static saveRecord(recordId, listId = undefined, note = undefined, recordData = undefined) {
+    static saveRecord(recordId,
+                      listId = undefined,
+                      note = undefined,
+                      recordData = undefined,
+                      action = undefined,
+                      listData = undefined) {
         let alreadyInFavorites = false;
 
         User.isLoggedIn()
             .then(() => {
-                jQuery.ajax({
-                    type: 'POST',
-                    cache: false,
-                    dataType: 'json',
-                    url: VuFind.getPath() + '/AJAX/JSON?method=addRecordToFavorites',
-                    data: {
-                        recordId, listId, note,
-                        searchClassId: recordData.searchClassId,
-                        created: new Date().getTime(),
-                    },
-                    beforeSend: function() {
-                        let bodyElement = document.getElementsByTagName('body')[0];
-                        bodyElement.style.cursor = 'wait';
-                    },
-                    success: function( response ) {
-                        if (response.status == 200) {
-                            VuFind.flashTranslation('record_added_to_favorites');
-                            Favorites.swapButtons(recordId);
-                        } else {
+
+                if (action == 'new') {
+                    Favorites.createNewList(listData.title, listData.description)
+                        .then((data) => {
+                            VuFind.flashTranslation('New favorites list created');
+                            Favorites.sendFavoriteRecordToAjaxController(recordId, data.newListId, note, recordData);
+                        })
+                        .catch((error) => {
+                            console.error(error);
                             VuFind.flashTranslation('could_not_save_record_to_favorites');
-                        }
-                    },
-                    complete: function() {
-                        let bodyElement = document.getElementsByTagName('body')[0];
-                        bodyElement.style.cursor = 'default';
-                    },
-                    error: function ( xmlHttpRequest, status, error ) {
-                        console.error(error);
-                        VuFind.flashTranslation('could_not_save_record_to_favorites');
-                    }
-                });
+                        });
+                } else { // 'existing' || 'undefined'
+                    Favorites.sendFavoriteRecordToAjaxController(recordId, listId, note, recordData);
+                }
 
-                /* Save to DB */
-                // axios.post(
-                //     '/AJAX/JSON?method=addRecordToFavorites',
-                //     {
-                //         recordId, listId, note, recordData.searchClassId
-                //     })
-
-                    // .then((response) => response.json())
-                    // .then((response) => {
-                    //     if (response.status == 200) {
-                    //         VuFind.flashTranslation('record_added_to_favorites');
-                    //         Favorites.swapButtons(recordId);
-                    //     }
-                    //     VuFind.flashTranslation('could_not_save_record_to_favorites');
-                    // })
-                    // .catch((error) => {
-                    //     console.error(error);
-                    //     VuFind.flashTranslation('could_not_save_record_to_favorites');
-                    // });
             })
             .catch(() => {
                 /* Save to SessionStorage */
@@ -192,6 +250,7 @@ export default class Favorites {
                     url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
                     data: {
                         numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
+                        page: document.querySelector("input[name='page']").value,
                         searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
                         title: document.getElementById('newFavoritesListTitle').value,
                     },

@@ -6,12 +6,38 @@ VuFind.addToFavorites = (recordId, online = false, recordData = undefined) => {
 
     let listId = undefined;
     let note = undefined;
+    let action = undefined;
+    let listData = undefined;
 
     if (online) {
         const selectElement = document.getElementById(`favoritesListFor${recordHash}`);
-
-        listId = selectElement.options[selectElement.selectedIndex].value;
+        if (selectElement) {
+            listId = selectElement.options[selectElement.selectedIndex].value;
+        }
         note = document.getElementById(`favoritesListFor${recordHash}Note`).value;
+
+        // Detect action (Select list ID or Create new list)
+        if (document.querySelector(`#favoriteModalForRecord${recordHash} #favorites-lists-tab`)
+                    .classList
+                    .contains('active')) {
+            action = 'existing';
+        } else {
+            action = 'new';
+            listData = {};
+            listData.title = document.querySelector(`#newFavoritesListFor${recordHash}Title`).value;
+            listData.description = document.querySelector(`#newFavoritesListFor${recordHash}Description`).value;
+        }
+    }
+
+    // Validation
+    if (action == 'existing' && !listId) {
+        VuFind.flashTranslation('Select or create favorites list first');
+        return false;
+    }
+
+    if (action == 'new' && !listData.title) {
+        VuFind.flashTranslation('Select or create favorites list first');
+        return false;
     }
 
     if (recordData) {
@@ -32,7 +58,7 @@ VuFind.addToFavorites = (recordId, online = false, recordData = undefined) => {
             : false;
     }
 
-    Favorites.saveRecord(recordId, listId, note, recordData);
+    Favorites.saveRecord(recordId, listId, note, recordData, action, listData);
 };
 
 VuFind.addSearchToFavorites = () => Favorites.addSearchToFavorites();

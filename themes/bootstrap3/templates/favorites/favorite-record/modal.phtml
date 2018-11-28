@@ -19,47 +19,43 @@
         </button>
       </div>
       <div class='modal-body'>
-        <div class='form-group'>
-          <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'>
-              <?=$this->translate('Choose a List') ?>
-          </label>
-          <? if (! empty($this->favoritesLists)): ?>
-            <select id='favoritesListFor<?=$this->driver->getRecordIdHash()?>'
-                    class='control-label form-control select2Select'>
-              <? foreach ($this->favoritesLists as $list): ?>
-                <option value='<?=$list['id']?>'>
-                  <?=htmlspecialchars($list['title'])?>
-                </option>
-              <? endforeach; ?>
-            </select>
-          <? endif; ?>
-        </div>
 
-        <div>
-          <a class='btn btn-link'
-             id='create-favorite-list'
-             href='<?= "/MyResearch/EditList/NEW?"
-                  . "recordId=" . $this->driver->getUniqueId()
-                  . "&recordSource=" . $this->searchClassId ?>'
-             title='<?= empty($this->favoritesLists)
-                 ? $this->translate('Create a List')
-                 : $this->translate('or create a new list') ?>'>
-            <?= empty($this->favoritesLists)
-                ? $this->translate('Create a List')
-                : $this->translate('or create a new list') ?>
-          </a>
-        </div>
+        <ul class="nav nav-tabs nav-justified">
+          <li class="active"><a data-toggle="tab" href="#favorites-lists-tab"><?=$this->transEsc('Existing list') ?></a></li>
+          <li><a data-toggle="tab" href="#favorites-new-list-tab"><?=$this->transEsc('New list') ?></a></li>
+        </ul>
 
-        <? if (! empty($this->favoritesLists)): ?>
-          <br>
-          <div class='form-group'>
-            <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'>
-              <?=$this->translate('Add a Note') ?>
-            </label>
-            <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'>
-            </textarea>
+        <div class="tab-content">
+          <div id="favorites-lists-tab" class="tab-pane fade in active">
+            <div class='form-group'>
+              <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'>
+                <?=$this->translate('Choose a List') ?>
+              </label>
+              <div id='favoritesListsModalPlaceholderFor<?=$this->driver->getRecordIdHash()?>'></div>
+            </div>
           </div>
-        <? endif; ?>
+          <div id="favorites-new-list-tab" class="tab-pane fade">
+            <div class='form-group'>
+              <label for='favoritesListFor<?=$this->driver->getRecordIdHash()?>'>
+                <?=$this->translate('Favorites list title') ?>
+              </label>
+              <input type='text'
+                     class='form-control'
+                     id='newFavoritesListFor<?=$this->driver->getRecordIdHash()?>Title'>
+              <label class='control-label' for='newFavoritesListFor<?=$this->driver->getRecordIdHash()?>Description'>
+                <?=$this->translate('Favorties list description') ?>
+              </label>
+              <textarea class='form-control'
+                        id='newFavoritesListFor<?=$this->driver->getRecordIdHash()?>Description'></textarea>
+            </div>
+          </div>
+        </div>
+
+        <label class='control-label' for='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'>
+          <?=$this->translate('Favorite record note') ?>
+        </label>
+        <textarea class='form-control' id='favoritesListFor<?=$this->driver->getRecordIdHash()?>Note'></textarea>
+
       </div>
       <div class='modal-footer'>
         <button type='button'

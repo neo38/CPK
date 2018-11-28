@@ -25,5 +25,34 @@ export default class User {
                     throw error;
                 });
         });
-    }
+    };
+
+    /**
+     * Returns whether user is logged in
+     * @return {Promise<any>}
+     */
+    static getFavoritesLists() {
+        return new Promise((resolve, reject) => {
+            fetch(
+                '/AJAX/JSON?method=getFavoritesLists',
+                {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'GET',
+                })
+                .then((response) => response.json())
+                .then((response) => {
+                    if (response.status == 200) {
+                        resolve(response.data);
+                    }
+                    reject();
+                })
+                .catch((error) => {
+                    throw error;
+                });
+        });
+    };
+
 }
