@@ -48,6 +48,10 @@ class ThemeConfiguration extends AbstractHelper
 		'hide_switch_language' => false,
 		'hide_eds_source'      => false,
 		'logo_href'            => '/Search/Home',
+ 		'libraries_href'       => '/Search/Results/?'
+			.'lookfor0[]=&amp;type0[]=Libraries&amp;bool0[]=AND&amp;filter=&amp;daterange=&amp;publishDatefrom='
+			.'&amp;publishDateto=&amp;limit=10&amp;sort=relevance&amp;page=1&amp;searchTypeTemplate=basic&amp;'
+			.'keepFacetsEnabled=true&amp;join=AND" class="pull-right arrow-link',
 	];
 
 	/**

@@ -2,43 +2,34 @@
 <html lang="<?=explode("-", $this->layout()->userLang)[0]?>">
   <head>
     <?$this->headThemeResources()?>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <?=$this->headMeta()?>
-    <?=$this->render('layout/head.phtml');?>
+    <?=$this->render('layout/head.phtml')?>
     <?=$this->headTitle()?>
     <?
       // Set up OpenSearch link:
-      $this->headLink(
-        array(
-          'href' => $this->url('search-opensearch') . '?method=describe',
-          'type' => 'application/opensearchdescription+xml',
+      $this->headLink( [
+          'href'  => $this->url('search-opensearch') . '?method=describe',
+          'type'  => 'application/opensearchdescription+xml',
           'title' => $this->transEsc('Library Catalog Search'),
-          'rel' => 'search'
-        )
-      );
+          'rel'   => 'search'
+      ]);
     ?>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-TXJ544');</script>
-    <!-- End Google Tag Manager -->
+    <?$this->headScript()->appendFile('google-tag-manager.js');?>
 
     <!-- RTL styling -->
     <? if ($this->layout()->rtl) {
       $this->headLink()->appendStylesheet('vendor/bootstrap-rtl.min.css');
     } ?>
     <?=$this->headLink()?>
-    <?=$this->render("layout/fonts.phtml")?>
+    <?=$this->render('layout/fonts.phtml')?>
     <?=$this->headStyle()?>
     <?
       if (!isset($this->renderingError)) {
         // Add translation strings
-        $this->jsTranslations()->addStrings(
-          array(
+        $this->jsTranslations()->addStrings([
             'bulk_email_success' => 'bulk_email_success',
             'bulk_noitems_advice' => 'bulk_noitems_advice',
             'bulk_save_success' => 'bulk_save_success',
@@ -90,12 +81,11 @@
             'warning_safety_login' => 'warning_safety_login',
             'page' => 'page',
             'record' => 'record',
-            'Select widget' => 'Select widget'
-          )
-        );
+            'Select widget' => 'Select widget',
+            'you_have_unsaved_favorites' => 'you_have_unsaved_favorites',
+        ]);
         // Add libphonenumber.js strings
-        $this->jsTranslations()->addStrings(
-          array(
+        $this->jsTranslations()->addStrings([
             "'Phone number invalid'" => 'libphonenumber_invalid',
             "'Invalid country calling code'" => 'libphonenumber_invalidcountry',
             "'Invalid region code'" => 'libphonenumber_invalidregion',
@@ -103,36 +93,30 @@
             "'The string supplied is too long to be a phone number'" => 'libphonenumber_toolong',
             "'The string supplied is too short to be a phone number'" => 'libphonenumber_tooshort',
             "'Phone number too short after IDD'" => 'libphonenumber_tooshortidd'
-          )
-        );
+        ]);
         // Add translation for sorting
-        $this->jsTranslations()->addStrings(
-          array(
+        $this->jsTranslations()->addStrings([
             'date_newest' => 'date_newest',
             'date_oldest' => 'date_oldest',
             'sort_relevance' => 'sort_relevance',
-          )
-        );
+        ]);
 
         // Fix some IE issues
         if (USES_IE) {
             $this->headScript()->appendFile('vendor/es6-promise.min.js');
         }
-
-        $cacheUrl = $this->ObalkyKnih()->getCacheUrl();
-        $this->headScript()->appendScript("obalky.setCacheUrl(\"{$cacheUrl}\");");
+        $this->headScript()->appendScript("obalky.setCacheUrl('{$this->ObalkyKnih()->getCacheUrl()}');");
 
         // Deal with cart stuff:
         $cart = $this->cart();
         if ($cart->isActive()) {
-          $this->headScript()->appendFile("vendor/cookies.js");
-          $this->headScript()->appendFile("cart.js");
+          $this->headScript()->appendFile('vendor/cookies.js');
+          $this->headScript()->appendFile('cart.js');
           $domain = $cart->getCookieDomain();
           $this->headScript()->appendScript(
-            'var cartCookieDomain = ' . (!empty($domain) ? "'$domain'" : 'false') . ';'
+            'let cartCookieDomain = ' . (!empty($domain) ? "'$domain'" : 'false') . ';'
           );
-          $this->jsTranslations()->addStrings(
-            array(
+          $this->jsTranslations()->addStrings([
               'bulk_noitems_advice' => 'bulk_noitems_advice',
               'confirmDelete' => 'confirm_delete',
               'confirmEmpty' => 'bookbag_confirm_empty',
@@ -145,173 +129,167 @@
               'bookbagFull' => 'bookbag_full_msg',
               'bookbagStatusFull' => 'bookbag_full',
               'no_tags' => 'No Tags'
-            )
-          );
+          ]);
         }
         $this->headScript()->appendScript(
           'var userIsLoggedIn = ' . ($this->auth()->isLoggedIn() ? 'true' : 'false') . ';'
         );
       }
 
-      // data-ng-app translations ..
-      $this->jsTranslations()->addStrings(
-          array(
-              'you_have_unsaved_favorites' => 'you_have_unsaved_favorites'
-          )
-      );
-
       // Prompt 'offline' favorites to push to the server
-      if(isSeT($_ENV['justLoggedIn'])) {
-          $this->headScript()->appendScript('var sendMeFavs=()=>true');
+      if (isseT($_ENV['justLoggedIn'])) {
+          $this->headScript()->appendScript('let sendMeFavs = () => true');
       }
 
       // Session keep-alive
       if ($this->KeepAlive()) {
-          $this->headScript()->appendScript('var keepAliveInterval = '
-            . $this->KeepAlive());
-          $this->headScript()->appendFile("keep_alive.js");
+          $this->headScript()->appendScript('var keepAliveInterval = ' . $this->KeepAlive());
+          $this->headScript()->appendFile('keep_alive.js');
+      }
+      
+      /*
+       * Will we show the notifications ??
+       */
+      $authManager = $this->auth()->getManager();
+      $user = $authManager->isLoggedIn();
+
+      //variables for purposes of google analytics
+      $hashedUserId            = null;
+      $listOfIdentityProviders = null;
+      $loggedIn                = 'Ne';
+
+      $notificationsEnabled = false;
+
+      if ($authManager instanceof \CPK\Auth\Manager) {
+          $notificationsEnabled = $authManager->isNotificationSystemEnabled();
       }
 
+      if ($user) {
+          $loggedIn                = 'Ano';
+          $hashedUserId            = $user->getHashedId();
+          $listOfIdentityProviders = $user->getStringOfConnectedInstitutions();
+      }
 
-        /*
-         * Will we show the notifications ??
-         */
-        $authManager = $this->auth()->getManager();
-        $user = $authManager->isLoggedIn();
-
-        //variables for purposes of google analytics
-        $hashedUserId = null;
-        $listOfIdentityProviders = null;
-        $loggedIn = "Ne";
-
-        $notificationsEnabled = false;
-
-        if ($authManager instanceof \CPK\Auth\Manager) {
-            $notificationsEnabled = $authManager->isNotificationSystemEnabled();
-        }
-
-        if ($user) {
-            $loggedIn = "Ano";
-            $hashedUserId = $user->getHashedId();
-            $listOfIdentityProviders = $user->getStringOfConnectedInstitutions();
-        }
-
-        $headerParams = [
-            'account' => $authManager,
-            'user' => $user,
-            'notificationsEnabled' => $notificationsEnabled,
-        ];
+      $headerParams = [
+          'account'              => $authManager,
+          'user'                 => $user,
+          'notificationsEnabled' => $notificationsEnabled,
+      ];
     ?>
     <?
-      $root = rtrim($this->url('home'), '/');
-      $translations = $this->jsTranslations()->getJSON();
-      $dsb = DEFAULT_SEARCH_BACKEND;
-      $setupJS = "var VuFind = new VuFindNamespace('{$root}', {$translations}, '{$dsb}');";
-      $this->headScript()->appendScript($setupJS);
+        $root = rtrim($this->url('home'), '/');
+        $translations = $this->jsTranslations()->getJSON();
+        $dsb = DEFAULT_SEARCH_BACKEND;
+        $setupJS = "let VuFind = new VuFindNamespace('{$root}', {$translations}, '{$dsb}');";
+        $this->headScript()->appendScript($setupJS);
+        $this->headScript()->appendFile('geolocation.js');
     ?>
-    <?=$this->headScript()->appendFile("geolocation.js");?>
   </head>
-  <body data-ng-app="cpk" data-ng-controller="GlobalController as ctrl" class="<?=$this->layoutClass('offcanvas-row')?><? if ($this->layout()->rtl): ?> rtl<? endif; ?>">
-
-  <!-- Facebook Pixel Code -->
-  <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window,document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '822054034585908');
-      fbq('track', 'PageView');
-  </script>
-  <noscript>
-      <img height="1" width="1" src="https://www.facebook.com/tr?id=822054034585908&amp;ev=PageView&amp;noscript=1"/>
-  </noscript>
-  <!-- End Facebook Pixel Code -->
+  <body data-ng-app='cpk'
+        data-ng-controller='GlobalController as ctrl'
+        class='<?=$this->layoutClass("offcanvas-row")?> <?=$this->layout()->rtl ? "rtl" : ""?>'>
+  
+    <!-- Facebook Pixel Code -->
+    <?$this->headScript()->appendFile('facebook-pixel-code.js');?>
+    <noscript>
+      <img height='1' width='1' src='https://www.facebook.com/tr?id=822054034585908&amp;ev=PageView&amp;noscript=1'>
+    </noscript>
+    <!-- End Facebook Pixel Code -->
 
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TXJ544"
-                      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript>
+      <iframe src='https://www.googletagmanager.com/ns.html?id=GTM-TXJ544'
+              height='0'
+              width='0'
+              class='hidden'>
+      </iframe>
+    </noscript>
     <!-- End Google Tag Manager (noscript) -->
+
     <script>
       dataLayer.push({
         'page': {
-          'title': '<?=$this->headTitle()->renderTitle()?>',
+          'title':    '<?=$this->headTitle()->renderTitle()?>',
           'language': '<?=$this->layout()->userLang?>',
           'category': undefined,
-          'type': undefined,
-          'library': undefined
+          'type':     undefined,
+          'library':  undefined
         },
         'user': {
-          'loggedIn': '<?=$loggedIn ?>',
-          'userId': <?= empty($hashedUserId) ? "undefined" :  "'".$hashedUserId."'" ?>,
+          'loggedIn':  '<?=$loggedIn ?>',
+          'userId':    <?= empty($hashedUserId) ? "undefined" :  "'".$hashedUserId."'" ?>,
           'loginType': <?= empty($listOfIdentityProviders) ? "undefined" :  "'".$listOfIdentityProviders."'" ?>
         }
-
       });
     </script>
 
-  <?=$this->render('cookies-agreement.phtml')?>
+    <?=$this->render('cookies-agreement.phtml')?>
     <?=$this->render('info.phtml')?>
-    <? // Set up the search box -- there are three possible cases:
-      // 1. No search box was set; we should default to the normal box
-      // 2. It was set to false; we should display nothing
-      // 3. It is set to a custom string; we should display the provided version
-      // Set up default search box if no data was provided from the template;
-      // this covers case 1.  Cases 2 and 3 are then covered by logic below.
-      if (!isset($this->layout()->searchbox)) {
-        $this->layout()->searchbox = $this->render('search/searchbox.phtml');
-      }
+    <?
+        // Set up the search box -- there are three possible cases:
+        // 1. No search box was set; we should default to the normal box
+        // 2. It was set to false; we should display nothing
+        // 3. It is set to a custom string; we should display the provided version
+        // Set up default search box if no data was provided from the template;
+        // this covers case 1.  Cases 2 and 3 are then covered by logic below.
+        if (!isset($this->layout()->searchbox)) {
+            $this->layout()->searchbox = $this->render('search/searchbox.phtml');
+        }
     ?>
-    <header class="hidden-print header-container <?=($this->layout()->frontpage == true)?'frontpage':''?>">
-	    <? if (!$this->themeConfiguration()->themeConfig['hide_navbar']): ?>
-		    <div class="container navbar">
-			    <a class="sr-only" href="#content"><?= $this->transEsc('Skip to content') ?></a>
-			    <?= $this->render('header.phtml', $headerParams) ?>
-		    </div>
-	    <? endif; ?>
-        <div class="container">
-            <? if ($this->layout()->frontpage == true): ?>
-                <h1><?=$this->transEsc("frontpage-header-text")?></h1>
-                <? $docCount = $this->layout()->docCount; ?>
-                <? if (empty($docCount)): ?>
-                    <h4><?=$this->transEsc("frontpage-text")?></h4>
-                <? else: ?>
-                    <h4><?=$this->transEsc("frontpage-text", ['10 000 000' => $this->localizedNumber($docCount)])?></h4>
-                <? endif; ?>
-                <div class="clearfix">
-                    <div class='container'>
-                        <?=$this->render('search/searchbox.phtml'); ?>
-                        <?=$this->render('shib-assertion.phtml')?>
-                        <? if(!$this->themeConfiguration()->themeConfig['hide_inspirations']): ?>
-                            <a href="/Search/Inspiration" class="pull-left arrow-link">
-                                <i class="pr-interface-arrowleft"></i>
-                                <?=$this->transEsc("frontpage-left-arrow-link")?>
-                            </a>
-                        <? endif; ?>
-                        <? if(!$this->themeConfiguration()->themeConfig['hide_library_search']): ?>
-                            <a href="/Search/Results/?lookfor0[]=&amp;type0[]=Libraries&amp;bool0[]=AND&amp;filter=&amp;daterange=&amp;publishDatefrom=&amp;publishDateto=&amp;limit=10&amp;sort=relevance&amp;page=1&amp;searchTypeTemplate=basic&amp;keepFacetsEnabled=true&amp;join=AND" class="pull-right arrow-link">
-                                <? $titleHtml = $this->transEsc("frontpage-right-arrow-link") ."<i class=\"pr-interface-arrowright\"></i>"; ?>
-                                <?= $this->help()->getElementHelp('element_help_frontpage_right_arrow', $titleHtml, "mzk") ?>
-                            </a>
-                        <? endif; ?>
-                    </div>
-                </div>
-            <? else: ?>
-                <? if ($this->layout()->headerType == "libraries"): ?>
-                    <?=$this->render('libraries/header.phtml')?>
-                <? endif; ?>
-            <? endif; ?>
-        </div>
+
+    <header class='hidden-print header-container <?=($this->layout()->frontpage == true) ? "frontpage" : ""?>'>
+      <? if (!$this->themeConfiguration()->themeConfig['hide_navbar']): ?>
+      <div class='container navbar'>
+        <a class='sr-only' href='#content'>
+          <?=$this->transEsc('Skip to content')?>
+        </a>
+        <?=$this->render('header.phtml', $headerParams)?>
+      </div>
+      <? endif; ?>
+      <div class='container'>
+        <? if ($this->layout()->frontpage == true): ?>
+          <h1><?=$this->transEsc('frontpage-header-text')?></h1>
+          <? if (empty($this->layout()->docCount)): ?>
+            <h4><?=$this->transEsc('frontpage-text')?></h4>
+          <? else: ?>
+            <h4>
+              <?= $this->transEsc('frontpage-text',
+                  ['10 000 000' => $this->localizedNumber($this->layout()->docCount)]
+              ) ?>
+            </h4>
+          <? endif; ?>
+          <div class='clearfix'>
+            <div class='container'>
+              <?=$this->render('search/searchbox.phtml'); ?>
+              <?=$this->render('shib-assertion.phtml')?>
+              <? if (!$this->themeConfiguration()->themeConfig['hide_inspirations']): ?>
+                <a href='/Search/Inspiration' class='pull-left arrow-link'>
+                  <i class='pr-interface-arrowleft'></i>
+                  <?=$this->transEsc('frontpage-left-arrow-link')?>
+                </a>
+              <? endif; ?>
+              <? if (!$this->themeConfiguration()->themeConfig['hide_library_search']): ?>
+                <a href='<?=$this->themeConfiguration()->themeConfig['libraries_href']?>'>
+                  <? $titleHtml = $this->transEsc('frontpage-right-arrow-link') 
+                      .'<i class="pr-interface-arrowright"></i>'; ?>
+                  <?= $this->help()->getElementHelp('element_help_frontpage_right_arrow', $titleHtml, 'mzk') ?>
+                </a>
+              <? endif; ?>
+            </div>
+          </div>
+        <? else: ?>
+          <? if ($this->layout()->headerType == 'libraries'): ?>
+            <?=$this->render('libraries/header.phtml')?>
+          <? endif; ?>
+        <? endif; ?>
+      </div>
     </header>
 
-    <div role="main" class="main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>">
-      <div class="container">
+    <div role='main' class='main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>'>
+      <div class='container'>
         <? if ($this->layout()->frontpage != true): ?>
-          <? if ($this->layout()->headerType != "libraries"): ?>
-            <div class="clearfix">
+          <? if ($this->layout()->headerType != 'libraries'): ?>
+            <div class='clearfix'>
               <div class='container'>
                 <?=$this->layout()->searchbox ?>
                 <?=$this->render('shib-assertion.phtml')?>
@@ -323,78 +301,93 @@
         <?=$this->layout()->content ?>
       </div>
     </div>
-    <footer class="hidden-print header-container">
-      <div class="container">
+    <footer class='hidden-print header-container'>
+      <div class='container'>
         <?=$this->render('footer.phtml', ['user' => $user])?>
         <?=$this->layout()->poweredBy ?>
       </div>
     </footer>
     <!-- MODAL IN CASE WE NEED ONE -->
-    <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 id="modalTitle" class="modal-title" data-ng-modal="global.header">&nbsp;</h4>
+    <div id='modal'
+         class='modal fade hidden-print'
+         tabindex='-1'
+         role='dialog'
+         aria-labelledby='modalTitle'
+         aria-hidden='true'>
+      <div class='modal-dialog'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+            <h4 id='modalTitle' class='modal-title' data-ng-modal='global.header'>&nbsp;</h4>
           </div>
-          <div class="modal-body" data-ng-modal="global.body"><?=$this->transEsc('Loading') ?>...</div>
+          <div class='modal-body' data-ng-modal='global.body'><?=$this->transEsc('Loading') ?>...</div>
         </div>
       </div>
     </div>
-    <? if (! $user): ?>
+    <? if (!$user): ?>
     <!-- Modal for login -->
-    <div class="modal fade" id="loginModal" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content" data-ng-controller="FederativeLoginController as fedLoginCtrl">
-          <div class="modal-header" data-ng-show='fedLoginCtrl.hasLastIdps()'>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_last_used')?></h4>
+    <div class='modal fade' id='loginModal' role='dialog'>
+      <div class='modal-dialog' role='document'>
+        <div class='modal-content' data-ng-controller='FederativeLoginController as fedLoginCtrl'>
+          <div class='modal-header' data-ng-show='fedLoginCtrl.hasLastIdps()'>
+            <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+              <span aria-hidden='true'>&times;</span>
+            </button>
+            <h4 class='modal-title'><?=$this->translate('login_last_used')?></h4>
           </div>
-          <div class="modal-body last-idps" data-ng-last-used data-ng-show='fedLoginCtrl.hasLastIdps()'>
-		  </div>
-		  <div class="modal-header link" data-ng-click="fedLoginCtrl.showHelpContent()" style="cursor: pointer">
-		    <? $portalPage = $this->portalPages()->getPage('moznosti-prihlaseni-a-registrace', explode("-", $this->layout()->userLang)[0]); ?>
-		    <h4 class="modal-title"><?=$portalPage['title']?></h4>
-		  </div>
-		  <div class="modal-body" id="preregistration" data-ng-help-content hidden="hidden">
-		    <?=$portalPage['content'] ?>
-            <script>
-              $(document).ready(function () {
-                $('#preregistration a').on('click', function () {
-                  dataLayer.push({
-                    'event': 'action.account',
-                    'actionContext': {
-                      'eventCategory': 'account',
-                      'eventAction': 'register',
-                      'eventLabel': $(this).attr('href'),
-                      'eventValue': undefined,
-                      'nonInteraction': false
-                    }
+          <div class='modal-body last-idps' data-ng-last-used data-ng-show='fedLoginCtrl.hasLastIdps()'>
+          </div>
+          <div class='modal-header link pointer' data-ng-click='fedLoginCtrl.showHelpContent()'>
+            <? $portalPage = $this->portalPages()->getPage(
+                'moznosti-prihlaseni-a-registrace',
+                explode('-', $this->layout()->userLang)[0]
+               );
+            ?>
+            <h4 class='modal-title'><?=$portalPage['title']?></h4>
+          </div>
+          <div class='modal-body' id='preregistration' data-ng-help-content hidden='hidden'>
+            <?=$portalPage['content'] ?>
+                <script>
+                  $(document).ready(function () {
+                    $('#preregistration a').on('click', function () {
+                      dataLayer.push({
+                        'event': 'action.account',
+                        'actionContext': {
+                          'eventCategory': 'account',
+                          'eventAction': 'register',
+                          'eventLabel': $(this).attr('href'),
+                          'eventValue': undefined,
+                          'nonInteraction': false
+                        }
+                      });
+                    })
                   });
-                })
-              });
-            </script>
-		  </div>
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_with')?></h4>
+                </script>
           </div>
-          <div class="modal-body">
-          	<?=$this->render('login/identity-providers.phtml', [
-          	    'idps' => $this->identityProviders()->getLibraries()
-          	]) ?>
-		  </div>
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title"><?=$this->translate('login_other')?></h4>
+          <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+              <span aria-hidden='true'>&times;</span>
+            </button>
+            <h4 class='modal-title'><?=$this->translate('login_with')?></h4>
           </div>
-          <div class="modal-body">
-          	<?=$this->render('login/identity-providers.phtml', [
-          	    'idps' => $this->identityProviders()->getOthers()
-          	]) ?>
-		  </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->translate('close')?></button>
+          <div class='modal-body'>
+            <?= $this->render('login/identity-providers.phtml', [
+                'idps' => $this->identityProviders()->getLibraries()
+            ]) ?>
+          </div>
+          <div class='modal-header'>
+            <button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+              <span aria-hidden='true'>&times;</span>
+            </button>
+            <h4 class='modal-title'><?=$this->translate('login_other')?></h4>
+          </div>
+          <div class='modal-body'>
+            <?= $this->render('login/identity-providers.phtml', [
+                'idps' => $this->identityProviders()->getOthers()
+            ]) ?>
+          </div>
+          <div class='modal-footer'>
+            <button type='button' class='btn btn-default' data-dismiss='modal'><?=$this->translate('close')?></button>
           </div>
         </div>
       </div>
