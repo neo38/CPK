@@ -1,115 +1,138 @@
 <?
     $id = $this->driver->getUniqueID();
-    $recordSource = $source = explode(".", $id)[0];
+    $recordSource = $source = explode('.', $id)[0];
     $maxSubjectsInCore = $config['Record']['max_subjects_in_core'];
+
+    $addedEntryNames = $this->driver->getAddedEntryPersonalNames();
+    $authoritySources = $this->driver->getSource();
+    $pseudonyms = $this->driver->getPseudonyms();
 ?>
-
-<? if ($bibinfo = $this->record($this->driver)->getObalkyKnihJSONV3()): ?>
-
-<? endif; ?>
-
 <div class="well">
-<div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
-  <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
-    <div class="text-center #cover" id="cover">
-        <div class="iconlabel"><i style="font-size: 70px; color: #cccccc;" class="pr-user-single5"></i></div>
+  <div class="row"
+       vocab="http://schema.org/"
+       resource="#record"
+       typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
+    <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
+      <div class="text-center #cover" id="cover">
+        <div class="iconlabel record-icon-label">
+          <i class="pr-user-single5"></i>
+        </div>
         <script type="text/javascript">
-            obalky.display_authority_cover("#cover", <?=$bibinfo?>, <?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>);
+            obalky.display_authority_cover(
+                "#cover",
+                <?=$this->record($this->driver)->getObalkyKnihJSONV3()?>,
+                <?=json_encode($this->record($this->driver)->getObalkyKnihAdvert("record"))?>);
         </script>
         <? /* Display qrcode if appropriate: */ ?>
-      <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
-      <? if($QRCode): ?>
-        <span class="hidden-xs">
-          <br/><img alt="<?=$this->transEsc('QR Code')?>" class="qrcode" src="<?=$this->escapeHtmlAttr($QRCode);?>"/>
-        </span>
-      <? endif; ?>
+        <? $QRCode = $this->record($this->driver)->getQRCode("core"); ?>
+        <? if ($QRCode): ?>
+          <span class="hidden-xs">
+            <br>
+            <img alt="<?=$this->transEsc('QR Code')?>" class="qrcode" src="<?=$this->escapeHtmlAttr($QRCode);?>">
+          </span>
+        <? endif; ?>
+      </div>
+
+      <? // if you have a preview tab but want to move or remove the preview link
+         // from this area of the record view, this can be split into
+         // getPreviewData() (should stay here) and
+         // getPreviewLink() (can go in your desired tab) ?>
+      <?=$this->record($this->driver)->getPreviews()?>
     </div>
 
-    <? // if you have a preview tab but want to move or remove the preview link
-       // from this area of the record view, this can be split into
-       // getPreviewData() (should stay here) and
-       // getPreviewLink() (can go in your desired tab) ?>
-    <?=$this->record($this->driver)->getPreviews()?>
-  </div>
+    <div class="col-sm-9">
+      <h2 class='record-title bold' property="name">
+          <?=$this->escapeHtml($this->driver->getPersonalName())?>
+      </h2>
+      <?/* Display Main Details */?>
+      <table class="table" summary="<?=$this->transEsc('Bibliographic Details')?>">
+        <? $details = $this->driver->getBibliographicDetails(); ?>
+        <? if (! empty($details)): ?>
+        <tr>
+          <th class="col-md-3"><?=$this->transEsc('Bibliographic Details')?>: </th>
+          <td>
+            <div><?=$details?></div>
+          </td>
+        </tr>
+        <? endif; ?>
 
-  <div class="col-sm-9">
-    <h2 class='record-title' property="name"><strong><?=$this->escapeHtml($this->driver->getPersonalName())?></strong></h2>
-    <?/* Display Main Details */?>
-    <table class="table" summary="<?=$this->transEsc('Bibliographic Details')?>">
-      <? $details = $this->driver->getBibliographicDetails(); ?>
-      <? if (! empty($details)): ?>
-      <tr>
-        <th class="col-md-3"><?=$this->transEsc('Bibliographic Details')?>: </th>
-        <td>
-          <div><?=$details?></div>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $addedEntryNames = $this->driver->getAddedEntryPersonalNames(); if (!empty($addedEntryNames)): $iteration = 0; $namesCount = count($addedEntryNames);?>
-      <tr>
-        <th><?=$this->transEsc('Alternative names')?>: </th>
-        <td>
-          <? foreach ($addedEntryNames as $field): $iteration++; ?>
-          <div>
-            <? $name = ''; ?>
-            <? if(count($field) == 1) $field = explode('--', is_array($field) ? $field[0] : $field); ?>
-            <? $i = 0; foreach ($field as $subfield): ?>
-              <?=($i++ == 0) ? '' : ' &gt; '?>
-              <? $name = trim($subfield); ?>
-              <?=trim($this->escapeHtml($name))?>
+        <? if (!empty($addedEntryNames)): $iteration = 0; $namesCount = count($addedEntryNames);?>
+        <tr>
+          <th><?=$this->transEsc('Alternative names')?>: </th>
+          <td>
+            <? foreach ($addedEntryNames as $field): $iteration++; ?>
+            <div>
+              <?
+                  $name = '';
+                  if (count($field) == 1) {
+                    $field = explode('--', is_array($field) ? $field[0] : $field);
+                  }
+              ?>
+              <? $i = 0; foreach ($field as $subfield): ?>
+                <?=($i++ == 0) ? '' : ' &gt; '?>
+                <? $name = trim($subfield); ?>
+                <?=trim($this->escapeHtml($name))?>
+              <? endforeach; ?>
+            </div>
             <? endforeach; ?>
-          </div>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
+          </td>
+        </tr>
+        <? endif; ?>
 
-      <? $authoritySources = $this->driver->getSource(); if (count($authoritySources)):?>
-      <tr>
-        <th><?=$this->transEsc('Source')?>: </th>
-        <td>
-          <? foreach ($authoritySources as $source): ?>
-          <div>
-			<?=$source?>
-          </div>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
+        <? if (count($authoritySources)): ?>
+        <tr>
+          <th><?=$this->transEsc('Source')?>: </th>
+          <td>
+            <? foreach ($authoritySources as $source): ?>
+            <div>
+              <?=$source?>
+            </div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+        <? endif; ?>
 
-      <? $pseudonyms = $this->driver->getPseudonyms(); if (!empty($pseudonyms)): ?>
-      <tr>
-        <th><?=$this->transEsc('Published also like')?>: </th>
-        <td>
-          <? foreach ($pseudonyms as $name => $authRecordId): $escapedName = $this->escapeHtml($name); ?>
-          <div>
-            <a title="<?=$this->translate('Show person')?> <?=$escapedName?>" href="/Record/<?=urlencode($authRecordId)?>"><i class="pr-user-single5 author-icon"></i></a>
-            <a title="<?=$this->translate('Show publications by')?> <?=$escapedName?>" href="/Search/Results?sort=relevance&amp;join=AND&amp;type0[]=adv_search_author_corporation&amp;bool0[]=AND&amp;searchTypeTemplate=advanced&amp;lookfor0[]=<?=urlencode($name)?>"><?=$escapedName?></a>
-          </div>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
+        <? if (!empty($pseudonyms)): ?>
+        <tr>
+          <th><?=$this->transEsc('Published also like')?>: </th>
+          <td>
+            <? foreach ($pseudonyms as $name => $authRecordId): $escapedName = $this->escapeHtml($name); ?>
+            <div>
+              <a title="<?=$this->translate('Show person')?> <?=$escapedName?>"
+                 href="/Record/<?=urlencode($authRecordId)?>">
+                <i class="pr-user-single5 author-icon"></i>
+              </a>
+              <a title="<?=$this->translate('Show publications by')?> <?=$escapedName?>"
+                 href="<?=$this->driver->getPublicationsUrl($name)?>">
+                  <?=$escapedName?>
+              </a>
+            </div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+        <? endif; ?>
 
-      <tr>
-        <th><?=$this->transEsc('Format')?>: </th>
-        <td><?=$this->transEsc('Authority')?></td>
-      </tr>
+        <tr>
+          <th><?=$this->transEsc('Format')?>: </th>
+          <td><?=$this->transEsc('Authority')?></td>
+        </tr>
 
-	  <? if ($this->driver->hasPublications() && $recordSource !== 'osobnosti'): ?>
-      <tr>
-        <th><?=$this->transEsc('Publications')?>: </th>
-        <td>
-          <div>
-            <a title="<?=$this->transEsc('Show publications of this person')?>" href="<?=$this->driver->getPublicationsUrl()?>"><?=$this->translate('Show publications of this person')?></a>
-          </div>
-        </td>
-      </tr>
-	  <? endif; ?>
+        <? if ($this->driver->hasPublications() && $recordSource !== 'osobnosti'): ?>
+        <tr>
+          <th><?=$this->transEsc('Publications')?>: </th>
+          <td>
+            <div>
+              <a title="<?=$this->transEsc('Show publications of this person')?>"
+                 href="<?=$this->driver->getPublicationsUrl()?>">
+                  <?=$this->translate('Show publications of this person')?>
+              </a>
+            </div>
+          </td>
+        </tr>
+        <? endif; ?>
 
-    </table>
-    <?/* End Main Details */?>
+      </table>
+      <?/* End Main Details */?>
+    </div>
   </div>
-</div>
 </div>

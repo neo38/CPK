@@ -134,11 +134,14 @@ class SolrAuthority extends ParentSolrMarc
     /**
      * Get link to search publications of authority.
      *
+     * @param string $name Optional different authority name
+     *
      * @return string
      */
-    public function getPublicationsUrl()
+    public function getPublicationsUrl($authority = false)
     {
-        return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation&bool0[]=AND&searchTypeTemplate=advanced&lookfor0[]=" . $this->getAuthorityId();
+        return "/Search/Results?sort=relevance&join=AND&type0[]=adv_search_author_corporation"
+            ."&bool0[]=AND&searchTypeTemplate=advanced"
+            ."&lookfor0[]=" . urlencode($authority ?: $this->getAuthorityId());
     }
-
 }
