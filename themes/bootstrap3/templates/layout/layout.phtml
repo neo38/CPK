@@ -10,15 +10,16 @@
     <?=$this->headTitle()?>
     <?
       // Set up OpenSearch link:
-      $this->headLink( [
+      $this->headLink([
           'href'  => $this->url('search-opensearch') . '?method=describe',
           'type'  => 'application/opensearchdescription+xml',
           'title' => $this->transEsc('Library Catalog Search'),
           'rel'   => 'search'
       ]);
     ?>
-    <?$this->headScript()->appendFile('google-tag-manager.js');?>
-
+    <script>
+      <?=file_get_contents(__DIR__.'/../../js/google-tag-manager.js')?>
+    </script>
     <!-- RTL styling -->
     <? if ($this->layout()->rtl) {
       $this->headLink()->appendStylesheet('vendor/bootstrap-rtl.min.css');
@@ -182,15 +183,17 @@
         $dsb = DEFAULT_SEARCH_BACKEND;
         $setupJS = "let VuFind = new VuFindNamespace('{$root}', {$translations}, '{$dsb}');";
         $this->headScript()->appendScript($setupJS);
-        $this->headScript()->appendFile('geolocation.js');
     ?>
+    <?=$this->headScript()->appendFile("geolocation.js");?>
   </head>
   <body data-ng-app='cpk'
         data-ng-controller='GlobalController as ctrl'
         class='<?=$this->layoutClass("offcanvas-row")?> <?=$this->layout()->rtl ? "rtl" : ""?>'>
-  
+
     <!-- Facebook Pixel Code -->
-    <?$this->headScript()->appendFile('facebook-pixel-code.js');?>
+    <script>
+      <?=file_get_contents(__DIR__.'/../../js/facebook-pixel-code.js');?>
+    </script>
     <noscript>
       <img height='1' width='1' src='https://www.facebook.com/tr?id=822054034585908&amp;ev=PageView&amp;noscript=1'>
     </noscript>
@@ -269,7 +272,8 @@
                 </a>
               <? endif; ?>
               <? if (!$this->themeConfiguration()->themeConfig['hide_library_search']): ?>
-                <a href='<?=$this->themeConfiguration()->themeConfig['libraries_href']?>'>
+                <a href='<?=urlencode($this->themeConfiguration()->themeConfig['libraries_href'])?>'
+                   class='pull-right arrow-link'>
                   <? $titleHtml = $this->transEsc('frontpage-right-arrow-link') 
                       .'<i class="pr-interface-arrowright"></i>'; ?>
                   <?= $this->help()->getElementHelp('element_help_frontpage_right_arrow', $titleHtml, 'mzk') ?>

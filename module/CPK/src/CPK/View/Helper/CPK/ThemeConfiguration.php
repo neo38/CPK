@@ -51,7 +51,7 @@ class ThemeConfiguration extends AbstractHelper
  		'libraries_href'       => '/Search/Results/?'
 			.'lookfor0[]=&amp;type0[]=Libraries&amp;bool0[]=AND&amp;filter=&amp;daterange=&amp;publishDatefrom='
 			.'&amp;publishDateto=&amp;limit=10&amp;sort=relevance&amp;page=1&amp;searchTypeTemplate=basic&amp;'
-			.'keepFacetsEnabled=true&amp;join=AND" class="pull-right arrow-link',
+			.'keepFacetsEnabled=true&amp;join=AND',
 	];
 
 	/**
