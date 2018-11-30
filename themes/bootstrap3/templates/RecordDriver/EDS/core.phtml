@@ -1,83 +1,84 @@
 <?
-$items = $this->driver->getItems();
-$dbLabel = $this->driver->getDbLabel();
-$format = $this->driver->getPubTypeId();
-$accessLevel = $this->driver->getAccessLevel();
-$restrictedView = empty($accessLevel) ? false : true;
-$id = $this->driver->getUniqueID();
+    $items = $this->driver->getItems();
+    $dbLabel = $this->driver->getDbLabel();
+    $format = $this->driver->getPubTypeId();
+    $accessLevel = $this->driver->getAccessLevel();
+    $restrictedView = empty($accessLevel) ? false : true;
+    $id = $this->driver->getUniqueID();
 ?>
 
-<div class="clearfix well border table-core" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
+<div class='clearfix well border table-core'
+     vocab='http://schema.org/'
+     resource='#record'
+     typeof='<?=$this->driver->getSchemaOrgFormats()?> Product'>
 
-    <div class="col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0">
+  <div class='col-xs-12 col-xs-offset-3 col-sm-12 col-sm-offset-3 col-md-3 col-md-offset-0'>
 
-        <div class="coverThumbnail cover_<?=$id?>">
-            <? if (! empty($format)): ?>
-                <div class="iconlabel"><i class="eds-cover-icon pr-format-eds-<?=$format?>"></i></div>
-            <? else: ?>
-                <div class="iconlabel"><i class="eds-cover-icon pr-format-eds-unknown"></i></div>
-            <? endif; ?>
-        </div>
-
+    <div class='coverThumbnail cover_<?=$id?>'>
+      <? if (! empty($format)): ?>
+        <div class='iconlabel'><i class='eds-cover-icon pr-format-eds-<?=$format?>'></i></div>
+      <? else: ?>
+        <div class='iconlabel'><i class='eds-cover-icon pr-format-eds-unknown'></i></div>
+      <? endif; ?>
     </div>
 
-    <div class="col-sm-9">
-        <h3 class='record-title' property='name'><?=$this->driver->getTitle()?></h3>
-        <div class='eds-want-it' style="display: none;">
-            <?=$this->translate('Availability information')?>
-        </div>
-        <table class="table" summary="<?=$this->transEsc('Bibliographic Details')?>">
-            <? foreach ($items as $key => $item): ?>
-                <? if (!empty($item['Data'])): ?>
-                    <? if($item['Group'] !== 'Ti'): ?>
-                    <tr>
-                        <th class="col-md-3"><?=$this->transEsc($item['Label'])?>:</th>
-                        <td><?=$this->driver->linkUrls($item['Data'])?></td>
-                    </tr>
-                    <? endif; ?>
-                <? endif; ?>
-            <? endforeach; ?>
+  </div>
 
-            <tr>
-                <th><?=$this->transEsc('Format')?>: </th>
-                <td>
-                    <div class="iconlabel" style="color: #777;">
-                        <i class="small-format-icon pr-format-eds-<?=$format?>"></i>
-                        <span class="format-text">
-                            <?= $this->translate($format) ?>
-                        </span>
-                    </div>
-                </td>
-            </tr>
-
-            <? if ($dbLabel): ?>
-                <tr>
-                    <th><?=$this->transEsc('Database')?>:</th>
-                    <td><?=$this->escapeHtml($dbLabel)?></td>
-                </tr>
-            <? endif; ?>
-
-            <?if ($this->driver->hasHTMLFullTextAvailable() && !$restrictedView):
-                $fullText = $this->driver->getHtmlFullText();?>
-                <tr id="html">
-                    <td colspan="2">
-                        <?=$fullText?>
-                    </td>
-                </tr>
-            <? elseif ($this->driver->hasHTMLFullTextAvailable() && $restrictedView): ?>
-                <tr id="html">
-                    <td>
-                        <?=$this->transEsc('Full text is not displayed to guests')?>
-                    </td>
-                    <td>
-                        <a class="login" href="<?=$this->url('myresearch-home')?>" rel="nofollow">
-                            <strong><?=$this->transEsc('Login for full access')?></strong>
-                        </a>
-                    </td>
-                </tr>
-            <? endif; ?>
-        </table>
-
+  <div class='col-sm-9'>
+    <h3 class='record-title' property='name'><?=$this->driver->getTitle()?></h3>
+    <div class='eds-want-it' class='hidden'>
+      <?=$this->translate('Availability information')?>
     </div>
+    <table class='table' summary='<?=$this->transEsc('Bibliographic Details')?>'>
+      <? foreach ($items as $key => $item): ?>
+        <? if (!empty($item['Data'])): ?>
+          <? if ($item['Group'] !== 'Ti'): ?>
+          <tr>
+            <th class='col-md-3'><?=$this->transEsc($item['Label'])?>:</th>
+            <td><?=$this->driver->linkUrls($item['Data'])?></td>
+          </tr>
+          <? endif; ?>
+        <? endif; ?>
+      <? endforeach; ?>
 
+      <tr>
+        <th><?=$this->transEsc('Format')?>: </th>
+        <td>
+          <div class='iconlabel record-icon-label'>
+            <i class='small-format-icon pr-format-eds-<?=$format?>'></i>
+            <span class='format-text'>
+              <?= $this->translate($format) ?>
+            </span>
+          </div>
+        </td>
+      </tr>
+
+      <? if ($dbLabel): ?>
+        <tr>
+          <th><?=$this->transEsc('Database')?>:</th>
+          <td><?=$this->escapeHtml($dbLabel)?></td>
+        </tr>
+      <? endif; ?>
+
+      <? if ($this->driver->hasHTMLFullTextAvailable() && !$restrictedView): ?>
+        <? $fullText = $this->driver->getHtmlFullText();?>
+        <tr id='html'>
+          <td colspan='2'>
+            <?=$fullText?>
+          </td>
+        </tr>
+      <? elseif ($this->driver->hasHTMLFullTextAvailable() && $restrictedView): ?>
+        <tr id='html'>
+          <td>
+            <?=$this->transEsc('Full text is not displayed to guests')?>
+          </td>
+          <td>
+            <a class='login bold' href='<?=$this->url('myresearch-home')?>' rel='nofollow'>
+              <?=$this->transEsc('Login for full access')?>
+            </a>
+          </td>
+        </tr>
+      <? endif; ?>
+    </table>
+  </div>
 </div>
