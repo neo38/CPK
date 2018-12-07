@@ -65,6 +65,7 @@ class HierarchicalFacetHelper
         $sortFunc = function ($a, $b) use ($topLevel) {
             if ($a['level'] == $b['level'] && (!$topLevel || $a['level'] == 0)) {
                 $aText = $a['displayText'] == $a['value']
+                // TODO tady bude ta sracka
                     ? $this->formatDisplayText($a['displayText'])
                     : $a['displayText'];
                 $bText = $b['displayText'] == $b['value']

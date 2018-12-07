@@ -248,51 +248,40 @@ class SideFacets extends SideFacetsBase
             if (in_array($facets['label'], $this->facetSettings['open'], true)) {
                 $filter[$key]['show'] = true;
             }
-
-            try {
-                $maxItems = $this->facetSettings['count'][$facets['label']];
-            } catch (Exception $e) {
-                $maxItems = $this->facetSettings['count']['default'];
-            }
+            $maxItems = $this->facetSettings['count'];
+            $maxItems = (array_key_exists($facets['label'], $maxItems))? $maxItems[$facets['label']] : $maxItems['default'];
 
             $number = false;
             if (in_array($facets['label'], $this->facetSettings['number'], true)) {
                 $number = true;
             }
 
+            $filter[$key]['count'] = $maxItems;
+
             foreach ($facets['list'] as $id => $facet) {
-                //$facet['displayText'] = str_replace(' ', '', $facet['displayText']);
                 $name = $facets['label'].':'.$facet['value'];
                 $children = false;
                 if ($facet['operator'] == "OR") {
                     if (is_numeric($facet['value'][0])) {
                         if ($facet['value'][0] == '0') {
                             $parent = $facets['label'];
-                            $active = $facet['isApplied'];
-                            if ($active) {
+                            if ($facet['isApplied']) {
                                 $filter[$key]['show'] = True;
                             }
                         } else {
                             $retezec = (string)(((int)$facet['value'][0]) - 1) . substr($facet['value'], 1, strlen($facet['value']) - 2);
                             $pole = explode('/', $retezec);
-                            $koks = array_pop($pole);
+                            array_pop($pole);
                             $zbytek = implode('/', $pole);
                             $parent = $facets['label'] . ':' . $zbytek;
                             $parent = str_replace('/', '-', $parent);
 
-                            if ($filter[$key]['list'][$parent]['isApplied']) {
-                                $active = True;
-                            } else {
-                                $active = $facet['isApplied'];
-                                $filter[$key]['list'][$parent]['children'] = true;
-                            }
+                            $filter[$key]['list'][$parent]['children'] = true;
                         }
                     } else {
-                        $active = $facet['isApplied'];
                         $parent = $facets['label'];
                     }
                 } else {
-                    $active = $facet['isApplied'];
                     $parent = $facets['label'];
                 }
 
@@ -301,10 +290,6 @@ class SideFacets extends SideFacetsBase
                 $count = null;
                 if ($number) {
                     $count = $facet['count'];
-                }
-                $show = true;
-                if ($maxItems != -1 && $id > $maxItems) {
-                    $show = false;
                 }
 
                 $open = false;
@@ -319,13 +304,16 @@ class SideFacets extends SideFacetsBase
 
                 $dataFacet = (($facet['operator'] == "OR")? '~' : '') . $key . ':"' . $facet['value'] . '"';
 
-                if ($active) {
+                if ($facet['isApplied']) {
                     array_push($this->usedFacetFilter, ['category' => $facets['label'], 'dataFacet' => $dataFacet, 'displayText' => $facet['displayText'], 'operator' => $facet['operator']]);
                 }
 
-                if ($active) { // TODO rozlisit full a half
+                $fullActive = false;
+                if ($facet['isApplied']) { // TODO rozlisit full a half
                     $fullActive = true;
                 }
+
+                $show = true;
 
                 $name = substr(str_replace('/', '-', $name),0, strlen($name)-1);
 
@@ -337,7 +325,7 @@ class SideFacets extends SideFacetsBase
                         'tooltipText' => $facet['tooltiptext'],
                         'count' => $count,
                         'operator' => $facet['operator'],
-                        'isApplied' => $active, // TODO rozlisit jestli full-active nebo jen half-active
+                        'isApplied' => $facet['isApplied'], // TODO rozlisit jestli full-active nebo jen half-active
                         'fullActive' => $fullActive,
                         'show' => $show,
                         'open' => $open,

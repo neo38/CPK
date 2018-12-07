@@ -77,9 +77,9 @@ foreach ($usedFacetFilter as $filter) {
     </li>
     <ul id="ul-facet-<?=$filter['label']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
       <? foreach ($filter['list'] as $facet) { ?>
-        <li class="list-group-item" id="facet-<?=str_replace(':', '', $facet['name'])?>">
+        <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=str_replace(':', '', $facet['name'])?>">
             <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
-          <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['isApplied'])? 'full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
+          <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['isApplied'])? 'active full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
             <span class="<?=($facet['operator'] == "OR")? 'item' : ''?>">
               <?=($facet['bold'])? '<b>' : '';?>
               <?=$facet['displayText']?>
@@ -89,7 +89,7 @@ foreach ($usedFacetFilter as $filter) {
           </a>
         </li>
         <?if ($facet['children']) {?>
-          <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['show'] && !$facet['open'])? 'hide': ''?>"></ul>
+          <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'])? 'hide': ''?>"></ul>
         <?}?>
         <? if ($facet['parent'] != $filter['label']) { ?>
           <script>
@@ -98,6 +98,7 @@ foreach ($usedFacetFilter as $filter) {
           </script>
         <? }
       } ?>
+      <? // TODO pomoci $filter['count'] a JS schovat ty nad limit a vypsat zobraz vsechny / zobraz mene?>
     </ul>
 
   </div>
