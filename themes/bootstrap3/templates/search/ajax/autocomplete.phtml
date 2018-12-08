@@ -195,7 +195,10 @@
 					);
                     return false;
 				} else {
-            $( 'document, body, input' ).css( 'cursor', 'progress' );
+					$( 'document, body, input, a, .btn' ).css( 'cursor', 'progress' );
+					document.getElementById('run-autocomplete').innerHTML =
+					    `<i class='fa fa-spinner fa-spin'></i> ${VuFind.translate('Searching')}`;
+
 					query = $( "#searchForm_lookfor" ).val();
 
 		           	enabledKeepFacets = $( '.searchFormKeepFilters' ).is(':checked');
