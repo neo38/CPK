@@ -18,22 +18,6 @@
       </div>
       <div class='modal-body'>
         <div class='form-group'>
-          <label class='control-label' for='numberOfRecordsToAdd'>
-              <?=$this->translate('Select number of results to save') ?>
-          </label>
-          <select id='numberOfRecordsToAdd' class='form-control'>
-            <? foreach(array_keys($this->params->getLimitList()) as $limit): ?>
-              <? if ($this->auth()->isLoggedIn() ||
-                    (!$this->auth()->isLoggedIn() && $limit <= $this->layout()->limit)): ?>
-                <option value='<?=$limit?>' <?= ($limit == $this->limit) ? ' selected' : '' ?>>
-                  <?=$limit?>
-                </option>
-              <? endif; ?>
-            <? endforeach; ?>
-          </select>
-        </div>
-
-        <div class='form-group'>
           <label class='control-label' for='newFavoritesListTitle'>
             <?=$this->translate('Favorites list title') ?>
           </label>

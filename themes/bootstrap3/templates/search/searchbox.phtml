@@ -112,7 +112,7 @@
 </div>
 
 <!-- Facets -->
-<div class='hidden'>
+<div class='hidden' id='storage-container'>
   <? /* @FIXME: Handle these data in LocalStorage */ ?>
     <? if (! empty($filters)): ?>
       <input type="hidden" name="limit" value="<?= (! empty($filters['limit']) ? is_array($filters['limit']) ? $this->escapeHtmlAttr($filters['limit'][0]) : $this->escapeHtmlAttr($filters['limit']) : $lastLimit) ?>">

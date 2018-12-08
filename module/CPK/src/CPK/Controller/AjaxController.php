@@ -2530,7 +2530,7 @@ class AjaxController extends AjaxControllerBase
     public function addResultsToFavoritesAjax()
     {
         $numberOfRecords = $this->params()->fromPost('numberOfRecords');
-        $page            = $this->params()->fromPost('numberOfRecords');
+        $page            = $this->params()->fromPost('page');
         $searchId        = $this->params()->fromPost('searchId');
         $title           = $this->params()->fromPost('title');
 
@@ -2550,10 +2550,12 @@ class AjaxController extends AjaxControllerBase
          */
         $searchResults = $this->restoreAdvancedSearch($searchId);
 
-        $searchResults->getParams()->setLimit($numberOfRecords);
+        $searchResults->getParams()->setLimit($page * $numberOfRecords);
         $searchResults->performSearch();
 
         $records = $searchResults->getResults();
+
+        $records = array_slice($records, ($page - 1) * $numberOfRecords);
 
         $this->setDbTableManager(
             $this->getServiceLocator()->get('VuFind\DbTablePluginManager')

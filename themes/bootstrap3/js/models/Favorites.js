@@ -103,7 +103,9 @@ export default class Favorites {
         if (lookForElement = document.getElementsByName('last_searched_lookfor0')[0]) {
             let newFavoritesListTitleElement = undefined;
             if (newFavoritesListTitleElement = document.getElementById('newFavoritesListTitle')) {
-                let newValue = VuFind.translate('Search query') + ': ' + VuFind.escapeHtml(lookForElement.value);
+                let newValue = `${VuFind.translate('Search query')}: ${VuFind.escapeHtml(lookForElement.value)}`;
+                newValue += ` (${VuFind.translate('page')} `;
+                newValue += `${VuFind.escapeHtml(document.querySelector("#storage-container input[name='page']").value)})`;
                 newFavoritesListTitleElement.value = newValue;
                 newFavoritesListTitleElement.placeholder = newValue;
             }
@@ -249,8 +251,8 @@ export default class Favorites {
                     dataType: 'json',
                     url: VuFind.getPath() + '/AJAX/JSON?method=addResultsToFavorites',
                     data: {
-                        numberOfRecords: document.getElementById('numberOfRecordsToAdd').value,
-                        page: document.querySelector("input[name='page']").value,
+                        numberOfRecords: parseInt(document.querySelector("#storage-container input[name='limit']").value),
+                        page: parseInt(document.querySelector("#storage-container input[name='page']").value),
                         searchId: document.getElementById('favoriteModalForSearch').getAttribute('data-search-id'),
                         title: document.getElementById('newFavoritesListTitle').value,
                     },
@@ -280,7 +282,7 @@ export default class Favorites {
             })
             .catch(() => {
 
-                let numberOfRecords = parseInt(document.querySelector('input[name="limit"]').value);
+                let numberOfRecords = parseInt(document.querySelector('#storage-container input[name="limit"]').value);
 
                 for (let i = 0; i < numberOfRecords; i++) {
 
