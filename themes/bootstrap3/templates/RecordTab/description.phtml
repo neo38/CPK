@@ -1,12 +1,12 @@
 <?
-    // Set page title.
-    $this->headTitle($this->translate('Description') . ': ' . $this->driver->getBreadcrumb());
+  // Set page title.
+  $this->headTitle($this->translate('Description') . ': ' . $this->driver->getBreadcrumb());
 
-    // Grab clean ISBN for convenience:
-    $isbn = $this->driver->getCleanISBN();
+  // Grab clean ISBN for convenience:
+  $isbn = $this->driver->getCleanISBN();
 ?>
-<table class="table table-striped" summary="<?=$this->transEsc('Description')?>">
-  <? $summ = $this->driver->getSummary(); if (!empty($summ)): ?>
+<table class='table table-striped' summary='<?=$this->transEsc('Description')?>'>
+  <? if ($summ = $this->driver->getSummary()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Summary')?>: </th>
@@ -18,7 +18,7 @@
     </tr>
   <? endif; ?>
 
-  <? $dateSpan = $this->driver->getDateSpan(); if (!empty($dateSpan)): ?>
+  <? if ($dateSpan = $this->driver->getDateSpan()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Published')?>: </th>
@@ -30,7 +30,7 @@
     </tr>
   <? endif; ?>
 
-  <? $notes = $this->driver->getGeneralNotes(); if (!empty($notes)): ?>
+  <? if ($notes = $this->driver->getGeneralNotes()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Item Description')?>: </th>
@@ -42,7 +42,7 @@
     </tr>
   <? endif; ?>
 
-  <? $physical = $this->driver->getPhysicalDescriptions(); if (!empty($physical)): ?>
+  <? if ($physical = $this->driver->getPhysicalDescriptions()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Physical Description')?>: </th>
@@ -54,7 +54,7 @@
     </tr>
   <? endif; ?>
 
-  <? $freq = $this->driver->getPublicationFrequency(); if (!empty($freq)): ?>
+  <? if ($freq = $this->driver->getPublicationFrequency()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Publication Frequency')?>: </th>
@@ -66,7 +66,7 @@
     </tr>
   <? endif; ?>
 
-  <? $playTime = $this->driver->getPlayingTimes(); if (!empty($playTime)): ?>
+  <? if ($playTime = $this->driver->getPlayingTimes()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Playing Time')?>: </th>
@@ -78,7 +78,7 @@
     </tr>
   <? endif; ?>
 
-  <? $system = $this->driver->getSystemDetails(); if (!empty($system)): ?>
+  <? if ($system = $this->driver->getSystemDetails()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Format')?>: </th>
@@ -90,7 +90,7 @@
     </tr>
   <? endif; ?>
 
-  <? $audience = $this->driver->getTargetAudienceNotes(); if (!empty($audience)): ?>
+  <? if ($audience = $this->driver->getTargetAudienceNotes()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Audience')?>: </th>
@@ -102,7 +102,7 @@
     </tr>
   <? endif; ?>
 
-  <? $awards = $this->driver->getAwards(); if (!empty($awards)): ?>
+  <? if ($awards = $this->driver->getAwards()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Awards')?>: </th>
@@ -114,7 +114,7 @@
     </tr>
   <? endif; ?>
 
-  <? $credits = $this->driver->getProductionCredits(); if (!empty($credits)): ?>
+  <? if ($credits = $this->driver->getProductionCredits()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Production Credits')?>: </th>
@@ -126,7 +126,7 @@
     </tr>
   <? endif; ?>
 
-  <? $bib = $this->driver->getBibliographyNotes(); if (!empty($bib)): ?>
+  <? if ($bib = $this->driver->getBibliographyNotes()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Bibliography')?>: </th>
@@ -138,7 +138,7 @@
     </tr>
   <? endif; ?>
 
-  <? $isbns = $this->driver->getISBNs(); if (!empty($isbns)): ?>
+  <? if ($isbns = $this->driver->getISBNs()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('ISBN')?>: </th>
@@ -150,7 +150,7 @@
     </tr>
   <? endif; ?>
 
-  <? $issns = $this->driver->getISSNs(); if (!empty($issns)): ?>
+  <? if ($issns = $this->driver->getISSNs()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('ISSN')?>: </th>
@@ -162,7 +162,7 @@
     </tr>
   <? endif; ?>
 
-  <? $doi = $this->driver->tryMethod('getCleanDOI'); if (!empty($doi)): ?>
+  <? if ($doi = $this->driver->tryMethod('getCleanDOI')): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('DOI')?>: </th>
@@ -170,7 +170,7 @@
     </tr>
   <? endif; ?>
 
-  <? $related = $this->driver->getRelationshipNotes(); if (!empty($related)): ?>
+  <? if ($related = $this->driver->getRelationshipNotes()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Related Items')?>: </th>
@@ -182,7 +182,7 @@
     </tr>
   <? endif; ?>
 
-  <? $access = $this->driver->getAccessRestrictions(); if (!empty($access)): ?>
+  <? if ($access = $this->driver->getAccessRestrictions()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Access')?>: </th>
@@ -194,7 +194,7 @@
     </tr>
   <? endif; ?>
 
-  <? $findingAids = $this->driver->getFindingAids(); if (!empty($findingAids)): ?>
+  <? if ($findingAids = $this->driver->getFindingAids()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Finding Aid')?>: </th>
@@ -206,7 +206,7 @@
     </tr>
   <? endif; ?>
 
-  <? $publicationPlaces = $this->driver->getHierarchicalPlaceNames(); if (!empty($publicationPlaces)): ?>
+  <? if ($publicationPlaces = $this->driver->getHierarchicalPlaceNames()): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Publication_Place')?>: </th>
@@ -218,7 +218,7 @@
     </tr>
   <? endif; ?>
 
-  <? $authorNotes = empty($isbn) ? array() : $this->authorNotes($isbn); if (!empty($authorNotes)): ?>
+  <? if ($authorNotes = $this->authorNotes($isbn || [])): ?>
     <? $contentDisplayed = true; ?>
     <tr>
       <th><?=$this->transEsc('Author Notes')?>: </th>
@@ -232,7 +232,7 @@
     </tr>
   <? endif; ?>
 
-  <? if (!isset($contentDisplayed) || !$contentDisplayed): // Avoid errors if there were no rows above ?>
+  <? if (! $contentDisplayed): // Avoid errors if there were no rows above ?>
     <tr><td><?=$this->transEsc('no_description')?></td></tr>
   <? endif; ?>
 </table>
