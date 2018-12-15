@@ -1,21 +1,23 @@
 <?
-    // Set page title.
-    $this->headTitle($this->driver->getBreadcrumb());
-
+  // Set page title.
+  $this->headTitle($this->driver->getBreadcrumb());
 ?>
 
-<!-- Sigla-->
-<? $sigla = $this->driver->getSigla(); if (!empty($sigla)): ?>
-    <h2><i class="pr-interface-circlerighttrue"></i><?=$this->translate('Sigla')?></h2>
-
-    <p><?=$this->escapeHtml($sigla)?></p>
+<!-- Sigla -->
+<? if ($sigla = $this->driver->getSigla()): ?>
+  <h2>
+    <i class='pr-interface-circlerighttrue'></i>
+    <?=$this->translate('Sigla')?>
+  </h2>
+  <p><?=$this->escapeHtml($sigla)?></p>
 <? endif; ?>
 
-
-<!-- LastUpdated-->
-<? $lastupdated = $this->driver->getLastUpdated(); if (!empty($lastupdated)): ?>
-    <h2><i class="pr-interface-circlerighttrue"></i><?=$this->translate('LastUpdated')?></h2>
-
-    <p><?=$this->escapeHtml($lastupdated)?></p>
+<!-- LastUpdated -->
+<? if ($lastUpdated = $this->driver->getLastUpdated()): ?>
+  <h2>
+    <i class='pr-interface-circlerighttrue'></i>
+    <?=$this->translate('LastUpdated')?>
+  </h2>
+  <p><?=$this->escapeHtml($lastUpdated)?></p>
 <? endif; ?>
 
