@@ -1748,3 +1748,163 @@ function escapeHtml(text) {
 
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
+
+function handleEdsSearchResults(data) {
+    if (data.accessUrl) {
+        console.log('Eds fulltext link FOUND in metadata in AccessUrl.');
+
+        let ebscoHtml = `
+            <tr class='d-none'>
+              <td>
+                <a href='${data.accessUrl}' target='_blank' title='${VuFind.translate("Fulltext")}'>
+                  ${VuFind.translate("Fulltext")}
+                </a>
+              </td>
+            </tr>`;
+
+        $(`#eds-links-placeholder-${data.recordIdHash}`).append( ebscoHtml );
+        $(`#eds-links-placeholder-${data.recordIdHash} tr`).show( 'blind', {}, 200 );
+        $(`#free-eds-link-available-${data.recordIdHash}`).show( 'blind', {}, 200 );
+
+    } else {
+
+        $.ajax({
+            method: 'POST',
+            dataType: 'json',
+            async: true,
+            url: `/AJAX/JSON?method=getEdsFulltextLinkInResults&recordIdHash=${data.recordIdHash}`,
+            data: {
+                recordData: {
+                    recordId: data.recordId
+                }
+            },
+            beforeSend: function () {
+                $(`#eds-links-placeholder-${data.recordIdHash}`)
+                    .append(`
+                          <div class='eds-links-loader text-center'>
+                            <i class='fa fa-2x fa-refresh fa-spin'></i>
+                          </div>`);
+            },
+            success: function (response) {
+
+                if (response.status == 'OK') {
+
+                    if (response.data.message == 'Record contains free fulltext') {
+
+                        let link = $( `#eds-links-placeholder-${data.recordIdHash}` )
+                            .parents( '.eds-record-container' )
+                            .find( '._record_link' ).attr( 'href' ) + '#html';
+                        let plainFulltextLink = `
+                              <tr class='d-none'>
+                                <td>
+                                  <a href='${link}' target='_blank' title='${VuFind.translate("Free fulltext")}'>
+                                    ${VuFind.translate("Free fulltext")}
+                                  </a>
+                                </td>
+                              </tr>`;
+
+                        $( `#eds-links-placeholder-${data.recordIdHash}` ).append( plainFulltextLink );
+                        $( `#eds-links-placeholder-${data.recordIdHash} tr` ).show( 'blind', {}, 200 );
+
+                        $( `#free-eds-link-available-${data.recordIdHash}` ).show( 'blind', {}, 200 );
+
+                        return;
+                    }
+
+                    console.log( '' );
+                    console.log( `Eds fulltext links FOUND for recordId ${data.recordIdHash}.` );
+                    console.log( `Solr url: ${response.data.url}` );
+
+                    let links = response.data.links;
+                    let edsLinks = links.length;
+
+                    if (edsLinks == 1) {
+                        if (links[0].indexOf('free-eds-link-special-class') >= 0) {
+
+                            console.log( `Eds fulltext link FOUND for record ${data.recordIdHash} in Solr in param sfx_source_txt:free.` );
+                            $( `#free-eds-link-available-${data.recordIdHash}` ).show( 'blind', {}, 200 );
+
+                        } else {
+                            $( `#only-one-eds-link-header-${data.recordIdHash}` ).show( 'blind', {}, 200 );
+                        }
+                    }
+
+                    if (edsLinks > 1) {
+                        $( `#many-eds-links-header-${data.recordIdHash}` ).show( 'blind', {}, 200 );
+                    }
+
+                    let maxLinksShown = 3;
+
+                    let ebscoHtml = '';
+
+                    for (let i = 0; i < maxLinksShown; i++) {
+                        if (undefined !== links[i]) {
+                            ebscoHtml += `<tr style='display: none;'><td>${links[i]}</td></tr>`;
+                        }
+                    }
+
+                    if (edsLinks > maxLinksShown) {
+                        ebscoHtml += `
+                                <tr>
+                                  <td>
+                                    <div class="records-in-groups-dropdown">
+                                      <div class="btn-group">
+                                        <span type="button"
+                                              class="show-next-links dropdown-toggle"
+                                              data-toggle="dropdown">
+                                          ${$VuFind.translate("Show next links")}
+                                          <b class="caret"></b>
+                                        </span>
+                                        <ul class="dropdown-menu scrollable-menu" role="menu">`;
+
+                        for (let i = maxLinksShown; i < edsLinks; i++) {
+                            ebscoHtml += `
+                                    <li class="show-next-links-dropdown-item">
+                                      ${links[i]}
+                                    </li>`;
+                        }
+
+                        ebscoHtml += `
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>`;
+                    }
+
+                    $(`#eds-links-placeholder-${data.recordIdHash}`).append( ebscoHtml );
+                    $(`#eds-links-placeholder-${data.recordIdHash} tr`).show( 'blind', {}, 200 );
+                }
+
+                if (response.status == 'NOT_OK') {
+                    console.log( '' );
+                    console.warn( 'Response message for recordId <?=$recordIdHash?>:' + response.data.message );
+
+                    $(`#eds-links-placeholder-${data.recordIdHash}`)
+                        .append( `<div class="text-center">${VuFind.translate("Fulltext not found")}</div>` );
+                    $(`#eds-links-placeholder-${data.recordIdHash} tr`).show( 'blind', {}, 200 );
+                    $(`#no-eds-links-${data.recordIdHash}`).show( 'blind', {}, 200 );
+                }
+
+                if (response.data.url) {
+                    console.log('Solr url: ' + response.data.url);
+                }
+
+                if (undefined != response.data.not_ok_messages) {
+                    response.data.not_ok_messages.forEach( function( message ) {
+                        console.warn( message );
+                    });
+                }
+
+            },
+            complete: function () {
+                $( `#eds-links-placeholder-${data.recordIdHash} .eds-links-loader` ).remove();
+            },
+            error: function ( jqXHR, textStatus, errorThrown ) {
+                console.error( JSON.stringify( jqXHR ) );
+                console.error( 'AJAX error: ' + textStatus + ' : ' + errorThrown );
+            }
+        });
+
+    }
+}
