@@ -1,6 +1,14 @@
-<div class="toolbar">
-  <ul class="nav nav-pills">
-    <li<?=strtolower($this->layout()->templateName) == "tagslist" ? ' class="active"' : ''?>><a href="<?=$this->url('admin/tags', array('action' => 'List'))?>"><?=$this->transEsc('List Tags')?></a></li>
-    <li<?=strtolower($this->layout()->templateName) == "tagsmanage" ? ' class="active"' : ''?>><a href="<?=$this->url('admin/tags', array('action' => 'Manage'))?>"><?=$this->transEsc('Manage Tags')?></a></li>
+<div class='toolbar'>
+  <ul class='nav nav-pills'>
+    <li class='<?=strtolower($this->layout()->templateName) == 'tagslist' ? ' active' : ''?>'>
+      <a href='<?=$this->url('admin/tags', ['action' => 'List'])?>' title='<?=$this->transEsc('List Tags')?>'>
+        <?=$this->transEsc('List Tags')?>
+      </a>
+    </li>
+    <li class='<?=strtolower($this->layout()->templateName) == 'tagsmanage' ? 'active' : ''?>'>
+      <a href='<?=$this->url('admin/tags', ['action' => 'Manage'])?>' title='<?=$this->transEsc('Manage Tags')?>'>
+        <?=$this->transEsc('Manage Tags')?>
+      </a>
+    </li>
   </ul>
 </div>
