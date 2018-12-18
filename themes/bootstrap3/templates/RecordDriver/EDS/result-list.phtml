@@ -10,7 +10,7 @@
         : $this->params->getDisplayQuery();
 
     $recordIdHash = md5($recordId);
-    $this->headScript()->appendFile("jquery-ui.min.js");
+    $this->headScript()->appendFile('jquery-ui.min.js');
     $issns = $this->driver->getIssns();
     $isbns = $this->driver->getIsbns();
     $publishDate = $this->driver->getPublishDate();
@@ -20,25 +20,25 @@
     $volume = $this->driver->getVolume();
     $accessUrl = $this->driver->getAccessUrl();
 ?>
-<div class="white-box clearfix eds-record-container">
-  <div class="row col-xs-12 source<?=$this->escapeHtmlAttr($this->driver->getSourceIdentifier())?>
-              recordId<?=$this->driver->supportsAjaxStatus() ? ' ajaxItemId' : ''?>">
-    <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
-    <div class="col-sm-2 col-xs-3 left">
-      <div class="coverThumbnail cover_<?=$id?>">
-        <div class="iconlabel"><i class="record-icon-label pr-format-eds-<?=$format ?: 'unknown'?>"></i></div>
+<div class='white-box clearfix eds-record-container'>
+  <div class='row col-xs-12 source<?=$this->escapeHtmlAttr($this->driver->getSourceIdentifier())?>
+              recordId<?=$this->driver->supportsAjaxStatus() ? ' ajaxItemId' : ''?>'>
+    <input type='hidden' value='<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>' class='hiddenId' />
+    <div class='col-sm-2 col-xs-3 left'>
+      <div class='coverThumbnail cover_<?=$id?>'>
+        <div class='iconlabel'><i class='record-icon-label pr-format-eds-<?=$format ?: 'unknown'?>'></i></div>
       </div>
     </div>
-    <div class="col-sm-7 col-xs-7 middle search-result-container">
+    <div class='col-sm-7 col-xs-7 middle search-result-container'>
       <? $items = $this->driver->getItems(); ?>
       <? if (isset($items) && !empty($items)): ?>
         <? foreach ($items as $item): ?>
           <? if (!empty($item)): ?>
-            <div class="resultItemLine1">
+            <div class='resultItemLine1'>
               <? if ('Ti' == $item['Group']): ?>
-                <div class="root-title">
-                  <a href="<?=$this->recordLink()->getUrl($this->driver)?>?referer=<?=$this->referer?>"
-                     class="title _record_link">
+                <div class='root-title'>
+                  <a href='<?=$this->recordLink()->getUrl($this->driver)?>?referer=<?=$this->referer?>'
+                     class='title _record_link'>
                     <?=$item['Data']?>
                   </a>
                 </div>
@@ -57,11 +57,11 @@
           <? endif; ?>
         <? endforeach; ?>
       <? elseif ($restrictedView): ?>
-        <div class="resultItemLine1">
+        <div class='resultItemLine1'>
           <p>
             <?=$this->transEsc('This result is not displayed to guests')?>
             <br>
-            <a class="login" href="<?=$this->url('myresearch-home')?>">
+            <a class='login' href='<?=$this->url('myresearch-home')?>'>
               <strong><?=$this->transEsc('Login for full access')?></strong>
             </a>
           </p>
@@ -70,11 +70,11 @@
 
       <div class='row'>
         <div class='col-md-8'>
-          <div class="format-list pull-left inline-block">
+          <div class='format-list pull-left inline-block'>
             <? if (! empty($format)): ?>
-              <div class="iconlabel record-icon-format">
-                <i class="small-format-icon pr-format-eds-<?=$format?>"></i>
-                <span class="format-text">
+              <div class='iconlabel record-icon-format'>
+                <i class='small-format-icon pr-format-eds-<?=$format?>'></i>
+                <span class='format-text'>
                   <?= $this->translate($format) ?>
                 </span>
               </div>
@@ -85,24 +85,24 @@
           <? if ($this->userlist()->getMode() !== 'disabled'):
             $controllerClass = 'controller:' . $this->record($this->driver)->getController();
             $handleOfflineFavorites = ! $this->isLoggedIn && $this->offlineFavoritesEnabled; ?>
-            <li class="list-group-item">
-              <a id="save-record"
-                 class="modal-link <?=$controllerClass?>"
-                 title="<?=$this->transEsc('Add to favorites')?>"
-                 rel="nofollow"
+            <li class='list-group-item'>
+              <a id='save-record'
+                 class='modal-link <?=$controllerClass?>'
+                 title='<?=$this->transEsc('Add to favorites')?>'
+                 rel='nofollow'
                 <? if ($handleOfflineFavorites) : ?>
-                    href="#" data-ng-click="searchFavCtrl.addOrRemoveFavorite(<?=$_ENV['currentRecordNo'] ?: '' ?>)"
+                    href='#' data-ng-click='searchFavCtrl.addOrRemoveFavorite(<?=$_ENV['currentRecordNo'] ?: "" ?>)'
                 <? else: ?>
-                    href="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>"
+                    href='<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>'
                 <? endif; ?>
                  >
-                <i class="pr-interface-favoritestar"> </i>
-                  <span data-add-remove-search="add<?=$_ENV['currentRecordNo'] ? ':' . $_ENV['currentRecordNo'] : '' ?>">
+                <i class='pr-interface-favoritestar'> </i>
+                  <span data-add-remove-search='add<?=$_ENV['currentRecordNo'] ? ':' . $_ENV['currentRecordNo'] : "" ?>'>
                     <?=$this->transEsc('Add to favorites')?>
                   </span>
-                  <span data-add-remove-search="rem<?=$_ENV['currentRecordNo'] ? ':' . $_ENV['currentRecordNo'] : '' ?>"
+                  <span data-add-remove-search='rem<?=$_ENV['currentRecordNo'] ? ':' . $_ENV['currentRecordNo'] : "" ?>'
                         hidden
-                        class="bold">
+                        class='bold'>
                     <?=$this->transEsc('remove_from_favorites')?>
                   </span>
               </a>
@@ -113,32 +113,32 @@
 
     </div>
 
-    <div class="col-sm-3 col-xs-12 right d-table">
-      <div id="eds-links">
+    <div class='col-sm-3 col-xs-12 right d-table'>
+      <div id='eds-links'>
 
-        <div id="only-one-eds-link-header-<?=$recordIdHash?>" class="records-in-libraries-title d-none f-s-110">
-          <div class="eds-results-questionmarkhelp">
+        <div id='only-one-eds-link-header-<?=$recordIdHash?>' class='records-in-libraries-title d-none f-s-110'>
+          <div class='eds-results-questionmarkhelp'>
             <?= $this->help()->getQuestionMarkHelp('eds-links-found') ?>
           </div>
           <?= $this->translate('Fulltext is avalable for users of this institution') ?>:
         </div>
-        <div id="many-eds-links-header-<?=$recordIdHash?>" class="records-in-libraries-title d-none f-s-110">
-          <div class="eds-results-questionmarkhelp">
+        <div id='many-eds-links-header-<?=$recordIdHash?>' class='records-in-libraries-title d-none f-s-110'>
+          <div class='eds-results-questionmarkhelp'>
             <?= $this->help()->getQuestionMarkHelp('eds-links-found') ?>
           </div>
           <?= $this->translate('Fulltext is avalable for users of these institutions') ?>:
         </div>
-        <div id="free-eds-link-available-<?=$recordIdHash?>" class="records-in-libraries-title d-none f-s-110">
-          <div class="eds-results-questionmarkhelp">
+        <div id='free-eds-link-available-<?=$recordIdHash?>' class='records-in-libraries-title d-none f-s-110'>
+          <div class='eds-results-questionmarkhelp'>
             <?= $this->help()->getQuestionMarkHelp('eds-links-found') ?>
           </div>
           <?= $this->translate('Fulltext is free') ?>
         </div>
 
-        <table class="table table-striped">
+        <table class='table table-striped'>
           <tbody>
-            <div id="eds-links-placeholder-<?=$recordIdHash?>">
-              <div class="eds-results-questionmarkhelp" id="no-eds-links-<?=$recordIdHash?>">
+            <div id='eds-links-placeholder-<?=$recordIdHash?>'>
+              <div class='eds-results-questionmarkhelp' id='no-eds-links-<?=$recordIdHash?>'>
                 <?= $this->help()->getQuestionMarkHelp('eds-links-not-found') ?>
               </div>
               <!-- Ajax Placeholder -->
@@ -148,10 +148,8 @@
 
       </div>
     </div>
-
-    <!--<div class="format-list pull-left inline-block">
-      <?=$this->record($this->driver)->getFormatList()?>
-    </div>-->
+    
+    <?=$this->record($this->driver)->getFormatList()?>
 
   </div>
 </div>

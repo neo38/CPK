@@ -1820,10 +1820,7 @@ function handleEdsSearchResults(data) {
 
                     if (edsLinks == 1) {
                         if (links[0].indexOf('free-eds-link-special-class') >= 0) {
-
-                            console.log( `Eds fulltext link FOUND for record ${data.recordIdHash} in Solr in param sfx_source_txt:free.` );
                             $( `#free-eds-link-available-${data.recordIdHash}` ).show( 'blind', {}, 200 );
-
                         } else {
                             $( `#only-one-eds-link-header-${data.recordIdHash}` ).show( 'blind', {}, 200 );
                         }
