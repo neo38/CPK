@@ -1,28 +1,34 @@
-<li class="dropdown" id="cpk-notifications">
-  <a id="cpk-notifications-warning" style="display: none;" href="#" class="dropdown-toggle" data-toggle="dropdown" id="notif_icon">
-    <i style="font-size: 20px;" class="pr-web-warningwarnalert"></i>
-    <span global-notif="unreadNotifsCount" class="notificationWarning"></span>
+<li class='dropdown' id='cpk-notifications'>
+  <a id='cpk-notifications-warning'
+     href='#' class='dropdown-toggle d-none cpk-notifications-warning'
+     data-toggle='dropdown'
+     id='notif_icon'>
+    <i class='pr-web-warningwarnalert cpk-notifications-warning-icon'></i>
+    <span global-notif='unreadNotifsCount' class='notificationWarning'></span>
   </a>
-  <ul id='cpk-notifications-list' class="dropdown-menu">
+  <ul id='cpk-notifications-list' class='dropdown-menu'>
     <? foreach ($this->notifications()->getSources() as $source => $text): ?>
-	    <li id='cpk-notifications-<?=$source?>'>
-	       <div class="notif-header"> <?=$this->translate('source_' . $source, null, $text)?>
-           <? if ($source == 'cpk') : ?>
-             <i class="pull-right icon-logo-komplet notif-knihovny-logo"></i>
-           <? else: ?>
-	           <img height="20" class="pull-right" src="<?=$this->logos()->getLogo($source) ?>"/>
-           <? endif; ?>
-	         <div institution-notif='<?=$source?>' class="notif-default">
-	           <i class="fa fa-spinner fa-spin"></i>
-	           <span class="label label-info"><?=$this->transEsc('Loading')?> ...</span>
-           </div>
-	       </div>
-	    </li>
+      <li id='cpk-notifications-<?=$source?>'>
+        <div class='notif-header'> <?=$this->translate('source_' . $source, null, $text)?>
+          <? if ($source == 'cpk'): ?>
+            <i class='pull-right icon-logo-komplet notif-knihovny-logo'></i>
+          <? else: ?>
+            <img height='20' class='pull-right' src='<?=$this->logos()->getLogo($source)?>'>
+          <? endif; ?>
+          <div institution-notif='<?=$source?>' class='notif-default'>
+            <i class='fa fa-spinner fa-spin'></i>
+            <span class='label label-info'><?=$this->transEsc('Loading')?> ...</span>
+          </div>
+        </div>
+      </li>
     <? endforeach; ?>
   </ul>
 </li>
+
 <? if ($user): ?>
   <script>
-    jQuery( document ).ready( function ( $ ) { cpkNotificationsModule.init(<?= json_encode($user->cat_username); ?>); } );
+    jQuery( document ).ready( function ( $ ) { 
+        cpkNotificationsModule.init(<?=json_encode($user->cat_username)?>); 
+    });
   </script>
 <? endif; ?>
