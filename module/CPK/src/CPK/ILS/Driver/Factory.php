@@ -93,13 +93,9 @@ class Factory
             return new \Zend\Session\Container("KohaRest_$namespace", $manager);
         };
 
-        $kohaRest = new KohaRest(
+        return new KohaRest(
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
             $sessionFactory
-        );
-
-        return $kohaRest->setCacheStorage(
-            $sm->getServiceLocator()->get('VuFind\CacheManager')->getCache('object')
         );
     }
 
