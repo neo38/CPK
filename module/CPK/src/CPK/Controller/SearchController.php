@@ -1360,8 +1360,9 @@ class SearchController extends SearchControllerBase
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
 	    //$sideFacets = $this->getSideFacetsHtml($viewData);
-        $pokus = new Facets();
-	    $sideFacets = $this->doSomethingCrazyAction($pokus->repairFF(7));
+        // TODO tady vlozit opet data Facet, vrati rovnou html sideFacet
+        $viewData['side'] = (new Facets())->prepareFacetDataAsync($viewData['side']);
+	    $sideFacets = $this->doSomethingCrazyAction($viewData);
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 
@@ -1744,12 +1745,11 @@ class SearchController extends SearchControllerBase
         return $view;
     }
 
-    public function doSomethingCrazyAction($data)
+    public function doSomethingCrazyAction($viewData)
     {
         $viewModel = $this->createViewModel();
-        $viewModel->setTemplate('Recommend/test');
+        $viewModel->setTemplate('Recommend/SideFacets');
 
-        $viewData['message'] = $data;
         foreach($viewData as $key => $data) {
             $viewModel->$key = $data;
         }
