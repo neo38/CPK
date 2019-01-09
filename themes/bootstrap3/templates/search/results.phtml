@@ -214,6 +214,8 @@
 
       <? /* Narrow Search Options */ ?>
       <div class="<?=$this->layoutClass('sidebar')?>" id='side-facets-placeholder'>
+          <? //var_dump($this->results->getRecommendations('side'))?>
+          <?= $this->render('Recommend/test.phtml', array('message' => (new \CPK\Recommend\Facets())->repairFF(11)))?>
         <? foreach ($this->results->getRecommendations('side') as $current): ?>
           <?=$this->recommend($current)?>
         <? endforeach; ?>

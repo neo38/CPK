@@ -24,6 +24,7 @@
  */
 namespace CPK\Controller;
 
+use CPK\Recommend\Facets;
 use VuFind\Controller\SearchController as SearchControllerBase;
 use VuFind\Exception\Mail as MailException;
 use VuFind\Exception\RecordMissing as RecordMissingException;
@@ -1358,7 +1359,9 @@ class SearchController extends SearchControllerBase
 
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
-	    $sideFacets = $this->getSideFacetsHtml($viewData);
+	    //$sideFacets = $this->getSideFacetsHtml($viewData);
+        $pokus = new Facets();
+	    $sideFacets = $this->doSomethingCrazyAction($pokus->repairFF(7));
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 
@@ -1740,4 +1743,20 @@ class SearchController extends SearchControllerBase
 
         return $view;
     }
+
+    public function doSomethingCrazyAction($data)
+    {
+        $viewModel = $this->createViewModel();
+        $viewModel->setTemplate('Recommend/test');
+
+        $viewData['message'] = $data;
+        foreach($viewData as $key => $data) {
+            $viewModel->$key = $data;
+        }
+
+        $viewRender = $this->getServiceLocator()->get('ViewRenderer');
+        $html = $viewRender->render($viewModel);
+        return $html;
+    }
+
 }
