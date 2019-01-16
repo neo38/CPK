@@ -27,6 +27,7 @@
  */
 namespace CPK\ILS\Driver;
 
+use CPK\ILS\Logic\KohaRestNormalizer;
 use VuFind\Exception\Date as DateException;
 use VuFind\Exception\ILS as ILSException;
 use Zend\Cache\Storage\StorageInterface;
@@ -416,24 +417,24 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     public function getMyProfile($patron)
     {
         $result = $this->makeRequest(
-            ['v1', 'patrons', $patron['id']], false, 'GET', $patron
+            ['v1', 'patrons', $patron['id']], __FUNCTION__,false, 'GET', $patron
         );
 
-        $expirationDate = !empty($result['dateexpiry'])
-            ? $this->dateConverter->convertToDisplayDate(
-                'Y-m-d', $result['dateexpiry']
-            ) : '';
         return [
+            'cat_username' => $patron['id'],
+            'id' => $patron['id'],
             'firstname' => $result['firstname'],
             'lastname' => $result['surname'],
-            'phone' => $result['mobile'],
-            'email' => $result['email'],
             'address1' => $result['address'],
             'address2' => $result['address2'],
-            'zip' => $result['zipcode'],
             'city' => $result['city'],
             'country' => $result['country'],
-            'expiration_date' => $expirationDate
+            'zip' => $result['postal_code'],
+            'phone' => $result['phone'],
+            'group' => '',
+            'blocks' => '',
+            'email' => $result['email'],
+            'expire' => $result['expiry_date']
         ];
     }
 
@@ -1243,24 +1244,69 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         return $client;
     }
 
+    protected function getOAUTH2Token()
+    {
+        $tokenEndpoint = $this->config['Catalog']['tokenEndpoint'];
+        $client = $this->createHttpClient($tokenEndpoint);
+
+        $adapter = new \Zend\Http\Client\Adapter\Curl();
+        $client->setAdapter($adapter);
+        $adapter->setOptions([
+            'curloptions' => [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POSTFIELDS => [
+                    'client_id' => $this->config['Catalog']['clientId'],
+                    'client_secret' => $this->config['Catalog']['clientSecret'],
+                    'grant_type' => isset($this->config['Catalog']['grantType'])
+                        ? $this->config['Catalog']['grantType']
+                        : 'client_credentials'
+                ]
+            ]
+        ]);
+
+        try {
+            $response = $client->send();
+        } catch (\Exception $e) {
+            $this->error(
+                "POST request for '$tokenEndpoint' failed: " . $e->getMessage()
+            );
+            throw new ILSException('Problem with getting OAUTH2 access token.');
+        }
+
+        return json_decode($response->getContent());
+    }
+
+    protected function createOAUTH2Client($url)
+    {
+        $tokenData = $this->getOAUTH2Token();
+
+        $client = $this->createHttpClient($url);
+
+        $client->getRequest()->getHeaders()->addHeaderLine(
+            'Authorization', $tokenData->token_type . ' ' . $tokenData->access_token
+        );
+
+        return $client;
+    }
+
     /**
      * Make Request
      *
      * Makes a request to the Koha REST API
      *
-     * @param array  $hierarchy  Array of values to embed in the URL path of
+     * @param array $hierarchy Array of values to embed in the URL path of
      * the request
-     * @param array  $params     A keyed array of query data
-     * @param string $method     The http request method to use (Default is GET)
-     * @param array  $patron     Patron information when using patron APIs
-     * @param bool   $returnCode If true, returns HTTP status code in addition to
+     * @param $action string An action driver is doing now
+     * @param array|bool $params A keyed array of query data
+     * @param string $method The http request method to use (Default is GET)
+     * @param array $patron Patron information when using patron APIs
+     * @param bool $returnCode If true, returns HTTP status code in addition to
      * the result
-     *
+     * @return mixed
      * @throws ILSException
-     * @return mixed JSON response decoded to an associative array or null on
-     * authentication error
      */
-    protected function makeRequest($hierarchy, $params = false, $method = 'GET',
+    protected function makeRequest($hierarchy, $action, $params = false, $method = 'GET',
         $patron = null, $returnCode = false
     ) {
         if ($patron) {
@@ -1270,15 +1316,16 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             }
 
             // Renew authentication token as necessary
-            if (null === $this->sessionCache->patronCookie) {
-                if (!$this->renewPatronCookie($patron)) {
-                    return null;
-                }
-            }
+//            if (null === $this->sessionCache->patronCookie) {
+//                if (!$this->renewPatronCookie($patron)) { TODO deal with this
+//                    return null;
+//                }
+//            }
         }
 
         // Set up the request
         $apiUrl = $this->config['Catalog']['host'];
+        $authMethod = $this->config['Catalog']['authMethod'];
 
         // Add hierarchy
         foreach ($hierarchy as $value) {
@@ -1286,7 +1333,11 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         }
 
         // Create proxy request
-        $client = $this->createHttpClient($apiUrl);
+        if ($authMethod === "OAUTH2") {
+            $client = $this->createOAUTH2Client($apiUrl);
+        } else {
+            $client = $this->createHttpClient($apiUrl);
+        }
 
         // Add params
         if (false !== $params) {
@@ -1314,7 +1365,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         }
 
         // Set authorization header
-        if ($patron) {
+        if ($patron && $authMethod !== "OAUTH2") {
             $client->addCookie($this->sessionCache->patronCookie);
         }
 
@@ -1378,6 +1429,8 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             );
             throw new ILSException('Problem with Koha REST API.');
         }
+
+        $decodedResult = $this->normalizeResponse($action)->normalize($decodedResult);
 
         return $returnCode ? [$response->getStatusCode(), $decodedResult]
             : $decodedResult;
@@ -1942,7 +1995,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         ];
         $this->cache->setItem($this->getCacheKey($key), $item);
     }
-
     /**
      * Helper function for removing cached data.
      *
@@ -1959,4 +2011,13 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         $this->cache->removeItem($this->getCacheKey($key));
     }
 
+    /**
+     * Normalizes response from API to needed format
+     *
+     * @param $method
+     * @return KohaRestNormalizer
+     */
+    public function normalizeResponse($method) {
+        return new KohaRestNormalizer($method, $this->dateConverter);
+    }
 }
