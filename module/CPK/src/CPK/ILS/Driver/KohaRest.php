@@ -437,7 +437,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     public function getMyProfile($patron)
     {
         $result = $this->makeRequest(
-            ['v1', 'patrons', 52], __FUNCTION__,false, 'GET', $patron
+            ['v1', 'patrons', $patron['id']], __FUNCTION__,false, 'GET', $patron
         );
 
         return [
