@@ -93,9 +93,14 @@ class Factory
             return new \Zend\Session\Container("KohaRest_$namespace", $manager);
         };
 
+        $sl = $sm->getServiceLocator();
+        $dbTablePluginManager = $sl->get('VuFind\DbTablePluginManager');
+
+
         return new KohaRest(
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
-            $sessionFactory
+            $sessionFactory,
+            $dbTablePluginManager->get('KohaTokens')
         );
     }
 

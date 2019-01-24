@@ -27,6 +27,7 @@
  */
 namespace CPK\ILS\Driver;
 
+use CPK\Db\Table\KohaTokens;
 use CPK\ILS\Logic\KohaRestNormalizer;
 use VuFind\Exception\Date as DateException;
 use VuFind\Exception\ILS as ILSException;
@@ -97,6 +98,20 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     protected $defaultPickUpLocation;
 
     /**
+     * Library prefix
+     *
+     * @var string
+     */
+    protected $source = '';
+
+    /**
+     * Db Table for koha tokens
+     *
+     * @var \CPK\Db\Table\KohaTokens
+     */
+    protected $tokensTable;
+
+    /**
      * Item status rankings. The lower the value, the more important the status.
      *
      * @var array
@@ -145,15 +160,17 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     /**
      * Constructor
      *
-     * @param \VuFind\Date\Converter $dateConverter  Date converter object
-     * @param Callable               $sessionFactory Factory function returning
+     * @param \VuFind\Date\Converter $dateConverter Date converter object
+     * @param Callable $sessionFactory Factory function returning
      * SessionContainer object
+     * @param KohaTokens $tokens Db Table with tokens to Koha API
      */
     public function __construct(\VuFind\Date\Converter $dateConverter,
-        $sessionFactory
+        $sessionFactory, KohaTokens $tokens
     ) {
         $this->dateConverter = $dateConverter;
         $this->sessionFactory = $sessionFactory;
+        $this->tokensTable = $tokens;
     }
 
     /**
@@ -194,6 +211,9 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 $this->feeTypeMappings, $this->config['FeeTypeMappings']
             );
         }
+
+        if (isset($this->config['Availability']['source']))
+            $this->source = $this->config['Availability']['source'];
 
         // Init session cache for session-specific data
         $namespace = md5($this->config['Catalog']['host']);
@@ -417,7 +437,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     public function getMyProfile($patron)
     {
         $result = $this->makeRequest(
-            ['v1', 'patrons', $patron['id']], __FUNCTION__,false, 'GET', $patron
+            ['v1', 'patrons', 52], __FUNCTION__,false, 'GET', $patron
         );
 
         return [
@@ -1244,7 +1264,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         return $client;
     }
 
-    protected function getOAUTH2Token()
+    protected function requestNewOAUTH2Token()
     {
         $tokenEndpoint = $this->config['Catalog']['tokenEndpoint'];
         $client = $this->createHttpClient($tokenEndpoint);
@@ -1274,20 +1294,59 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             throw new ILSException('Problem with getting OAUTH2 access token.');
         }
 
-        return json_decode($response->getContent());
+        return json_decode($response->getContent(), true);
+    }
+
+    /**
+     * Checks if is token in session. Gets token from DB and validates it
+     *
+     * @return array|bool
+     */
+    public function handleAccessToken()
+    {
+        //Store tokens in session so we dont need to request from database
+        if (!($tokenData = $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'])) {
+            $tokenData = $this->tokensTable->getAccessToken($this->source);
+
+            if (!$tokenData) {
+                $tokenData = $this->tokensTable->createAccessToken(
+                    $this->source,
+                    $this->requestNewOAUTH2Token()
+                );
+            } elseif ($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
+                $tokenData = $this->tokensTable->renewAccessToken(
+                    $this->source,
+                    $this->requestNewOAUTH2Token()
+                );
+            }
+            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
+        } elseif($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
+            $tokenData = $this->tokensTable->renewAccessToken(
+                $this->source,
+                $this->requestNewOAUTH2Token()
+            );
+            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
+        }
+
+        return $tokenData;
     }
 
     protected function createOAUTH2Client($url)
     {
-        $tokenData = $this->getOAUTH2Token();
+        $tokenData = $this->handleAccessToken();
 
         $client = $this->createHttpClient($url);
 
         $client->getRequest()->getHeaders()->addHeaderLine(
-            'Authorization', $tokenData->token_type . ' ' . $tokenData->access_token
+            'Authorization', $tokenData['token_type'] . ' ' . $tokenData['access_token']
         );
 
         return $client;
+    }
+
+    public function isExpired($currentTimestamp, $expiration)
+    {
+        return strtotime($currentTimestamp) >= strtotime($expiration);
     }
 
     /**
@@ -1309,35 +1368,15 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     protected function makeRequest($hierarchy, $action, $params = false, $method = 'GET',
         $patron = null, $returnCode = false
     ) {
-        if ($patron) {
-            // Clear current patron cookie if it's not specific to the given patron
-            if ($this->sessionCache->patron != $patron['cat_username']) {
-                $this->sessionCache->patronCookie = null;
-            }
-
-            // Renew authentication token as necessary
-//            if (null === $this->sessionCache->patronCookie) {
-//                if (!$this->renewPatronCookie($patron)) { TODO deal with this
-//                    return null;
-//                }
-//            }
-        }
-
         // Set up the request
         $apiUrl = $this->config['Catalog']['host'];
-        $authMethod = $this->config['Catalog']['authMethod'];
 
         // Add hierarchy
         foreach ($hierarchy as $value) {
             $apiUrl .= '/' . urlencode($value);
         }
 
-        // Create proxy request
-        if ($authMethod === "OAUTH2") {
-            $client = $this->createOAUTH2Client($apiUrl);
-        } else {
-            $client = $this->createHttpClient($apiUrl);
-        }
+        $client = $this->createOAUTH2Client($apiUrl);
 
         // Add params
         if (false !== $params) {
@@ -1362,11 +1401,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                         ->addHeaderLine('Content-Type', 'application/json');
                 }
             }
-        }
-
-        // Set authorization header
-        if ($patron && $authMethod !== "OAUTH2") {
-            $client->addCookie($this->sessionCache->patronCookie);
         }
 
         // Send request and retrieve response

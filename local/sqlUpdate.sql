@@ -819,3 +819,12 @@ UPDATE `system` SET `value` = '61' WHERE `key`='DB_VERSION';
 UPDATE user SET firstname = '', lastname = '', email = '';
 UPDATE user_card SET card_name = '';
 UPDATE `system` SET `value` = '62' WHERE `key`='DB_VERSION';
+
+CREATE TABLE `vufind`.`koha_tokens` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `source` VARCHAR(45) NOT NULL,
+  `access_token` TEXT NOT NULL,
+  `timestamp_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `timestamp_expiration` TIMESTAMP NULL,
+  `token_type` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`));
