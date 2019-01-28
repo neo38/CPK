@@ -1,2 +1,119 @@
-<? var_dump($this->data)?>
-<h1>NEE!!</h1>
+<script>
+    // @TODO nechapu proc ale kdyz je to pouze v doc.ready tak to po prvnim vyhledavani prestane fungovat
+    $( '.list-group' ).on('click', '.arrow', function( event ) {
+        event.preventDefault();
+        var classArrow = event.target.closest('li').id;
+        console.log(classArrow);
+        $('#ul-'+classArrow).toggleClass("hide");
+    });
+</script>
+
+<?
+    $facetFilter = $this->data;
+    foreach ($facetFilter as $facets) {
+        //var_dump($facets);
+    }
+
+?>
+  <!-- hlavni nadpis facet hledani BEGIN -->
+
+  <h3 class='side-facets-header facets-questionmark-help'>
+      <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
+      <?= ($this->librarySearch)? ('adr-facets') : ($filterClass)? $this->help()->getQuestionMarkHelp('ci-facets') : $this->help()->getQuestionMarkHelp('facets') ;?>
+  </h3>
+
+  <!-- hlavni nadpis facet hledani END -->
+  <!-- TODO kouknout co je to extra filters a jestli by ty pouzity filtry nesli vyresit jednoduseji...
+        napriklad pritom vytvareni pole facet uz rovnou si zapamatovavat ktere maji active -->
+<? // $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
+  <!-- vypis filtr BEGIN -->
+<?if (!empty($filterList)): ?>
+  <div class="list-group filters">
+      <? foreach ($filterList as $field => $filters): ?>
+          <? foreach ($filters as $i => $filter): ?>
+              <?= $filter['displayText'].'<br>'; ?>
+          <? endforeach; ?>
+      <? endforeach; ?>
+    <div class='text-center'>
+      <a id='remove-all-filters-async' href='<? //=$removeFilterUrl?>'><div class="btn btn-primary btn-sm"><?=$this->transEsc('Remove Filters')?></div></a>
+    </div>
+  </div>
+<? endif; ?>
+<?
+/*foreach ($usedFacetFilter as $filter) {
+    var_dump($filter);
+}*/
+?>
+  <!-- vypis filtr END -->
+<? foreach ($facetFilter as $key => $filter) {?>
+  <div id="side-panel-<?=$filter['label']?>" class="col-xs-12 list-group">
+    <li class="arrow list-group-item title" id="facet-<?=$filter['label']?>">
+      <span class="arrow-title">
+          <?=$this->transEsc($filter['display'])?>
+      </span>
+    </li>
+    <ul id="ul-facet-<?=$filter['label']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
+        <?
+        if ($filter['label'] == 'adv_search_year') {
+            //include_once 'SideFacets/PublishDate.phtml';
+            echo '</ul></div>';
+            continue;
+        }
+        ?>
+        <? foreach ($filter['list'] as $facet) { //echo $facet['value']?>
+          <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=str_replace(':', '', $facet['name'])?>">
+              <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
+            <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['actived'] != 0)? ($facet['seq'] == $facet['actived'])? 'active full-active' : 'half-active' : ''?> <?=($facet['fullActive'])? 'active full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
+            <span class="<?=($facet['operator'] == "OR")? 'item' : ''?>">
+              <?=($facet['bold'])? '<b>' : '';?>
+              <?=$facet['displayText']?>
+              <?=($facet['bold'])? '</b>' : '';?>
+            </span>
+              <b class="badge"><?=(!is_null($facet['count'])) ? $facet['count'] : ''?></b>
+            </a>
+          </li>
+        <?if ($facet['children']) {?>
+          <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
+        <?}?>
+        <? if ($facet['parent'] != $filter['label']) { ?>
+          <script>
+              $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
+              $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
+          </script>
+        <? }
+        echo ($facet['value'] == $filter['more'])? '<span>Vice facet</span>' : '';
+        } ?>
+      <?=($filter['more'])? '<span class="hide">mene facet</span>' : ''?>
+    </ul>
+
+  </div>
+<? } ?>
+
+<?php
+/**
+ * Turn an array into a properly URL-encoded query string.  This is
+ * equivalent to the built-in PHP http_build_query function, but it handles
+ * arrays in a more compact way and ensures that ampersands don't get
+ * messed up based on server-specific settings.
+ *
+ * @param array $a      Array of parameters to turn into a GET string
+ * @param bool  $escape Should we escape the string for use in the view?
+ *
+ * @return string
+ */
+function buildQueryString($a, $escape = true)
+{
+    $parts = [];
+    foreach ($a as $key => $value) {
+        if (is_array($value)) {
+            foreach ($value as $current) {
+                $parts[] = urlencode($key . '[]') . '=' . urlencode($current);
+            }
+        } else {
+            $parts[] = urlencode($key) . '=' . urlencode($value);
+        }
+    }
+    $retVal = implode('&', $parts);
+    return $escape ? htmlspecialchars($retVal) : $retVal;
+}
+?>

@@ -11,11 +11,9 @@ jQuery( document ).ready( function( $ ) {
 
     /*
     @TODO Shake button thaht applies clicked facets or show message 'Do not forget to apply your changes'. This could be done on background using Web Workers.
-
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
     while( true ) {
         if (localStorage['facetsApplied']) {
             parseInt(localStorage.getItem("facetsApplied") > 0) {
@@ -25,8 +23,8 @@ jQuery( document ).ready( function( $ ) {
         }
     }
     */
-	
-	ADVSEARCH = {
+
+    ADVSEARCH = {
 
         /**
          * Update form's DOM state for groups.
@@ -98,13 +96,12 @@ jQuery( document ).ready( function( $ ) {
         },
 
         /**
-         * This function gathers data from
-         * autocomplete|advancedSearch|windowHistory. The data are sent via
-         * ajax to Solr, which returns results. These results are displayed
-         * async via jQuery UI.
+         * This function gathers data from autocomplete|advancedSearch|windowHistory.
+         * The data are sent via ajax to Solr, which returns results.
+         * These results are displayed async via jQuery UI.
          *
-         * This function also handles live url changes with
-         * window.history.pushState, popState and replaceState.
+         * This function also handles live url changes with window.history.pushState,
+         * popState and replaceState.
          *
          * @param {JSON}    dataFromWindowHistory
          * @param {JSON}    dataFromAutocomplete
@@ -114,10 +111,11 @@ jQuery( document ).ready( function( $ ) {
          *
          * @return {undefined}
          */
-        updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab) {
+        updateSearchResults: function (dataFromWindowHistory, dataFromAutocomplete, newSearchTypeTemplate, extraData, callbacks, newTab, facets) {
+
             var data = {};
 
-			/* If we need to add some new paramts to URL we can use extraData argument */
+            /* If we need to add some new paramts to URL we can use extraData argument */
             if (extraData !== undefined) {
                 for (var key in extraData) {
                     if (extraData.hasOwnProperty(key)) {
@@ -131,10 +129,10 @@ jQuery( document ).ready( function( $ ) {
             var reloadResults = true;
 
             if (dataFromWindowHistory !== undefined) {
-				/* 
-				 * If moving in browser history, take data from window.history 
-				 * instead of gather some form.
-				 */
+                /*
+                 * If moving in browser history, take data from window.history
+                 * instead of gather some form.
+                 */
                 data = dataFromWindowHistory;
                 var activeDatabase = $('#set-database li.active a').attr('data-value');
                 if (data['database'] != activeDatabase) {
@@ -150,9 +148,9 @@ jQuery( document ).ready( function( $ ) {
                 }
 
             } else if (dataFromAutocomplete) {
-				/* 
-				 * If search started in autocomplete, gather data from autocomplete form 
-				 */
+                /*
+                 * If search started in autocomplete, gather data from autocomplete form
+                 */
                 data = queryStringToJson(dataFromAutocomplete.queryString);
                 if (data.lookfor0) {
                     var templookfor0 = data.lookfor0[0];
@@ -187,9 +185,9 @@ jQuery( document ).ready( function( $ ) {
                 //console.log( data );
 
             } else {
-				/* If search started in advanced search, gather data from
-				 * advances search form and hidden facetFilters 
-				 */
+                /* If search started in advanced search, gather data from
+                 * advances search form and hidden facetFilters
+                 */
                 $('select.query-type, input.query-string, select.group-operator').each(function (index, element) {
                     var key = $(element).attr('name').slice(0, -2);
                     if (!data.hasOwnProperty(key)) {
@@ -258,10 +256,10 @@ jQuery( document ).ready( function( $ ) {
                 }
             }
 
-			/* 
-			 * Autocomplete form does not have all the data, that are 
-			 * nessessary to perform search, thus this will set default ones.
-			 */
+            /*
+             * Autocomplete form does not have all the data, that are
+             * nessessary to perform search, thus this will set default ones.
+             */
             if (dataFromWindowHistory == undefined) {
 
                 if ((!data.hasOwnProperty('bool0')) || ( !data.bool0 )) {
@@ -273,16 +271,16 @@ jQuery( document ).ready( function( $ ) {
                     data['join'] = 'AND';
                 }
 
-				/* 
-				 * Set search term and type from Autocomplete when provding 
-				 * async results loading in basic search 
-				 */
+                /*
+                 * Set search term and type from Autocomplete when provding
+                 * async results loading in basic search
+                 */
                 if (!data.hasOwnProperty('lookfor0')) {
                     var lookfor0 = $("input[name='last_searched_lookfor0']").val();
                     data['lookfor0'] = [];
                     data['lookfor0'].push(lookfor0);
                 }
-                
+
                 if (!data.hasOwnProperty('type0')) {
                     var type = $("input[name='last_searched_type0']").val();
                     data['type0'] = [];
@@ -338,7 +336,7 @@ jQuery( document ).ready( function( $ ) {
                 }
             }
 
-			/* Set last search */
+            /* Set last search */
             var lastSearchedLookFor0 = data['lookfor0'][0];
             $("input[name='last_searched_lookfor0']").val(lastSearchedLookFor0);
 
@@ -360,12 +358,18 @@ jQuery( document ).ready( function( $ ) {
             var daterange = data['daterange'];
             $("input[name='daterange']").val(daterange);
 
-			/* 
-			 * If we want to just switch template between basic and advanced search,
-			 * we need to again to gather data from forms 
-			 * (becasue of future movement in browser history) and then switch 
-			 * the templates.
-			 */
+            if (dataFromAutocomplete) {
+                facets = true;
+            } else if (facets !== true) {
+                facets = false;
+            }
+
+            /*
+             * If we want to just switch template between basic and advanced search,
+             * we need to again to gather data from forms
+             * (becasue of future movement in browser history) and then switch
+             * the templates.
+             */
             if (newSearchTypeTemplate) {
 
                 data['searchTypeTemplate'] = newSearchTypeTemplate;
@@ -375,9 +379,9 @@ jQuery( document ).ready( function( $ ) {
                 reloadResults = false;
             }
 
-			/* 
-			 * Live update url.
-			 */
+            /*
+             * Live update url.
+             */
 
             if (data['filter'][0] != null) {
                 //console.log( 'Filters:' );
@@ -396,6 +400,8 @@ jQuery( document ).ready( function( $ ) {
                 //console.log( deCompressedFilters.split( "|" ) );
 
             }
+
+            data['facets'] = JSON.stringify(facets);
 
             var dataForAjax = data;
 
@@ -416,25 +422,36 @@ jQuery( document ).ready( function( $ ) {
                 reloadResults = true;
             }
 
-			/*
-			 * Send current url (for link in full view Go back to search results)
-			 * */
+            /*
+             * Send current url (for link in full view Go back to search results)
+             * */
             data['searchResultsUrl'] = window.location.href;
 
             if (newTab) {
                 window.open(data['searchResultsUrl'], '_blank');
                 return false;
             }
-
-			/*
-			 * Get search results from Solr and display them
-			 *
-			 * There can be some situations where we do not want to reload
-			 * search results. E.g. when we are just switching templates.
-			 *
-			 */
+            var fConf = {};
+            $('.FacetConfig').each(function() {
+                var name = $(this).attr('id');
+                fConf[name] = [];
+                $('.'+name).each(function() {
+                    var value = $(this).attr('value');
+                    fConf[name].push(value);
+                });
+            });
+            console.log(fConf);
+            dataForAjax['FConfig'] = fConf;
+            // TODO do dataForAjax pridat pole s configem, skryty div s inputama
+            /*
+             * Get search results from Solr and display them
+             *
+             * There can be some situations where we do not want to reload
+             * search results. E.g. when we are just switching templates.
+             *
+             */
             if (reloadResults) {
-				/* Search */
+                /* Search */
                 $.ajax({
                     type: 'POST',
                     cache: false,
@@ -443,7 +460,15 @@ jQuery( document ).ready( function( $ ) {
                     data: dataForAjax,
                     beforeSend: function () {
 
-                        scrollToTop();
+                        //scrollToTop();
+                        if (facets === true) {
+                            $('.loader').removeClass('loader-hide');
+                            $('.list-group').addClass('load-facet');
+                            // turn off all action on facets
+                            $('.sidebar a').removeAttr("href");
+                            //$('.sidebar a').removeAttr("data-facet");
+                            //$('.sidebar li').removeAttr("id");
+                        }
 
                         if ((data['type0'] == "Libraries") && (undefined != data['lookfor0'][0])) {
                             console.log( "!!!!!!!Get Map from search-results.js" );
@@ -464,21 +489,14 @@ jQuery( document ).ready( function( $ ) {
                             $('#result-list-placeholder').before(loader);
                         });
                         $('#results-amount-info-placeholder').html("<i class='fa fa-2x fa-refresh fa-spin'></i>");
-                        $('#pagination-placeholder, #side-facets-placeholder').hide('blind', {}, 200);
+                        $('#pagination-placeholder').hide('blind', {}, 200);
 
                         // Disable submit button until ajax finishes
                         $('#submit-edited-advanced-search', '.ajax-update-limit', '.ajax-update-sort').attr('disabled', true);
 
-                        document.querySelector('.result-list-toolbar').classList.add('hidden');
-
                         // Let another applications know we are loading new results ..
                         var event = document.createEvent("CustomEvent");
                         event.initCustomEvent('searchResultsLoading', false, false, {});
-
-                        // Hide No results info
-                        $('#no-results-container').hide('blind', {}, 200, function () {
-                            $(this).css('display', 'none');
-                        });
                     },
                     success: function (response) {
 
@@ -486,48 +504,50 @@ jQuery( document ).ready( function( $ ) {
                             return;
                         }
 
-                        scrollToTop();
+                        //scrollToTop();
 
                         if (response.status == 'OK') {
 
                             if (data['filter'].length < 1) {
-								/* Remove filters from containers when performing search without keeping enabled facets */
+                                /* Remove filters from containers when performing search without keeping enabled facets */
                                 $('#hiddenFacetFilters').html('');
                             }
 
                             var responseData = response.data;
+                            //console.log(responseData);
                             var title = response.data.title;
                             var resultsHtml = JSON.parse(responseData.resultsHtml);
                             var facetsHtml = JSON.parse(responseData.sideFacets);
                             var resultsAmountInfoHtml = JSON.parse(responseData.resultsAmountInfoHtml);
                             var paginationHtml = JSON.parse(responseData.paginationHtml);
 
-							/* Save results to local storage for swithing to next/previous record of search results */
+                            /* Save results to local storage for swithing to next/previous record of search results */
                             if (typeof(Storage) !== 'undefined') {
-                                var viewData = responseData.viewData
-                                localStorage.setItem('extraRecords', JSON.stringify(
-                                    {
-                                        referer: viewData.referer,
-                                        extraResults: viewData.extraResults,
-                                        extraPage: viewData.extraPage,
-                                    }))
+                                var extraResults = responseData.viewData.extraResults;
+                                var referer = responseData.viewData.referer;
+                                localStorage.setItem(referer, JSON.stringify(extraResults));
                             } else {
                                 console.error('Sorry! No Web Storage support.');
                             }
 
                             document.title = title;
 
-							/* Ux content replacement */
+                            /* Ux content replacement */
                             $('#search-results-loader').remove();
                             $('#result-list-placeholder, #pagination-placeholder').css('display', 'none');
                             $('#result-list-placeholder').html(decodeHtml(resultsHtml.html));
+                            document.getElementById('search-result-list').scrollIntoView();
                             $('#pagination-placeholder').html(paginationHtml.html);
                             $('#results-amount-info-placeholder').html(resultsAmountInfoHtml.html);
-                            $('#side-facets-placeholder').html(facetsHtml.html);
                             $('#result-list-placeholder, #pagination-placeholder, #results-amount-info-placeholder').show('blind', {}, 500);
-                            $('#side-facets-placeholder').show('blind', {}, 500);
+                            //$('#side-facets-placeholder').show('blind', {}, 500);
+                            if (facetsHtml.html !== "") {
+                                $('#side-facets-placeholder').html(facetsHtml.html);
+                                $('.loader').addClass('loader-hide');
+                                $('.list-group').removeClass('load-facet');
+                            }
 
-							/* Update search identificators */
+                            /* Update search identificators */
                             $('#rss-link').attr('href', window.location.href + '&view=rss');
                             $('.mail-record-link').attr('id', 'mailSearch' + responseData.searchId);
                             $('#add-to-saved-searches').attr('data-search-id', responseData.searchId);
@@ -538,10 +558,10 @@ jQuery( document ).ready( function( $ ) {
 
                             $(' #flashedMessage div .alert').hide('blind', {}, 500);
 
-							/* Update lookfor inputs in both search type templates to be the same when switching templates*/
+                            /* Update lookfor inputs in both search type templates to be the same when switching templates*/
                             ADVSEARCH.updateSearchTypeTemplates(data);
 
-							/* If filters enabled, show checkbox in autocomplete */
+                            /* If filters enabled, show checkbox in autocomplete */
                             if (data.filter.length > 0) {
                                 $('#keep-facets-enabled-checkbox').show('blind', {}, 500);
                             } else {
@@ -552,7 +572,7 @@ jQuery( document ).ready( function( $ ) {
                             //console.log( responseData.recordTotal );
                             //console.log(' Success happened ');
 
-							/* Hide no results container when there is more than 0 results */
+                            /* Hide no results container when there is more than 0 results */
                             if (responseData.recordTotal > 0) {
                                 //console.log(' responseData.recordTotal: ');
                                 //console.log( responseData.recordTotal );
@@ -581,20 +601,18 @@ jQuery( document ).ready( function( $ ) {
                                 $( '#map' ).show('blind', {}, 200);
                             }
 
-                            document.querySelector('.result-list-toolbar').classList.remove('hidden');
-
                         } else {
                             console.error(response.data);
                             console.error(response);
                         }
                         $('#submit-edited-advanced-search', '.ajax-update-limit', '.ajax-update-sort').removeAttr('selected');
 
-						/**
-						 * Update sort and limit selects, when moving in history back or forward.
-						 * We need to use this f****** stupid robust solution to prevent
-						 * incompatibility and bad displaying of options that are
-						 * in real selected
-						 */
+                        /**
+                         * Update sort and limit selects, when moving in history back or forward.
+                         * We need to use this f****** stupid robust solution to prevent
+                         * incompatibility and bad displaying of options that are
+                         * in real selected
+                         */
                         $('.ajax-update-limit option').prop('selected', false);
                         $('.ajax-update-limit').val([]);
                         $('.ajax-update-limit option').removeAttr('selected');
@@ -679,19 +697,21 @@ jQuery( document ).ready( function( $ ) {
         addFacetFilter: function (value, updateResults) {
             var enabledFacets = 0;
             $('#hiddenFacetFilters input').each(function (index, element) {
-                if ($(element).val() == value) {
+                if ($(element).val() === value) {
                     ++enabledFacets;
                     return false; // javascript equivalent to php's break;
                 }
             });
+            //~cpk_detected_format_facet_str_mv:"0/ARTICLES/
 
-            if (enabledFacets == 0) { /* This filter not applied yet, apply it now */
-                var html = "<input type='hidden' class='hidden-filter' name='filter[]' value='" + value + "'>";
-                $('#hiddenFacetFilters').append(html);
-            }
+            //if (enabledFacets == 0) { /* This filter not applied yet, apply it now */
+            var html = "<input type='hidden' class='hidden-filter' name='filter[]' value='" + value + "'>";
+            $('#hiddenFacetFilters').append(html);
+            //console.log(html);
+            //}
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
             }
         },
 
@@ -706,7 +726,7 @@ jQuery( document ).ready( function( $ ) {
 
             var extraData = {};
             $('#hiddenFacetFilters input').each(function (index, element) {
-                if ($(element).val() == value) {
+                if ($(element).val() === value) {
                     $(this).remove();
                 }
 
@@ -722,7 +742,7 @@ jQuery( document ).ready( function( $ ) {
             });
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData, undefined, undefined, true);
             }
         },
 
@@ -736,7 +756,7 @@ jQuery( document ).ready( function( $ ) {
             $('#hiddenFacetFilters input').remove();
 
             if (updateResults) {
-                ADVSEARCH.updateSearchResults(undefined, undefined);
+                ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
             }
         },
 
@@ -747,11 +767,11 @@ jQuery( document ).ready( function( $ ) {
          * @return    {undefined}
          */
         updateUrl: function (data) {
-	    if (window.location.href.indexOf('/EDS/') != -1){
-		data['database'] = 'EDS';
-		$("#set-database li a[data-value='EDS']").parent().addClass("active");
-		$("#set-database li a[data-value='Solr']").parent().removeClass("active");
-	    }
+            if (window.location.href.indexOf('/EDS/') != -1){
+                data['database'] = 'EDS';
+                $("#set-database li a[data-value='EDS']").parent().addClass("active");
+                $("#set-database li a[data-value='Solr']").parent().removeClass("active");
+            }
             var stateObject = data;
             var title = 'New search query';
             var url = '/Search/Results/?' + jQuery.param(data)
@@ -826,9 +846,9 @@ jQuery( document ).ready( function( $ ) {
          */
         clearAdvancedSearchTemplate: function () {
 
-			/*
-			 * Remove redundand elements
-			 */
+            /*
+             * Remove redundand elements
+             */
             var d1 = $.Deferred();
             var d2 = $.Deferred();
 
@@ -864,14 +884,14 @@ jQuery( document ).ready( function( $ ) {
                 })
             );
 
-			/* Previous callback does not work, so lets try to update it again after 300ms :/ */
+            /* Previous callback does not work, so lets try to update it again after 300ms :/ */
             setTimeout(function () {
                 ADVSEARCH.updateGroupsDOMState('#editable-advanced-search-form');
             }, 300);
 
-			/* 
-			 * Empty first query and set default values to selects
-			 */
+            /*
+             * Empty first query and set default values to selects
+             */
             $('#query_0 .query-string').val('');
 
             $('#group_0 select.group-operator').selectedIndex = 0;
@@ -880,8 +900,7 @@ jQuery( document ).ready( function( $ ) {
         },
 
         /**
-         * Update lookfor inputs in both search type templates to be the same
-         * when switching templates
+         * Update lookfor inputs in both search type templates to be the same when switching templates
          *
          * @param    {Object}    data    Object with lookFor, bool, etc.
          * @return    {undefined}
@@ -892,18 +911,18 @@ jQuery( document ).ready( function( $ ) {
             ////console.log( data );
 
             if (data.hasOwnProperty('lookfor0')) {
-				/* Search was made in advanced search */
+                /* Search was made in advanced search */
 
-				/* Fill autocomplete search form */
+                /* Fill autocomplete search form */
                 ////console.log( 'Filling autocomplete with' );
                 ////console.log( data.lookfor0[0] );
                 if (data.lookfor0[0] != "FT Y OR FT N") {
                     $('#searchForm_lookfor').val(data.lookfor0[0]);
                 }
             } else {
-				/* Search was made in autocomplete */
+                /* Search was made in autocomplete */
 
-				/* Fill adv. search form */
+                /* Fill adv. search form */
                 ADVSEARCH.clearAdvancedSearchTemplate();
                 ////console.log( 'Clearing advanced search form' );
 
@@ -944,136 +963,136 @@ jQuery( document ).ready( function( $ ) {
         },
 
     }
-	
-	/**
-	 * Load correct content on history back or forward
-	 */
-	$( window ).bind( 'popstate', function() {
-		var currentState = history.state;
-		////console.log( 'POPing state: ' );
-		////console.log( currentState );
-		if (null != currentState) {
-			if (currentState.searchTypeTemplate) {
-				ADVSEARCH.updateSearchResults( currentState, undefined, currentState.searchTypeTemplate );
-			} else {
-				var currentUrl = window.location.href;
-				var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
-				ADVSEARCH.updateSearchResults( currentState, undefined, searchTypeTemplate );
-			}
-		} else {
-			console.warn( 'Current history state is NULL.' );
-			//window.history.back();
-		}
-	});
-	
-	/* Update form's DOM on page load 
-	 * 
-	 * This function updates numbers in form's DOM to ensure, that jQuery
-	 * will correctly handle showing or hiding some elements in form.
-	 */
-	ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
-	$( '#editable-advanced-search-form .group' ).each( function(){
-		ADVSEARCH.updateQueriesDOMState( '#' + $( this ).attr( 'id' ) );
-	});
-	
-	/*
-	 * Add search group on click in advanced search template
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '.add-search-group', function( event ) {
-		event.preventDefault();
-		var parentDiv = $( this ).parent().parent();
-		var last = parentDiv.find( '.group' ).last();
-		var clone = last.clone();
-		var nextGroupNumber = parseInt( clone.attr( 'id' ).match( /\d+/ ) ) + 1;
-		clone.attr( 'id', 'group_' + nextGroupNumber);
-		clone.find( 'select' ).prop( 'selected', false );
-		clone.find( 'select.group-operator' ).attr( 'name', 'bool' + nextGroupNumber + '[]' );
-		clone.find( 'select.query-type' ).attr( 'name', 'type' + nextGroupNumber + '[]' );
+
+    /**
+     * Load correct content on history back or forward
+     */
+    $( window ).bind( 'popstate', function() {
+        var currentState = history.state;
+        ////console.log( 'POPing state: ' );
+        ////console.log( currentState );
+        if (null != currentState) {
+            if (currentState.searchTypeTemplate) {
+                ADVSEARCH.updateSearchResults( currentState, undefined, currentState.searchTypeTemplate, undefined, undefined, undefined, true );
+            } else {
+                var currentUrl = window.location.href;
+                var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
+                ADVSEARCH.updateSearchResults( currentState, undefined, searchTypeTemplate, undefined, undefined, undefined, true );
+            }
+        } else {
+            console.warn( 'Current history state is NULL.' );
+            //window.history.back();
+        }
+    });
+
+    /* Update form's DOM on page load
+     *
+     * This function updates numbers in form's DOM to ensure, that jQuery
+     * will correctly handle showing or hiding some elements in form.
+     */
+    ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
+    $( '#editable-advanced-search-form .group' ).each( function(){
+        ADVSEARCH.updateQueriesDOMState( '#' + $( this ).attr( 'id' ) );
+    });
+
+    /*
+     * Add search group on click in advanced search template
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '.add-search-group', function( event ) {
+        event.preventDefault();
+        var parentDiv = $( this ).parent().parent();
+        var last = parentDiv.find( '.group' ).last();
+        var clone = last.clone();
+        var nextGroupNumber = parseInt( clone.attr( 'id' ).match( /\d+/ ) ) + 1;
+        clone.attr( 'id', 'group_' + nextGroupNumber);
+        clone.find( 'select' ).prop( 'selected', false );
+        clone.find( 'select.group-operator' ).attr( 'name', 'bool' + nextGroupNumber + '[]' );
+        clone.find( 'select.query-type' ).attr( 'name', 'type' + nextGroupNumber + '[]' );
         clone.find( 'select.query-type' ).val( clone.find( 'select.query-type' ).find( 'option:first' ).val() );
-		clone.find( '.queries:not(:first)').remove();
-		clone.find( 'input:text' ).val( '' );
-		clone.find( 'input:text' ).attr( 'name', 'lookfor' + nextGroupNumber + '[]' );
-		clone.find( '.remove-advanced-search-query' ).addClass( 'hidden' );
-		clone.css( 'display', 'none' )
-		last.after( clone );
-		clone.show( 'blind', {}, 400, function() {
-			ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
-		})
-	});
-	
-	/*
-	 * Add search query on click in advanced search template
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '.add-search-query', function( event ) {
-		event.preventDefault();
-		var parentDiv = $( this ).parent().parent();
-		var last = parentDiv.find( '.queries' ).last();
-		var clone = last.clone();
-		var nextQueryNumber = parseInt( clone.attr( 'id' ).match( /\d+/ ) ) + 1;
-		var thisGroupElement = parentDiv.parent();
-		var thisGroupNumber = parseInt( thisGroupElement.attr( 'id' ).match( /\d+/ ) );
-		clone.attr( 'id', 'query_' + nextQueryNumber);
-		clone.find( 'select' ).prop( 'selected', false );
-		clone.find( 'select' ).attr( 'name', 'type' + thisGroupNumber + '[]' );
+        clone.find( '.queries:not(:first)').remove();
+        clone.find( 'input:text' ).val( '' );
+        clone.find( 'input:text' ).attr( 'name', 'lookfor' + nextGroupNumber + '[]' );
+        clone.find( '.remove-advanced-search-query' ).addClass( 'hidden' );
+        clone.css( 'display', 'none' )
+        last.after( clone );
+        clone.show( 'blind', {}, 400, function() {
+            ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
+        })
+    });
+
+    /*
+     * Add search query on click in advanced search template
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '.add-search-query', function( event ) {
+        event.preventDefault();
+        var parentDiv = $( this ).parent().parent();
+        var last = parentDiv.find( '.queries' ).last();
+        var clone = last.clone();
+        var nextQueryNumber = parseInt( clone.attr( 'id' ).match( /\d+/ ) ) + 1;
+        var thisGroupElement = parentDiv.parent();
+        var thisGroupNumber = parseInt( thisGroupElement.attr( 'id' ).match( /\d+/ ) );
+        clone.attr( 'id', 'query_' + nextQueryNumber);
+        clone.find( 'select' ).prop( 'selected', false );
+        clone.find( 'select' ).attr( 'name', 'type' + thisGroupNumber + '[]' );
         clone.find( 'select' ).val( clone.find( 'select' ).find( 'option:first' ).val() );
-		clone.find( 'input:text' ).val( '' );
-		clone.find( 'input:text' ).attr( 'name', 'lookfor' + thisGroupNumber + '[]' );
-		clone.css( 'display', 'none' );
-		last.after( clone );
-		clone.show( 'blind', {}, 400, function() {
-			var thisGroupSelector = $( this ).parent().parent().parent().parent();
-			ADVSEARCH.updateQueriesDOMState( '#' + thisGroupElement.attr( 'id' ) );
-			thisGroupElement.find( '.remove-advanced-search-query' ).removeClass( 'hidden' );
-		});
-	});
-	
-	/*
-	 * Remove search group on click in advanced search template
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '.remove-advanced-search-group', function( event ) {
-		event.preventDefault();
-		var group = $( this ).parent().parent();
-		var groupId =  group.attr( 'id' ).match( /\d+/ );
-		group.nextAll().each( function() {
-		    $(this).attr( 'id' , 'group_' + groupId );
-		    $(this).find( '.query-type' ).attr( 'name' , 'type' + groupId + '[]' );
-		    $(this).find( '.query-string' ).attr( 'name' , 'lookfor' + groupId + '[]' );
-		    $(this).find( '.group-operator' ).attr( 'name' , 'bool' + groupId + '[]' );
-		    groupId++;
-		});
-		$( this ).parent().parent().hide( 'blind', {}, 400, function() {
-			$( this ).remove();
-			ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
-		});
-	});
-	
-	/*
-	 * Remove search query on click in advanced search template
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '.remove-advanced-search-query', function( event ) {
-		event.preventDefault();
-		var thisElement = $( this );
-		var queryRow = thisElement.parent().parent();
-		var thisGroupSelector = queryRow.parent().parent();
-		queryRow.hide( 'blind', {},  400, function() {
-		    if (queryRow.attr('id') == 'query_0') {
-		        queryRow.siblings().first().attr('id', 'query_0')
-		    }
-			queryRow.remove();
-			ADVSEARCH.updateQueriesDOMState( '#' + thisGroupSelector.attr( 'id' ) );
-		});
-	});
-	
-	/*
-	 * Clear advanced search template
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '#clearAdvancedSearchLink', function( event ) {
-		event.preventDefault();
-		ADVSEARCH.clearAdvancedSearchTemplate();
-		
-		// Clear also autocomplete
-		$( '#searchForm_lookfor' ).val( '' );
-	});
+        clone.find( 'input:text' ).val( '' );
+        clone.find( 'input:text' ).attr( 'name', 'lookfor' + thisGroupNumber + '[]' );
+        clone.css( 'display', 'none' );
+        last.after( clone );
+        clone.show( 'blind', {}, 400, function() {
+            var thisGroupSelector = $( this ).parent().parent().parent().parent();
+            ADVSEARCH.updateQueriesDOMState( '#' + thisGroupElement.attr( 'id' ) );
+            thisGroupElement.find( '.remove-advanced-search-query' ).removeClass( 'hidden' );
+        });
+    });
+
+    /*
+     * Remove search group on click in advanced search template
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '.remove-advanced-search-group', function( event ) {
+        event.preventDefault();
+        var group = $( this ).parent().parent();
+        var groupId =  group.attr( 'id' ).match( /\d+/ );
+        group.nextAll().each( function() {
+            $(this).attr( 'id' , 'group_' + groupId );
+            $(this).find( '.query-type' ).attr( 'name' , 'type' + groupId + '[]' );
+            $(this).find( '.query-string' ).attr( 'name' , 'lookfor' + groupId + '[]' );
+            $(this).find( '.group-operator' ).attr( 'name' , 'bool' + groupId + '[]' );
+            groupId++;
+        });
+        $( this ).parent().parent().hide( 'blind', {}, 400, function() {
+            $( this ).remove();
+            ADVSEARCH.updateGroupsDOMState( '#editable-advanced-search-form' );
+        });
+    });
+
+    /*
+     * Remove search query on click in advanced search template
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '.remove-advanced-search-query', function( event ) {
+        event.preventDefault();
+        var thisElement = $( this );
+        var queryRow = thisElement.parent().parent();
+        var thisGroupSelector = queryRow.parent().parent();
+        queryRow.hide( 'blind', {},  400, function() {
+            if (queryRow.attr('id') == 'query_0') {
+                queryRow.siblings().first().attr('id', 'query_0')
+            }
+            queryRow.remove();
+            ADVSEARCH.updateQueriesDOMState( '#' + thisGroupSelector.attr( 'id' ) );
+        });
+    });
+
+    /*
+     * Clear advanced search template
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '#clearAdvancedSearchLink', function( event ) {
+        event.preventDefault();
+        ADVSEARCH.clearAdvancedSearchTemplate();
+
+        // Clear also autocomplete
+        $( '#searchForm_lookfor' ).val( '' );
+    });
 
 // Search with current filters
     $( "#side-facets-placeholder").on( "click", ".list-group-item", function( event ) {
@@ -1088,101 +1107,93 @@ jQuery( document ).ready( function( $ ) {
         ADVSEARCH.removeAllFilters( true );
     });
 
-	/*
-	 * Add or remove clicked facet
-	 */
-	$( 'body' ).on( 'click', '.facet-filter-or', function( event ) {
-		event.preventDefault();
-		
-		if ( event.ctrlKey ){
-		     window.open( $( this ).attr( 'href' ), '_blank' );
-		     $( this ).removeClass( 'jstree-clicked active' );
-		     return false;
-		}
 
-		$( "input[name='page']" ).val( '1' );
+    /*
+     * Add or remove clicked facet
+     */
+    // @TODO tady se to vyhledava... a jeste zkontrolovt ty dalsi minimalne dve funkce
+    $( 'body' ).on( 'click', '.facet-filter', function( event ) {
+        event.preventDefault();
 
-		if ($('#facet_cpk_detected_format_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all statuses
-			var allStatuses = $('#facet_cpk_detected_format_facet_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allStatuses, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
+        if ( event.ctrlKey ){
+            window.open( $( this ).attr( 'href' ), '_blank' );
+            return false;
+        }
 
-			//add selected statuses
-			var selectedStatuses = $('#facet_cpk_detected_format_facet_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedStatuses, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		};
+        $( "input[name='page']" ).val( '1' );
 
-		if ($('#facet_local_statuses_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all statuses
-			var allStatuses = $('#facet_local_statuses_facet_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allStatuses, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
-
-			//add selected statuses
-			var selectedStatuses = $('#facet_local_statuses_facet_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedStatuses, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		};
-
-		if ($('#facet_conspectus_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-			//remove all conspectus
-			var allConspectus = $('#facet_conspectus_str_mv').jstree(true).get_json('#', {flat: true});
-			$.each(allConspectus, function (index, value) {
-				ADVSEARCH.removeFacetFilter(value['id'], false);
-			});
-
-			//add selected conspectus
-			var selectedConspectus = $('#facet_conspectus_str_mv').jstree(true).get_bottom_selected();
-			$.each(selectedConspectus, function (index, value) {
-				ADVSEARCH.addFacetFilter(value, false);
-			});
-		}
-        if ($('#facet_region_disctrict_facet_str_mv').hasClass( "jstree-proton" ) ) { //only when facet initialized
-            //remove all region disctrict
-            var allDisctrict = $('#facet_region_disctrict_facet_str_mv').jstree(true).get_json('#', {flat: true});
-            $.each(allDisctrict, function (index, value) {
-                ADVSEARCH.removeFacetFilter(value['id'], false);
+        compare = $(this);
+        if (compare.closest('.list-group').attr('id') === 'side-panel-Institution' ) {
+            $('.facet-filter').each(function(){
+                if ($(this).closest('.list-group').attr('id') !== 'side-panel-Institution' ) {
+                    $(this).removeClass('facet-filter');
+                }
             });
-
-            //add selected region disctrict
-            var selectedDisctrict = $('#facet_region_disctrict_facet_str_mv').jstree(true).get_bottom_selected();
-            $.each(selectedDisctrict, function (index, value) {
-                ADVSEARCH.addFacetFilter(value, false);
+        } else {
+            $('.facet-filter').each(function(){
+                $(this).removeClass('facet-filter');
             });
         }
 
-		ADVSEARCH.updateSearchResults( undefined, undefined );
+        // @TODO projet vsechny facet-fiter porovnat s id a pokud porovnavana faceta obsahuje id tohoto tak pridat do addfacetfilter s druhou hodnotou false
+        var useFacet = 1;
+        if ( $( this ).hasClass( 'active' ) ) {
+            //console.log( 'Removing facet filter.' );
+            useFacet = 0;
+            parent = createParent($(this).attr('data-facet'), + 1);
+            //console.log(parent);
+            var parrr = $(this);
+            if ($(this).hasClass('or-facet')) {
+                count = 0;
+                // TODO u odklikavani zakazat vicero odkliknuti najednout - dela to bordel
+                // @TODO toto hodit do rekurze musi prohledat vsechny pod a odebrat je
+                $('.or-facet').each(function(index, value) {
+                    //console.log($(this).attr('data-facet'));
+                    //console.log(parent);
+                    if($(this).attr('data-facet').search(parent) >= 0) {
+                        count = count + 1;
+                        console.log(count);
+                        ADVSEARCH.removeFacetFilter($(this).attr('data-facet'), false);
+                    }
+                });
+                if (count > 0)
+                    ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
+                else
+                    console.log('jsem tu');
+                ADVSEARCH.removeFacetFilter(parrr.attr('data-facet'), true );
+            } else {
+                ADVSEARCH.removeFacetFilter($( this ).attr( 'data-facet' ), true );
+            }
+        } else {
+            //console.log( 'Adding facet filter.' );
+            // TODO pri zaklikavani zvedat nekde cislo kolik jich bylo zakliknuto a dokud neprijde tolik vyledku ze serveru zpatky tak mit reload
+            //  ??a povoleny jen a pouze zaklikavani instituci??
+            //console.log(parent);
+            if ($(this).hasClass('or-facet')) {
+                var count = 0;
+                var parent = createParent($(this).attr('data-facet'), +1);
+                console.log(parent);
+                var parent2 = createParent($(this).attr('data-facet'), +2);
+                // @TODO toto hodit do rekurze musi prohledat vsechny pod a pridat je
+                $('.or-facet').each(function(index, value) {
+                    //console.log($(this).attr('data-facet'));
+                    //console.log(parent);
+                    if($(this).attr('data-facet').search(parent) >= 0 || $(this).attr('data-facet').search(parent2) >= 0) {
+                        count = count + 1;
+                        //console.log(value);
+                        ADVSEARCH.addFacetFilter($(this).attr('data-facet'), false);
+                    }
+                });
 
-	});
-
-	/*
-	 * Add or remove clicked facet
-	 */
-	$( 'body' ).on( 'click', '.facet-filter', function( event ) {
-		event.preventDefault();
-		
-		if ( event.ctrlKey ){
-		     window.open( $( this ).attr( 'href' ), '_blank' );
-		     return false;
-		}
-		
-		$( "input[name='page']" ).val( '1' );
-
-		var useFacet = 1;
-		if ( $( this ).hasClass( 'active' ) ) {
-			//console.log( 'Removing facet filter.' );
-			useFacet = 0;
-			ADVSEARCH.removeFacetFilter( $( this ).attr( 'data-facet' ), true );
-		} else {
-			//console.log( 'Adding facet filter.' );
-			ADVSEARCH.addFacetFilter( $( this ).attr( 'data-facet' ), true );
-		}
+                //console.log(count);
+                if (count > 0)
+                    ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
+                else
+                    ADVSEARCH.addFacetFilter($(this).attr('data-facet'), true );
+            } else {
+                ADVSEARCH.addFacetFilter($( this ).attr( 'data-facet' ), true );
+            }
+        }
 
         dataLayer.push({
             'event': 'action.facet',
@@ -1194,7 +1205,18 @@ jQuery( document ).ready( function( $ ) {
                 'nonInteraction': false
             }
         });
-	});
+    });
+
+    function createParent(value, change) {
+        pre = value.substring(0, value.search(':')+2);
+        level = value.substring(value.search(':')+2, value.search(':')+3);
+        post = value.substring(value.search(':')+3, value.length-1);
+
+        level = parseInt(level) + change;
+        parent = pre + String(level) + post;
+        return parent
+    }
+
 
     /*
      * Add or remove clicked facet
@@ -1203,8 +1225,8 @@ jQuery( document ).ready( function( $ ) {
         event.preventDefault();
 
         if ( event.ctrlKey ){
-             window.open( $( this ).attr( 'href' ), '_blank' );
-             return false;
+            window.open( $( this ).attr( 'href' ), '_blank' );
+            return false;
         }
 
         $( "input[name='page']" ).val( '1' );
@@ -1231,168 +1253,168 @@ jQuery( document ).ready( function( $ ) {
         }
     });
 
-	/*
-	 * Remove all institutions facets and add checked ones
-	 */
-	$( 'body' ).on( 'click', '.institution-facet-filter-button', function( event ) {
-		event.preventDefault();
-		
-		$( "input[name='page']" ).val( '1' );
+    /*
+     * Remove all institutions facets and add checked ones
+     */
+    $( 'body' ).on( 'click', '.institution-facet-filter-button', function( event ) {
+        event.preventDefault();
 
-		//remove all institutions
-		var allInstitutions = $('#facet_institution').jstree(true).get_json('#', {flat:true});
-		$.each( allInstitutions, function( index, value ){
-		  ADVSEARCH.removeFacetFilter( value['id'], false );
-		});
+        $( "input[name='page']" ).val( '1' );
 
-		//add selected institutions
-		var selectedInstitutions = $('#facet_institution').jstree(true).get_bottom_selected();
-		$.each( selectedInstitutions, function( index, value ){
-		  ADVSEARCH.addFacetFilter( value, false );
-		});
-		ADVSEARCH.updateSearchResults( undefined, undefined );
-	});
-	
-	/*
-	 * Add or remove clicked facet
-	 */
-	$( 'body' ).on( 'click', '#remove-all-filters-async', function( event ) {
-		event.preventDefault();
-		
-		ADVSEARCH.removeAllFilters( true );
-	});
-	
-	/*
-	 * Update search results on paginating
-	 */
-	$( 'body' ).on( 'click', '.ajax-update-page', function( event ) {
-		event.preventDefault();
-		var page = $( this ).attr( 'href' );
-		$( "input[name='page']" ).val( page );
-		if (event.ctrlKey) {
-		    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true );
+        //remove all institutions
+        var allInstitutions = $('#facet_institution').jstree(true).get_json('#', {flat:true});
+        $.each( allInstitutions, function( index, value ){
+            ADVSEARCH.removeFacetFilter( value['id'], false );
+        });
+
+        //add selected institutions
+        var selectedInstitutions = $('#facet_institution').jstree(true).get_bottom_selected();
+        $.each( selectedInstitutions, function( index, value ){
+            ADVSEARCH.addFacetFilter( value, false );
+        });
+        ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
+    });
+
+    /*
+     * Add or remove clicked facet
+     */
+    $( 'body' ).on( 'click', '#remove-all-filters-async', function( event ) {
+        event.preventDefault();
+
+        ADVSEARCH.removeAllFilters( true );
+    });
+
+    /*
+     * Update search results on paginating
+     */
+    $( 'body' ).on( 'click', '.ajax-update-page', function( event ) {
+        event.preventDefault();
+        var page = $( this ).attr( 'href' );
+        $( "input[name='page']" ).val( page );
+        if (event.ctrlKey) {
+            ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true );
         } else {
             ADVSEARCH.updateSearchResults( undefined, undefined);
         }
-	});
-	
-	/*
-	 * Update search results on changing sorting
-	 */
-	$( 'body' ).on( 'click', '.apply-sort', function( event ) {
-		event.preventDefault();
-		var sort = $( this ).attr( 'data-sort' );
-		var text = $( this ).text();
-		$( '.ajax-update-sort' ).find( '.value' ).text( text );
-		$( "input[name='sort']" ).val( sort );
-		$( "input[name='page']" ).val( '1' );
-		if(event.ctrlKey) {
-		    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true );
+    });
+
+    /*
+     * Update search results on changing sorting
+     */
+    $( 'body' ).on( 'click', '.apply-sort', function( event ) {
+        event.preventDefault();
+        var sort = $( this ).attr( 'data-sort' );
+        var text = $( this ).text();
+        $( '.ajax-update-sort' ).find( '.value' ).text( text );
+        $( "input[name='sort']" ).val( sort );
+        $( "input[name='page']" ).val( '1' );
+        if(event.ctrlKey) {
+            ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true );
         } else {
             ADVSEARCH.updateSearchResults( undefined, undefined );
         }
-	});
-	
-	/*
-	 * Update search results on changing limit
-	 */
-	$( 'body' ).on( 'click', '.apply-limit', function( event ) {
-		event.preventDefault();
-		var limit = $( this ).attr( 'data-limit' );
-		var text = $( this ).text();
-		$( '.ajax-update-limit' ).find( '.value' ).text( limit );
-		
-		var oldLimit = $( "input[name='limit']" ).val();
-		var oldPage = $( "input[name='page']" ).val();
-		
-		var newPage = Math.floor(((oldPage - 1) * oldLimit) / limit) + 1
-		$( "input[name='page']" ).val( newPage );
-		$( "input[name='limit']" ).val( limit );
+    });
+
+    /*
+     * Update search results on changing limit
+     */
+    $( 'body' ).on( 'click', '.apply-limit', function( event ) {
+        event.preventDefault();
+        var limit = $( this ).attr( 'data-limit' );
+        var text = $( this ).text();
+        $( '.ajax-update-limit' ).find( '.value' ).text( limit );
+
+        var oldLimit = $( "input[name='limit']" ).val();
+        var oldPage = $( "input[name='page']" ).val();
+
+        var newPage = Math.floor(((oldPage - 1) * oldLimit) / limit) + 1
+        $( "input[name='page']" ).val( newPage );
+        $( "input[name='limit']" ).val( limit );
 
         if(event.ctrlKey) {
             ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true );
         } else {
             ADVSEARCH.updateSearchResults( undefined, undefined );
         }
-	});
-	
-	/*
-	 * Add data range as facet
-	 */
-	$( 'body' ).on( 'click', '.apply-facet-filter-range', function( event ) {
-		event.preventDefault();
-		
-		var extraData = {};
-		extraData['publishDatefrom'] = $( '#publishDatefrom' ).val();
-		extraData['publishDateto'] = $( '#publishDateto' ).val();
-		extraData['daterange'] = 'publishDate';
-		
-		var value = 'publishDate:"['+extraData['publishDatefrom']+' TO '+extraData['publishDateto']+']"';
-		ADVSEARCH.removeFacetFilter(value, false);
-		ADVSEARCH.addFacetFilter(value, false);
-		
-		ADVSEARCH.updateSearchResults( undefined, undefined, undefined, extraData );
-	});
-	
-	/*
-	 * Update search results on submiting advanced search form
-	 */
-	$( '#editable-advanced-search-form' ).on( 'click', '#submit-edited-advanced-search', function( event ) {
-		event.preventDefault();
+    });
 
-		//add chosen filters
-		$(".chosen-select").each(function() {
-			var selectedFilters = $( this ).val();
-			if(selectedFilters!=null) {
-				$.each(selectedFilters, function (index, value) {
-					ADVSEARCH.addFacetFilter(value, false);
-				});
-			}
-		});
+    /*
+     * Add data range as facet
+     */
+    $( 'body' ).on( 'click', '.apply-facet-filter-range', function( event ) {
+        event.preventDefault();
 
-		$( "input[name='page']" ).val( '1' );
-		$( "input[name='searchTypeTemplate']" ).val( 'advanced' );
-		if (event.ctrlKey) {
-		    ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true);
+        var extraData = {};
+        extraData['publishDatefrom'] = $( '#publishDatefrom' ).val();
+        extraData['publishDateto'] = $( '#publishDateto' ).val();
+        extraData['daterange'] = 'publishDate';
+
+        var value = 'publishDate:"['+extraData['publishDatefrom']+' TO '+extraData['publishDateto']+']"';
+        ADVSEARCH.removeFacetFilter(value, false);
+        ADVSEARCH.addFacetFilter(value, false);
+
+        ADVSEARCH.updateSearchResults(undefined, undefined, undefined, extraData, undefined, undefined, true);
+    });
+
+    /*
+     * Update search results on submiting advanced search form
+     */
+    $( '#editable-advanced-search-form' ).on( 'click', '#submit-edited-advanced-search', function( event ) {
+        event.preventDefault();
+
+        //add chosen filters
+        $(".chosen-select").each(function() {
+            var selectedFilters = $( this ).val();
+            if(selectedFilters!=null) {
+                $.each(selectedFilters, function (index, value) {
+                    ADVSEARCH.addFacetFilter(value, false);
+                });
+            }
+        });
+
+        $( "input[name='page']" ).val( '1' );
+        $( "input[name='searchTypeTemplate']" ).val( 'advanced' );
+        if (event.ctrlKey) {
+            ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, true, true);
         } else {
-            ADVSEARCH.updateSearchResults( undefined, undefined);
+            ADVSEARCH.updateSearchResults( undefined, undefined, undefined, undefined, undefined, undefined, true);
         }
-	});
-	
-	/*
-	 * Save or remove search
-	 */
-	$( 'body' ).on( 'click', '.save-search-link', function( event ) {
-		event.preventDefault();
-		
-		var action = $( this ).attr( 'id' );
-		
-		if (action == 'add-to-saved-searches') {
-			//console.log( 'Saving search.' );
-			
-			var thisElement = this;
-			
-			var data = {};
-			data['searchId'] = $( this ).attr( 'data-search-id' );
-			
-			$.ajax({
-	        	type: 'POST',
-	        	cache: false,
-	        	dataType: 'json',
-	        	url: VuFind.getPath() + '/AJAX/JSON?method=saveSearch',
-	        	data: data,
-	        	success: function( response ) {
-	        		
-	        		scrollToTop();
-	        		
-	        		if (response.status == 'OK') {
-	        			//console.log('Search saved.');
-	        			var html = '<div class="alert alert-success"><a href="#" class="close closeFlashedMessage">×</a>'+VuFind.translate('search_save_success')+'</div>';
-	        			$( '#flashedMessage div' ).html( html );
-	        			$( '#flashedMessage' ).show( 'blind', {}, 500);
-	        			$( thisElement ).attr( 'title', VuFind.translate('Delete saved search'));
-	        			$( thisElement ).text( VuFind.translate('Delete saved search'));
-	        			$( thisElement ).attr( 'id', 'remove-from-saved-searches');
+    });
+
+    /*
+     * Save or remove search
+     */
+    $( 'body' ).on( 'click', '.save-search-link', function( event ) {
+        event.preventDefault();
+
+        var action = $( this ).attr( 'id' );
+
+        if (action == 'add-to-saved-searches') {
+            //console.log( 'Saving search.' );
+
+            var thisElement = this;
+
+            var data = {};
+            data['searchId'] = $( this ).attr( 'data-search-id' );
+
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                dataType: 'json',
+                url: VuFind.getPath() + '/AJAX/JSON?method=saveSearch',
+                data: data,
+                success: function( response ) {
+
+                    scrollToTop();
+
+                    if (response.status == 'OK') {
+                        //console.log('Search saved.');
+                        var html = '<div class="alert alert-success"><a href="#" class="close closeFlashedMessage">×</a>'+VuFind.translate('search_save_success')+'</div>';
+                        $( '#flashedMessage div' ).html( html );
+                        $( '#flashedMessage' ).show( 'blind', {}, 500);
+                        $( thisElement ).attr( 'title', VuFind.translate('Delete saved search'));
+                        $( thisElement ).text( VuFind.translate('Delete saved search'));
+                        $( thisElement ).attr( 'id', 'remove-from-saved-searches');
 
                         dataLayer.push({
                             'event': 'action.search',
@@ -1405,115 +1427,115 @@ jQuery( document ).ready( function( $ ) {
                             }
                         });
 
-	        		} else {
-	        			console.error(response.data);
-	        			var message = '';
-	        			if (response.data.indexOf( 'authentication_error_loggedout' ) >= 0) {
-	        				message = VuFind.translate( 'login_to_use_this' );
-	        			} else {
-	        				message = VuFind.translate( 'reload_or_save_again' );
-	        			}
-	        			var html = '<div class="alert alert-warning"><a href="#" class="close closeFlashedMessage">×</a>'+message+'</div>';
-	        			$( '#flashedMessage div' ).html( html );
-	        			$( '#flashedMessage' ).show( 'blind', {}, 500);
-	        		}
-	        	}
-			});
-		}
-		
-		if (action == 'remove-from-saved-searches') {
-			//console.log( 'Removing search.' );
-			
-			var thisElement = this;
-			
-			var data = {};
-			data['searchId'] = $( this ).attr( 'data-search-id' );
-			
-			$.ajax({
-	        	type: 'POST',
-	        	cache: false,
-	        	dataType: 'json',
-	        	url: VuFind.getPath() + '/AJAX/JSON?method=removeSearch',
-	        	data: data,
-	        	success: function( response ) {
-	        		
-	        		scrollToTop();
-	        		
-	        		if (response.status == 'OK') {
-	        			//console.log('Search removed.');
-	        			var html = '<div class="alert alert-success"><a href="#" class="close closeFlashedMessage">×</a>'+VuFind.translate('search_unsave_success')+'</div>';
-	        			$( '#flashedMessage div' ).html( html );
-	        			$( '#flashedMessage' ).show( 'blind', {}, 500);
-	        			$( thisElement ).attr( 'title', VuFind.translate('Save search'));
-	        			$( thisElement ).text( VuFind.translate('Save search'));
-	        			$( thisElement ).attr( 'id', 'add-to-saved-searches');
-	        		} else {
-	        			console.error(response.data);
-	        			var message = '';
-	        			if (response.data.indexOf( 'authentication_error_loggedout' ) >= 0) {
-	        				message = VuFind.translate( 'login_to_use_this' );
-	        			} else {
-	        				message = VuFind.translate( 'reload_or_save_again' );
-	        			}
-	        			var html = '<div class="alert alert-warning"><a href="#" class="close closeFlashedMessage">×</a>'+message+'</div>';
-	        			$( '#flashedMessage div' ).html( html );
-	        			$( '#flashedMessage' ).show( 'blind', {}, 500);
-	        		}
-	        	}
-			});
-		}
-		
-	});
-	
-	/*
-	 * Save search
-	 */
-	$( 'body' ).on( 'click', '.closeFlashedMessage', function( event ) {
-		event.preventDefault();
-		$( this ).parent().hide( 'blind', {}, 200);
-	});
-
-	/*
-	 * Switch search type template to basic search (autocomplete) or advanced search
-	 */
-	$( 'body' ).on( 'click', '.search-type-template-switch', function( event ) {
-		event.preventDefault();
-		
-		var currentUrl = window.location.href;
-		var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
-		
-		var newSearchTypeTemplate = 'basic';
-		
-		if (searchTypeTemplate == 'basic') {
-			newSearchTypeTemplate = 'advanced';
-		}
-
-		if (event.ctrlKey) {
-		    window.open(currentUrl.replace(/(searchTypeTemplate=).*?(&)/,'$1' + newSearchTypeTemplate + '$2'), '_blank');
-		    return false;
+                    } else {
+                        console.error(response.data);
+                        var message = '';
+                        if (response.data.indexOf( 'authentication_error_loggedout' ) >= 0) {
+                            message = VuFind.translate( 'login_to_use_this' );
+                        } else {
+                            message = VuFind.translate( 'reload_or_save_again' );
+                        }
+                        var html = '<div class="alert alert-warning"><a href="#" class="close closeFlashedMessage">×</a>'+message+'</div>';
+                        $( '#flashedMessage div' ).html( html );
+                        $( '#flashedMessage' ).show( 'blind', {}, 500);
+                    }
+                }
+            });
         }
-		
-		$( 'input[name=searchTypeTemplate]' ).val(newSearchTypeTemplate);
 
-		ADVSEARCH.updateSearchResults( undefined, undefined, newSearchTypeTemplate );
-	});
+        if (action == 'remove-from-saved-searches') {
+            //console.log( 'Removing search.' );
 
-	//Show/hide 'To favorites' button on result book
-	$( 'body' ).find('.result').hover(function () {
+            var thisElement = this;
+
+            var data = {};
+            data['searchId'] = $( this ).attr( 'data-search-id' );
+
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                dataType: 'json',
+                url: VuFind.getPath() + '/AJAX/JSON?method=removeSearch',
+                data: data,
+                success: function( response ) {
+
+                    scrollToTop();
+
+                    if (response.status == 'OK') {
+                        //console.log('Search removed.');
+                        var html = '<div class="alert alert-success"><a href="#" class="close closeFlashedMessage">×</a>'+VuFind.translate('search_unsave_success')+'</div>';
+                        $( '#flashedMessage div' ).html( html );
+                        $( '#flashedMessage' ).show( 'blind', {}, 500);
+                        $( thisElement ).attr( 'title', VuFind.translate('Save search'));
+                        $( thisElement ).text( VuFind.translate('Save search'));
+                        $( thisElement ).attr( 'id', 'add-to-saved-searches');
+                    } else {
+                        console.error(response.data);
+                        var message = '';
+                        if (response.data.indexOf( 'authentication_error_loggedout' ) >= 0) {
+                            message = VuFind.translate( 'login_to_use_this' );
+                        } else {
+                            message = VuFind.translate( 'reload_or_save_again' );
+                        }
+                        var html = '<div class="alert alert-warning"><a href="#" class="close closeFlashedMessage">×</a>'+message+'</div>';
+                        $( '#flashedMessage div' ).html( html );
+                        $( '#flashedMessage' ).show( 'blind', {}, 500);
+                    }
+                }
+            });
+        }
+
+    });
+
+    /*
+     * Save search
+     */
+    $( 'body' ).on( 'click', '.closeFlashedMessage', function( event ) {
+        event.preventDefault();
+        $( this ).parent().hide( 'blind', {}, 200);
+    });
+
+    /*
+     * Switch search type template to basic search (autocomplete) or advanced search
+     */
+    $( 'body' ).on( 'click', '.search-type-template-switch', function( event ) {
+        event.preventDefault();
+
+        var currentUrl = window.location.href;
+        var searchTypeTemplate = getParameterByName( 'searchTypeTemplate', currentUrl );
+
+        var newSearchTypeTemplate = 'basic';
+
+        if (searchTypeTemplate == 'basic') {
+            newSearchTypeTemplate = 'advanced';
+        }
+
+        if (event.ctrlKey) {
+            window.open(currentUrl.replace(/(searchTypeTemplate=).*?(&)/,'$1' + newSearchTypeTemplate + '$2'), '_blank');
+            return false;
+        }
+
+        $( 'input[name=searchTypeTemplate]' ).val(newSearchTypeTemplate);
+
+        ADVSEARCH.updateSearchResults( undefined, undefined, newSearchTypeTemplate );
+    });
+
+    //Show/hide 'To favorites' button on result book
+    $( 'body' ).find('.result').hover(function () {
         $( this ).find( '.search-results-favorite-button' ).removeClass( 'hidden' );
     }, function () {
         $( this ).find( '.search-results-favorite-button' ).addClass( 'hidden' );
     });
 
-	/*
-	* Load search results from selected database
-	* */
+    /*
+    * Load search results from selected database
+    * */
     $( 'body' ).on( 'click', '#set-database li a', function( event ) {
         event.preventDefault();
 
         if ($( this ).parent().hasClass( 'active' )) {
-        	return false;
-		}
+            return false;
+        }
 
         var extraData = {};
         var database = $( this ).attr( 'data-value' );
@@ -1537,47 +1559,47 @@ jQuery( document ).ready( function( $ ) {
             extraData['type0[]'] = [ 'AllFields' ];
         }
 
-/*
- @TODO: Something like this should be called before calling searchResultsAjax action.
- When we have limit set in e.g. 80 in Solr, we should check, whether it is allowed value in EDS.ini config.
- The same from the other site, from EDS to Solr.
- This ajax prepreparation needs to know all the correct values, so they have to be stored somewhere,
- to be able to foreach them.
+        /*
+         @TODO: Something like this should be called before calling searchResultsAjax action.
+         When we have limit set in e.g. 80 in Solr, we should check, whether it is allowed value in EDS.ini config.
+         The same from the other site, from EDS to Solr.
+         This ajax prepreparation needs to know all the correct values, so they have to be stored somewhere,
+         to be able to foreach them.
+                if (database == 'EDS') {
+                    extraData['limit'] = $( "input[name='edsDefaultLimit']" ).val();
+                } else if (database == 'Solr') {
+                    extraData['limit'] = $( "input[name='solrDefaultLimit']" ).val();
+                }
+        */
+        var previousSort = $( "input[name='sort']" ).val();
+        var text_sort = null;
         if (database == 'EDS') {
-            extraData['limit'] = $( "input[name='edsDefaultLimit']" ).val();
+            if (previousSort == 'publishDateSort desc'){
+                extraData['sort'] = 'date';
+                text_sort = VuFind.translate('date_newest');
+            } else if (previousSort == 'publishDateSort asc'){
+                extraData['sort'] = 'date2';
+                text_sort = VuFind.translate('date_oldest');
+            } else{
+                extraData['sort'] = 'relevance';
+                text_sort = VuFind.translate('sort_relevance');
+            }
         } else if (database == 'Solr') {
-            extraData['limit'] = $( "input[name='solrDefaultLimit']" ).val();
+            if (previousSort == 'date') {
+                extraData['sort'] = 'publishDateSort desc';
+                text_sort = VuFind.translate('date_newest');
+            } else if (previousSort == 'date2') {
+                extraData['sort'] = 'publishDateSort asc';
+                text_sort = VuFind.translate('date_oldest');
+            } else {
+                extraData['sort'] = 'relevance';
+                text_sort = VuFind.translate('sort_relevance');
+            }
         }
-*/
-	var previousSort = $( "input[name='sort']" ).val();
-	var text_sort = null;
-	if (database == 'EDS') {
-		if (previousSort == 'publishDateSort desc'){
-		    extraData['sort'] = 'date';
-            text_sort = VuFind.translate('date_newest');
-		} else if (previousSort == 'publishDateSort asc'){
-		    extraData['sort'] = 'date2';
-            text_sort = VuFind.translate('date_oldest');
-		} else{
-			extraData['sort'] = 'relevance';
-			text_sort = VuFind.translate('sort_relevance');
-		}
-	} else if (database == 'Solr') {
-        if (previousSort == 'date') {
-            extraData['sort'] = 'publishDateSort desc';
-            text_sort = VuFind.translate('date_newest');
-        } else if (previousSort == 'date2') {
-            extraData['sort'] = 'publishDateSort asc';
-            text_sort = VuFind.translate('date_oldest');
-        } else {
-            extraData['sort'] = 'relevance';
-            text_sort = VuFind.translate('sort_relevance');
-        }
-	}
-	$( '.ajax-update-sort' ).find( '.value' ).text( text_sort );
-        
-	$( "input[name='sort']" ).val( extraData['sort']);
-	$( 'input[name=database]' ).val(database);
+        $( '.ajax-update-sort' ).find( '.value' ).text( text_sort );
+
+        $( "input[name='sort']" ).val( extraData['sort']);
+        $( 'input[name=database]' ).val(database);
 
         ADVSEARCH.removeAllFilters();
 
@@ -1587,142 +1609,142 @@ jQuery( document ).ready( function( $ ) {
         if ( isAdvancedSearch ) {
             callbacks = {};
             callbacks.afterSwitchSearchTemplate = function() {
-                ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData);
+                ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData, undefined, undefined, true);
             };
             extraData['searchTypeTemplate'] = 'advanced';
-            ADVSEARCH.updateSearchResults( undefined, undefined, 'advanced', extraData, callbacks);
+            ADVSEARCH.updateSearchResults( undefined, undefined, 'advanced', extraData, callbacks, undefined, true);
         } else {
-            ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData);
+            ADVSEARCH.updateSearchResults( undefined, undefined, false, extraData, undefined, undefined, true);
         }
     });
 
-	/**
-	 * Get param from url
-	 * 
-	 * This function doesn't handle parameters that aren't followed by equals sign
-	 * This function also doesn't handle multi-valued keys
-	 * 
-	 * @param	{string}	name	Param name
-	 * @param	{string}	url		Url
-	 * 
-	 * @return	{string}
-	 */
-	var getParameterByName = function( name, url ) {
-	    var url = url.toLowerCase(); // avoid case sensitiveness  
-	    var name = name.replace( /[\[\]]/g, "\\$&" ).toLowerCase(); // avoid case sensitiveness
-	    
-	    var regex = new RegExp( "[?&]" + name + "(=([^&#]*)|&|#|$)" ),
-	        results = regex.exec( url );
-	    
-	    if ( ! results ) return null;
-	    if ( ! results[2] ) return '';
-	    
-	    return decodeURIComponent( results[2].replace( /\+/g, " " ) );
-	};
-	
-	/**
-	 * Smooth scroll to the top of the element
-	 * 
-	 * @param	{string}	elementId
-	 * @return	{undefined}
-	 */
-	var smoothScrollToElement = function( elementId ) {
-		$( 'body' ).animate( {
-	        scrollTop: $( elementId ).offset().top
-	    }, 1000);
-	};
-	
-	/**
-	 * Scroll to the top of the document
-	 * 
-	 * @return	{undefined}
-	 */
-	var scrollToTop = function( elementId ) {
-		$( 'html, body' ).animate( { scrollTop: 0 }, 'slow' );
-	};
-	
-	
-	/**
-  	 * Returns JSON from query string
-  	 * Function supports multi-valued keys
-  	 * 
-  	 * @param	{string}	queryString	?param=value&param2=value2
-  	 * @return	{JSON}
-  	 */
-  	var queryStringToJson = function ( queryString ) {            
-  	    var pairs = queryString.slice( 1 ).split( '&' );
-  	    
-  	    var results = {};
-  	    pairs.forEach( function( pair ) {
-  	        var pair = pair.split('=');
-  	        var key = pair[0];
-  	        var value = decodeURIComponent(pair[1] || '');
-  	        
-  	        if (! results.hasOwnProperty( key )) {
-  	        	results[key] = [];
-  			}
-  	        results[key].push( value );
-  	    });
+    /**
+     * Get param from url
+     *
+     * This function doesn't handle parameters that aren't followed by equals sign
+     * This function also doesn't handle multi-valued keys
+     *
+     * @param	{string}	name	Param name
+     * @param	{string}	url		Url
+     *
+     * @return	{string}
+     */
+    var getParameterByName = function( name, url ) {
+        var url = url.toLowerCase(); // avoid case sensitiveness
+        var name = name.replace( /[\[\]]/g, "\\$&" ).toLowerCase(); // avoid case sensitiveness
 
-  	    return JSON.parse( JSON.stringify( results ) );
-  	};
-  	
-  	var replaceAll = function ( str, find, replace ) {
-  	  return str.replace( new RegExp( (find+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&") , 'g' ), replace );
-  	};
-  	
-  	/**
-  	 * This functions is used like standard php's urlencode,
-  	 * but insted of double encode, this creates url friedly string for
-  	 * base64 encoding/decoding.
-  	 *
-  	 * @param   {string } input
-  	 *
-  	 * @return  {string}
-  	 */
-  	var specialUrlEncode = function( input ) {
-  		if ( typeof input[0] == 'undefined' || input[0] == null || !input ) {
-  			return '';
-  		}
-  		var output = replaceAll( input, '+', '-' );
-  		output = replaceAll( output, '/', '_' );
-  		output = replaceAll( output, '=', '.' );
-  		return output;
-  	};
-  	
-  	/**
-  	 * This functions is used like standard php's urldecode,
-  	 * but insted of double decode, this creates url friedly string for
-  	 * base64 encoding/decoding.
-  	 *
-  	 * @param   {string } input
-  	 *
-  	 * @return  {string}
-  	 */
-  	var specialUrlDecode = function( input ) {
-  		if ( typeof input[0] == 'undefined' || input[0] == null || !input ) {
-  			return '';
-  		}
-  		var output = replaceAll( input, '-', '+' );
-  		output = replaceAll( output, '_', '/' );
-  		output = replaceAll( output, '.', '=' );
-  		return output;
-  	};
-  	
-  	/**
-  	 * Convert html entities to chars 
-  	 * 
-  	 * @param	{string}	html
-  	 * @return	{string}
-  	 */
-  	var decodeHtml = function( html ) {
-  	    var txt = document.createElement( 'textarea' );
-  	    txt.innerHTML = html;
-  	    return txt.value;
-  	}
-  	
-  	/* Search email form client-side validation */
-	$( '#email-search-results' ).validate({ // initialize the plugin
+        var regex = new RegExp( "[?&]" + name + "(=([^&#]*)|&|#|$)" ),
+            results = regex.exec( url );
+
+        if ( ! results ) return null;
+        if ( ! results[2] ) return '';
+
+        return decodeURIComponent( results[2].replace( /\+/g, " " ) );
+    };
+
+    /**
+     * Smooth scroll to the top of the element
+     *
+     * @param	{string}	elementId
+     * @return	{undefined}
+     */
+    var smoothScrollToElement = function( elementId ) {
+        $( 'body' ).animate( {
+            scrollTop: $( elementId ).offset().top
+        }, 1000);
+    };
+
+    /**
+     * Scroll to the top of the document
+     *
+     * @return	{undefined}
+     */
+    var scrollToTop = function( elementId ) {
+        $( 'html, body' ).animate( { scrollTop: 0 }, 'slow' );
+    };
+
+
+    /**
+     * Returns JSON from query string
+     * Function supports multi-valued keys
+     *
+     * @param	{string}	queryString	?param=value&param2=value2
+     * @return	{JSON}
+     */
+    var queryStringToJson = function ( queryString ) {
+        var pairs = queryString.slice( 1 ).split( '&' );
+
+        var results = {};
+        pairs.forEach( function( pair ) {
+            var pair = pair.split('=');
+            var key = pair[0];
+            var value = decodeURIComponent(pair[1] || '');
+
+            if (! results.hasOwnProperty( key )) {
+                results[key] = [];
+            }
+            results[key].push( value );
+        });
+
+        return JSON.parse( JSON.stringify( results ) );
+    };
+
+    var replaceAll = function ( str, find, replace ) {
+        return str.replace( new RegExp( (find+'').replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&") , 'g' ), replace );
+    };
+
+    /**
+     * This functions is used like standard php's urlencode,
+     * but insted of double encode, this creates url friedly string for
+     * base64 encoding/decoding.
+     *
+     * @param   {string } input
+     *
+     * @return  {string}
+     */
+    var specialUrlEncode = function( input ) {
+        if ( typeof input[0] == 'undefined' || input[0] == null || !input ) {
+            return '';
+        }
+        var output = replaceAll( input, '+', '-' );
+        output = replaceAll( output, '/', '_' );
+        output = replaceAll( output, '=', '.' );
+        return output;
+    };
+
+    /**
+     * This functions is used like standard php's urldecode,
+     * but insted of double decode, this creates url friedly string for
+     * base64 encoding/decoding.
+     *
+     * @param   {string } input
+     *
+     * @return  {string}
+     */
+    var specialUrlDecode = function( input ) {
+        if ( typeof input[0] == 'undefined' || input[0] == null || !input ) {
+            return '';
+        }
+        var output = replaceAll( input, '-', '+' );
+        output = replaceAll( output, '_', '/' );
+        output = replaceAll( output, '.', '=' );
+        return output;
+    };
+
+    /**
+     * Convert html entities to chars
+     *
+     * @param	{string}	html
+     * @return	{string}
+     */
+    var decodeHtml = function( html ) {
+        var txt = document.createElement( 'textarea' );
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+    /* Search email form client-side validation */
+    $( '#email-search-results' ).validate({ // initialize the plugin
         rules: {
             from: {
                 required: true,
@@ -1734,15 +1756,15 @@ jQuery( document ).ready( function( $ ) {
             }
         },
         messages: {
-        	from: {
-              required: VuFind.translate( 'Enter email' ),
-              email: VuFind.translate( 'Wrong email format' )
+            from: {
+                required: VuFind.translate( 'Enter email' ),
+                email: VuFind.translate( 'Wrong email format' )
             },
             to: {
-              required: VuFind.translate( 'Enter email' ),
-              email: VuFind.translate( 'Wrong email format' )
+                required: VuFind.translate( 'Enter email' ),
+                email: VuFind.translate( 'Wrong email format' )
             }
-          }
+        }
     });
 });
 

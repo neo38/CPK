@@ -1,248 +1,196 @@
-/* This file contains:
-    -cpk specific facet styling
-*/
+#side-facets-placeholder {
+  .side-facets-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10.5px 0;
+  }
+  ul {
+    padding-left: 20px;
+  }
+  li {
+    padding-left: 0;
+    list-style-type: none;
+  }
 
-//part with cpk custom changes
-//////////////////////////////
-.sidebar .facet {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 10px;
-
-  a {
-    color: #333;
-    &:hover {
-      text-decoration: underline;
+  .title {
+    &::after {
+      content: none;
     }
   }
-  .badge {
-    font-weight: normal;
-    color: grey;
-    background-color: transparent;
-  }
 
-  .btn-default {
-    color: @brand-primary;
-    font-size: 15px;
-    &:hover, &:focus, &:active {
-      background-color: #DDD;
-    }
-
-  }
-}
-.sidebar {
-  .list-group-item {
-    padding: 2px 16px 2px 26px;
+  .list-group {
     background-color: inherit;
-    border: 0px;
-
-    &.facetAND {
-      word-wrap: break-word;
+    padding: 10px;
+    margin: 5px;
+    margin-top: 0;
+    border: 0 @grey-color solid;
+    border-bottom-width: 1px;
+    #institution-icons {
+      display: inline;
+      float: right;
+      padding-top: 3px;
+      a {
+        padding-left: 5px;
+      }
     }
-
-    i.pr-institution-arrow:before {
-      content: "\ead9";
-      color: @brand-primary;
-      font-size: 20px;
+    .list-group-item {
+      background-color: inherit;
+      font-size: 15px;
+      padding-left: 0;
+      padding-right: 0;
+      .item {
+        color: @link-hover-color;
+        cursor: pointer;
+        width: 100%;
+        padding-right: 6px;
+        padding-left: 6px;
+        &::before {
+          padding: 0 8px 0 3px;
+        }
+      }
+      &.active {
+        background-color: inherit;
+      }
+      .badge {
+        color: grey;
+        font-weight: normal;
+        background-color: inherit;
+        padding: 0;
+        padding-top: 8px;
+        padding-left: 5px;
+        float: right;
+        display: inline;
+      }
     }
-
-    &.collapsed {
-      i.pr-institution-arrow:before {
-        content: "\ead8";
+    li.arrow.title {
+      &::before {
+        margin-left: 0;
+      }
+      .arrow-title {
+        display: inline;
         color: @brand-primary;
-        font-size: 20px;
+        font-size: 17px;
+        font-weight: normal;
+        margin-left: 25px;
+      }
+    }
+    .or-facet {
+      &::before {
+        font-family: pr-icons;
+        content: "\ebd4";
+        color: grey;
+        font-size: 15px;
+        font-weight: bold;
+      }
+      &.half-active {
+        font-weight: normal;
+        &::before {
+          color: @brand-primary;
+          content: "\e92c";
+          font-weight: bold;
+        }
+      }
+      &.full-active {
+        font-weight: normal;
+        &::before {
+          color: @brand-primary;
+          content: "\eb06";
+          font-weight: bold;
+        }
+      }
+    }
+    .and-facet {
+      &::before {
+        font-family: pr-icons;
+        content: "\eacc";
+        color: @brand-primary;
+        font-size: 15px;
+      }
+      &.full-active {
+        font-weight: normal;
+        &::before {
+          content: "\eacd";
+          font-weight: normal;
+        }
+        font-weight: bold;
       }
     }
 
-  }
-
-  .list-group-item.active {
-    color: @brand-primary;
-    font-weight: bold;
-    &:hover, &:focus {
-      background-color: transparent;
-      color: @brand-primary;
-      text-decoration: underline;
-      outline: none;
-    }
-  }
-  .list-group, .tt-dropdown-menu {
-      background-color: inherit;
-  }
-
-  .list-group-item.title {
-      font-size: 120%;
-      font-weight: normal;
-  }
-
-  #side-panel-institution {
-    background-color: @light-grey;
-    color: @lightbg-text;
-  }
-
-  #side-panel-eds-filters {
-    background-color: @light-grey;
-    color: @lightbg-text;
-    padding: 4px 10px 4px 10px;
-
-    label {
-      font-weight: normal;
-    }
-
-    .jsTreeLikeCheckbox {
-      width: 16px;
-      height: 16px;
-    }
-
-        .jsTreeLikeCheckboxDescription {
-            margin-left: 4px;
-        }
-    }
-
-}
-
-.jstree-facet .jstree-container-ul {
-  & > li.active,
-  & > li.active a.jstree-anchor {
-    background-color: transparent;
-    color: @brand-primary;
-  }
-}
-
-li.jstree-facet ul {
-  padding-left: 21px;
-}
-
-.sidebar .list-group:not(.filters) {
-  .title::after {
-      content: none;
-      color: @brand-primary !important;
-  }
-
-  .title.collapsed::after {
-      color: @brand-primary !important;
-      content: none;
-  }
-
-}
-
-.sidebar .facet .jstree-facet {
-    .jstree-icon {
+    .arrow {
+      cursor: pointer;
+      &::before {
+        position: absolute;
+        margin-left: -20px;
         font-family: pr-icons;
-        color: @brand-primary;
-        font-size: 18px;
-    }
-    .jstree-icon:before {
-        font-family: pr-icons;
-        color: @brand-primary;
-        font-size: 16px;
-        font-style: normal;
-    }
-    a:hover {
-        font-weight: bold;
-    }
-    .jstree-ocl:before {
-        margin-left: 5px;
-        font-size: inherit;
-        margin-top: 0;
-    }
-    .jstree-open > .jstree-ocl:before {
-        content: "\ead9";
-        margin-top: 0;
-    }
-    .jstree-closed > .jstree-ocl:before {
         content: "\ead8";
-    }
-
-    //checkbox nezakliknut
-    .jstree-checkbox:before {
-        content: "\ebd4";
-        color: grey;
-    }
-
-    .jstree-clicked {
-        font-weight: bold;
-    }
-
-    //checkbox zakliknut
-    .jstree-clicked .jstree-checkbox:before {
-        content: "\eb06";
         color: @brand-primary;
+        font-size: 15px;
+      }
+      &.title::before {
+        font-size: 17px;
+      }
+      &.active {
+        &::before {
+          content: "\ead9";
+          cursor: pointer;
+        }
+      }
     }
-
-    //checkbox castecne
-    .jstree-undetermined:before {
-        content: "\e92c";
-        color: @brand-primary;
+    .hide-some-facets {
+      margin-top: 15px;
+      width: 100%;
+      display: inline-block;
+      text-align: center;
+      cursor: pointer;
     }
-    span {
-        font-family: @font-family-sans-serif !important;
+    .show-all-facets {
+      margin-top: 15px;
+      width: 100%;
+      display: inline-block;
+      text-align: center;
+      cursor: pointer;
     }
-    .main {
-        padding-top: 2px;
-    }
-    .badge {
-        padding-top: 4px;
-    }
-}
-
-.emptyFacet {
-  color: grey;
-}
-
-//date visualization
-////////////////////
-#dateVisColorSettings {
-  background-color: #FFF;
-  fill: #eaeaea;
-  outline-color: lighten(@brand-primary, 20%);
-  stroke: #333;
-}
-
-.institutions-loaders {
-    float: right;
-    padding: 4px 18px 4px 0px;
-    font-size: 120%;
-    text-align: right;
-}
-.institutions-loaders a {
-    margin-left: 4px;
-}
-
-#save-these-institutions {
-    font-size: 120%;
-    padding-left: 4px;
+  }
 }
 
 .geo-denied {
-    display: none;
-    text-align: center;
-    color: @brand-danger;
-    border: 1px solid @brand-danger;
-    padding: 10px;
-    font-size: 20px;
+  display: none;
+  text-align: center;
+  color: @brand-danger;
+  border: 1px solid @brand-danger;
+  padding: 10px;
+  font-size: 20px;
 }
 
-#del-all-facets {
-    margin-top: 10px;
-    #remove-all-filters-async div {
-        border: 2px solid @primary-darken;
-        &:hover, &:focus {
-            color: #fff;
-            background-color: @primary-darken;
-            border: 2px solid @primary-darken;
-        }
+.list-group {
+  .loader {
+    position: relative;
+    left: ~"calc(50%)";
+    display: block;
+    div {
+      position: absolute;
+      margin-top:  ~"calc(50% - 48px )";
     }
+    .fa-refresh {
+      position: absolute;
+      font-size: 36px;
+      padding-top: 0;
+      z-index: 1011;
+    }
+    .fa {
+      display: block !important;
+    }
+  }
+  .collapsed {
+    .loader div {
+      position: absolute;
+      margin-top: -5px;
+    }
+  }
 }
-
-.institution-facet-filter-button {
-    color: #fff !important;
-    background-color: @primary !important;
-    border: 2px solid @primary-darken !important;
-    font-weight: bold;
-    &:hover, &:focus {
-        color: #fff !important;;
-        background-color: @primary-darken !important;
-        border: 2px solid @primary-darken !important;
-        font-weight: bold;
-    }
+.load-facet {
+  opacity: 0.3;
+}
+.loader-hide {
+  display: none !important;
 }

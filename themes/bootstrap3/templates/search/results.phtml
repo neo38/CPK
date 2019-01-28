@@ -213,8 +213,29 @@
       <? /* End Main Listing */ ?>
 
       <? /* Narrow Search Options */ ?>
+      <div class="hidden" id="hiddenFacetConfig">
+        <? $config = $this->results->fConfig();?>
+        <? foreach ($config as $key => $species) {?>
+          <div id="FCSpecies_<?=$key?>" class="FacetConfig">
+            <? foreach ($species as $value) {?>
+              <input type="hidden" class="FCSpecies_<?=$key?>" name="FConfig[]" value="<?=$value?>">
+            <? }?>
+          </div>
+        <? }?>
+      </div>
       <div class="<?=$this->layoutClass('sidebar')?>" id='side-facets-placeholder'>
-          <?= $this->render('Recommend/SideFacets.phtml', array('data' => (new \CPK\Recommend\Facets())->prepareFacetDataFresh($this->results->getRecommendations('side'))))?>
+      <?
+          // TODO zjistit jak a kde se pri refreshy berou data facet a tam to upravit
+            //$facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh([]);
+            //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction(["?lookfor0%5B%5D=&type0%5B%5D=AllFields&bool0%5B%5D=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=20&sort=relevance&page=1&searchTypeTemplate=basic&database=Solr&keepFacetsEnabled=true&join=AND"]);
+            //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction('aHR0cDovL3d3dy5rbmlob3ZueS5jei9TZWFyY2gvUmVzdWx0cz9sb29rZm9yMFtdPSZ0eXBlMFtdPUFsbEZpZWxkcyZzZWFyY2hUeXBlVGVtcGxhdGU9YmFzaWMmcGFnZT0xJmJvb2wwW109QU5EJmpvaW49QU5EJmxpbWl0PTIwJnNvcnQ9cmVsZXZhbmNlJmtlZXBFbmFibGVkRmlsdGVycz10cnVlJmRhdGFiYXNlPVNvbHI');
+            $facetsData = $this->results->getSome();
+            //var_dump($config);
+            //$languageCode = $config->SpecialFacets->toArray();
+            $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config);
+
+          ?>
+          <?= $this->render('Recommend/SideFacets.phtml', array('data' => $facetsData))?>
       </div>
       <? /* End Narrow Search Options */ ?>
     </div>

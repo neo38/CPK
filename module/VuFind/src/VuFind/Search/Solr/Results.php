@@ -366,4 +366,51 @@ class Results extends \VuFind\Search\Base\Results
         $flare->children = $visualFacets;
         return $flare;
     }
+
+    public function getSome() {
+        return $this->getFacetList();
+    }
+
+    public function fConfig() {
+        return array("allFieldsSection" => [
+                'Institution',
+                "Document Type",
+                'Availability',
+                'Subject',
+                'Conspectus',
+                'Publisher',
+                'Author',
+                'Language',
+                'adv_search_year',
+                'Genre',
+                "Country of Publication"
+        ], "librariesSection" => [
+                'participating_libraries',
+                'region',
+                'Function',
+                'type',
+                'Services',
+                'Project',
+        ], "open" => [
+                'Institution',
+                'Subject',
+                'Conspectus',
+                'Availability',
+                'region',
+                'Function',
+        ], "subOpen" => [
+                'online',
+                'Library',
+        ], "bold" => [
+                'online',
+        ], "count" => [
+                "default" => 6,
+                "Institution" => -1,
+        ], "number" => [
+                'Conspectus',
+                'Subject',
+                'Publisher',
+                'Document Type',
+        ]);
+    }
 }

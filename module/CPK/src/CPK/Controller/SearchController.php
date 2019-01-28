@@ -1360,9 +1360,37 @@ class SearchController extends SearchControllerBase
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
 	    //$sideFacets = $this->getSideFacetsHtml($viewData);
-        // TODO tady vlozit opet data Facet, vrati rovnou html sideFacet
-        $viewData['side'] = (new Facets())->prepareFacetDataAsync($viewData['side']);
-	    $sideFacets = $this->doSomethingCrazyAction($viewData);
+        //$mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results']);
+        $mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results'], $postParams['FConfig']);
+        // TODO tady do prepare davat jenom hodnoty facet a ne cely objekt
+        //$viewData['results'] = array('dffsdfsdf', 'asdasdasds');
+        /*$mojeData['data'] = array(
+                'label' => 'Institution',
+                'show' => true,
+                'list' =>
+                        array(
+                                'Institution:0-Library' =>
+                                        array(
+                                                'name' => 'Institution:0-Library',
+                                                'value' => '0/Library/',
+                                                'displayText' => 'Katalogy knihoven',
+                                                'tooltipText' => 'Katalogy knihoven',
+                                                'count' => null,
+                                                'operator' => 'OR',
+                                                'isApplied' => false,
+                                                'fullActive' => false,
+                                                'show' => true,
+                                                'open' => false,
+                                                'parent' => 'Institution',
+                                                'children' => true,
+                                                'link' => '',
+                                                'bold' => false,
+                                                'dataFacet' => '~local_institution_facet_str_mv:"0/Library/"'
+                                        )));*/
+        $sideFacets = $this->doSomethingCrazyAction($mojeData);
+        //$sideFacets = $this->doMyAction($mojeData);
+
+        //$sideFacets = $viewData['results'];
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 
@@ -1757,6 +1785,16 @@ class SearchController extends SearchControllerBase
         $viewRender = $this->getServiceLocator()->get('ViewRenderer');
         $html = $viewRender->render($viewModel);
         return $html;
+    }
+
+    public function doMyAction($data) {
+        //$view = $this->createViewModel();
+        //$view->setTemplate('Recommend/SideFacets');
+        //$view->setTerminal(true);
+
+        //$view->data = $data;
+
+        return $data;
     }
 
 }
