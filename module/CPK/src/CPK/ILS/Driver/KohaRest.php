@@ -122,24 +122,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     ];
 
     /**
-     * Mappings from fee (account line) types
-     *
-     * @var array
-     */
-    protected $feeTypeMappings = [
-        'A' => 'Account',
-        'C' => 'Credit',
-        'Copie' => 'Copier Fee',
-        'F' => 'Overdue',
-        'FU' => 'Accrued Fine',
-        'L' => 'Lost Item Replacement',
-        'M' => 'Sundry',
-        'N' => 'New Card',
-        'ODUE' => 'Overdue',
-        'Res' => 'Hold Fee'
-    ];
-
-    /**
      * Mappings from renewal block reasons
      *
      * @var array
@@ -203,12 +185,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         if (!empty($this->config['StatusRankings'])) {
             $this->statusRankings = array_merge(
                 $this->statusRankings, $this->config['StatusRankings']
-            );
-        }
-
-        if (!empty($this->config['FeeTypeMappings'])) {
-            $this->feeTypeMappings = array_merge(
-                $this->feeTypeMappings, $this->config['FeeTypeMappings']
             );
         }
 
@@ -1075,45 +1051,28 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     public function getMyFines($patron)
     {
         $result = $this->makeRequest(
-            ['v1', 'accountlines'],
-            ['borrowernumber' => $patron['id']],
+            ['v1', 'patrons', $patron['id'], 'account'],
+            __FUNCTION__,
+            false,
             'GET',
             $patron
         );
 
-        if (empty($result)) {
-            return [];
-        }
+
         $fines = [];
-        foreach ($result as $entry) {
-            if ($entry['accounttype'] == 'Pay'
-                || $entry['amountoutstanding'] == 0
-            ) {
-                continue;
-            }
-            $bibId = null;
-            $title = null;
-            if (!empty($entry['itemnumber'])) {
-                $item = $this->getItem($entry['itemnumber']);
-                if (!empty($item['biblionumber'])) {
-                    $bibId = $item['biblionumber'];
-                }
-            }
-            $createDate = !empty($entry['date'])
-                ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['date'])
-                : '';
-            $type = $entry['accounttype'];
-            if (isset($this->feeTypeMappings[$type])) {
-                $type = $this->feeTypeMappings[$type];
-            }
+        if (empty($result['outstanding_debits']['lines'])) {
+            return $fines;
+        }
+
+        foreach ($result['outstanding_debits']['lines'] as $entry) {
             $fines[] = [
-                'amount' => $entry['amount'] * 100,
-                'balance' => $entry['amountoutstanding'] * 100,
-                'fine' => $type,
-                'createdate' => $createDate,
-                'checkout' => '',
-                'id' => $bibId,
-                'title' => $entry['description']
+                'amount' => $entry['amount'],
+                'checkout' => $entry['date'],
+                'fine' => $this->translator->translate($entry['account_type']),
+                'balance' => $entry['amount_outstanding'],
+                'createdate' => '',
+                'duedate' => '',
+                'item_id' => $entry['item_id']
             ];
         }
         return $fines;
@@ -1814,7 +1773,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      *
      * @return array|null
      */
-    protected function getItem($id)
+    protected function getItem($id) //TODO do it or not
     {
         static $cachedRecord = [];
         if (!isset($cachedRecords[$id])) {
