@@ -688,57 +688,26 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     {
         $result = $this->makeRequest(
             ['v1', 'holds'],
+            __FUNCTION__,
             ['borrowernumber' => $patron['id']],
             'GET',
             $patron
         );
-        if (!isset($result)) {
-            return [];
-        }
+
         $holds = [];
+        if (!isset($result)) {
+            return $holds;
+        }
         foreach ($result as $entry) {
-            $bibId = isset($entry['biblionumber']) ? $entry['biblionumber'] : null;
-            $itemId = isset($entry['itemnumber']) ? $entry['itemnumber'] : null;
-            $title = '';
-            $volume = '';
-            $publicationYear = '';
-            if ($itemId) {
-                $item = $this->getItem($itemId);
-                $bibId = $item['biblionumber'];
-                $volume = $item['enumchron'];
-            }
-            if (!empty($bibId)) {
-                $bib = $this->getBibRecord($bibId);
-                $title = isset($bib['title']) ? $bib['title'] : '';
-                if (!empty($bib['title_remainder'])) {
-                    $title .= ' ' . $bib['title_remainder'];
-                    $title = trim($title);
-                }
-            }
-            $frozen = false;
-            if (!empty($entry['suspend'])) {
-                $frozen = !empty($entry['suspend_until']) ? $entry['suspend_until']
-                    : true;
-            }
             $holds[] = [
-                'id' => $bibId,
-                'item_id' => $itemId ? $itemId : $entry['reserve_id'],
+                'id' => $entry['biblionumber'],
+                'item_id' => $entry['itemnumber'] ? $entry['itemnumber'] : $entry['reserve_id'],
                 'location' => $entry['branchcode'],
-                'create' => $this->dateConverter->convertToDisplayDate(
-                    'Y-m-d', $entry['reservedate']
-                ),
-                'expire' => !empty($entry['expirationdate'])
-                    ? $this->dateConverter->convertToDisplayDate(
-                        'Y-m-d', $entry['expirationdate']
-                    ) : '',
+                'create' => $entry['reservedate'],
+                'expire' => $entry['expirationdate'],
                 'position' => $entry['priority'],
                 'available' => !empty($entry['waitingdate']),
-                'in_transit' => isset($entry['found'])
-                    && strtolower($entry['found']) == 't',
-                'requestId' => $entry['reserve_id'],
-                'title' => $title,
-                'volume' => $volume,
-                'frozen' => $frozen
+                'requestId' => $entry['reserve_id']
             ];
         }
         return $holds;

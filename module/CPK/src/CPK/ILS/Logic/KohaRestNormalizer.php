@@ -38,6 +38,9 @@ class KohaRestNormalizer
             case 'getMyFines':
                 $this->normalizeLookupUserBlocksAndTraps($response);
                 break;
+            case 'getMyHolds':
+                $this->normalizeRequestedItems($response);
+                break;
         }
 
         return $response;
@@ -71,6 +74,22 @@ class KohaRestNormalizer
             $entry['description'] = trim($entry['description']);
 
             $response['outstanding_debits']['lines'][$key] = $entry;
+        }
+    }
+
+    public function normalizeRequestedItems(&$response) {
+        foreach ($response as $key => $entry) {
+            $entry['biblionumber'] = isset($entry['biblionumber']) ? 'KOHA-OAI-TEST:'.$entry['biblionumber'] : null; //TODO deal with 'KOHA-OAI-TEST:'
+            $entry['itemnumber'] = isset($entry['itemnumber']) ? $entry['itemnumber'] : null;
+
+            $entry['reservedate'] = !empty($entry['reservedate'])
+                ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['reservedate'])
+                : '';
+            $entry['expirationdate'] = !empty($entry['expirationdate'])
+                ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['expirationdate'])
+                : '';
+
+            $response[$key] = $entry;
         }
     }
 }
