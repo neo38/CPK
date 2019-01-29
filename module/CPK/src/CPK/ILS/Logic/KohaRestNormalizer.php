@@ -79,7 +79,7 @@ class KohaRestNormalizer
 
     public function normalizeRequestedItems(&$response) {
         foreach ($response as $key => $entry) {
-            $entry['biblionumber'] = isset($entry['biblionumber']) ? 'KOHA-OAI-TEST:'.$entry['biblionumber'] : null; //TODO deal with 'KOHA-OAI-TEST:'
+            $entry['biblionumber'] = isset($entry['biblionumber']) ? $entry['biblionumber'] : null; //TODO deal with 'KOHA-OAI-TEST:'
             $entry['itemnumber'] = isset($entry['itemnumber']) ? $entry['itemnumber'] : null;
 
             $entry['reservedate'] = !empty($entry['reservedate'])

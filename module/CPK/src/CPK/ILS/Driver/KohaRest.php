@@ -707,7 +707,9 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 'expire' => $entry['expirationdate'],
                 'position' => $entry['priority'],
                 'available' => !empty($entry['waitingdate']),
-                'requestId' => $entry['reserve_id']
+                'requestId' => $entry['reserve_id'],
+                'in_transit' => '',
+                'barcode' => ''
             ];
         }
         return $holds;
@@ -748,9 +750,11 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         $response = [];
 
         foreach ($details as $detail) {
+            //[libraryId.reservationId|itemId] - template of hold detail
             list($holdId, $itemId) = explode('|', $detail, 2);
+            $reservId = explode('.', $holdId)[1];
             list($resultCode) = $this->makeRequest(
-                ['v1', 'holds', $holdId], [], 'DELETE', $patron, true
+                ['v1', 'holds', $reservId], __FUNCTION__, [], 'DELETE', $patron, true
             );
 
             if ($resultCode != 200) {
