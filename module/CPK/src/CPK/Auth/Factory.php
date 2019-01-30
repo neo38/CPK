@@ -110,4 +110,17 @@ class Factory
         return $factory->createProxy('CPK\Auth\ILSAuthenticator', $callback);
     }
 
+    /**
+     * Koha OAUTH2 service.
+     *
+     * @param ServiceManager $sm
+     * @return KohaOAUTH2Service
+     */
+    public static function getKohaOAUTH2Service(ServiceManager $sm)
+    {
+        return new KohaOAUTH2Service(
+            $sm->get('VuFind\DbTablePluginManager')->get('KohaTokens')
+        );
+    }
+
 }

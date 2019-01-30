@@ -88,19 +88,11 @@ class Factory
      */
     public static function getKohaRest(ServiceManager $sm)
     {
-        $sessionFactory = function ($namespace) use ($sm) {
-            $manager = $sm->getServiceLocator()->get('VuFind\SessionManager');
-            return new \Zend\Session\Container("KohaRest_$namespace", $manager);
-        };
-
         $sl = $sm->getServiceLocator();
-        $dbTablePluginManager = $sl->get('VuFind\DbTablePluginManager');
-
 
         return new KohaRest(
-            $sm->getServiceLocator()->get('VuFind\DateConverter'),
-            $sessionFactory,
-            $dbTablePluginManager->get('KohaTokens')
+            $sl->get('VuFind\DateConverter'),
+            $sl->get('CPK\KohaOAUTH2Service')
         );
     }
 

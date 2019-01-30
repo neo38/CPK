@@ -227,7 +227,8 @@ $config = array(
             'CPK\NotificationsHandler' => 'CPK\Notifications\Factory::getNotificationsHandler',
             'CPK\Libraries' => 'CPK\Libraries\Factory::getLoader',
             'CPK\Mailer' => 'CPK\Mailer\Factory::createService',
-			'VuFind\ILSHoldLogic' => 'CPK\ILS\Logic\Factory::getFlatHolds'
+            'CPK\KohaOAUTH2Service' => 'CPK\Auth\Factory::getKohaOAUTH2Service',
+            'VuFind\ILSHoldLogic' => 'CPK\ILS\Logic\Factory::getFlatHolds'
         ), // Exceptions throwing system
 
         'invokables' => array(

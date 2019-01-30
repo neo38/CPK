@@ -1,10 +1,10 @@
 <?php
 /**
- * KohaRest ILS Driver
+ * VuFind Driver for Koha, using REST API
  *
- * PHP version 5
+ * PHP version 7
  *
- * Copyright (C) The National Library of Finland 2016-2017.
+ * Copyright (C) Moravian Library 2019.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -17,86 +17,38 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * @category VuFind
+ * @category VuFind2
  * @package  ILS_Drivers
- * @author   Ere Maijala <ere.maijala@helsinki.fi>
+ * @author   Bohdan Inhliziian <bohdan.inhliziian@gmail.com.cz>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development:plugins:ils_drivers Wiki
+ * @link     http://vufind.org/wiki/vufind2:building_an_ils_driver Wiki
  */
 namespace CPK\ILS\Driver;
 
-use CPK\Db\Table\KohaTokens;
+use VuFind\ILS\Driver\AbstractBase;
 use CPK\ILS\Logic\KohaRestNormalizer;
+use CPK\Auth\KohaOAUTH2Service;
 use VuFind\Exception\Date as DateException;
 use VuFind\Exception\ILS as ILSException;
-use Zend\Cache\Storage\StorageInterface;
-use VuFind\Cache\KeyGeneratorTrait;
+use Zend\I18n\Translator\TranslatorInterface;
+use VuFind\I18n\Translator\TranslatorAwareInterface;
+use \VuFind\Date\Converter as DateConverter;
+use \Zend\Log\LoggerAwareInterface;
+use Zend\Log\LoggerInterface;
 
 /**
  * VuFind Driver for Koha, using REST API
  *
- * Minimum Koha Version: work in progress as of 23 Jan 2017
- *
  * @category VuFind
  * @package  ILS_Drivers
- * @author   Ere Maijala <ere.maijala@helsinki.fi>
+ * @author   Bohdan Inhliziian <bohdan.inhliziian@gmail.com>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:ils_drivers Wiki
  */
-class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
-    \VuFindHttp\HttpServiceAwareInterface,
-    \VuFind\I18n\Translator\TranslatorAwareInterface, \Zend\Log\LoggerAwareInterface
+class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorAwareInterface
 {
-    use \VuFindHttp\HttpServiceAwareTrait;
-    use \VuFind\I18n\Translator\TranslatorAwareTrait;
-    use \VuFind\Log\LoggerAwareTrait {
-        logError as error;
-    }
-
-    use KeyGeneratorTrait;
-    /**
-     * Cache for storing ILS data temporarily (e.g. patron blocks)
-     *
-     * @var StorageInterface
-     */
-    protected $cache = null;
-    /**
-     * Lifetime of cache (in seconds).
-     *
-     * @var int
-     */
-    protected $cacheLifetime = 30;
-
-    /**
-     * Date converter object
-     *
-     * @var \VuFind\Date\Converter
-     */
-    protected $dateConverter;
-
-    /**
-     * Factory function for constructing the SessionContainer.
-     *
-     * @var Callable
-     */
-    protected $sessionFactory;
-
-    /**
-     * Session cache
-     *
-     * @var \Zend\Session\Container
-     */
-    protected $sessionCache;
-
-    /**
-     * Default pickup location
-     *
-     * @var string
-     */
-    protected $defaultPickUpLocation;
-
     /**
      * Library prefix
      *
@@ -104,12 +56,11 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      */
     protected $source = '';
 
-    /**
-     * Db Table for koha tokens
-     *
-     * @var \CPK\Db\Table\KohaTokens
-     */
-    protected $tokensTable;
+    protected $dateConverter;
+    protected $defaultPickUpLocation;
+    protected $oauth2Service;
+    protected $translator;
+    protected $logger;
 
     /**
      * Item status rankings. The lower the value, the more important the status.
@@ -139,20 +90,9 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         'debt' => 'renew_debt'
     ];
 
-    /**
-     * Constructor
-     *
-     * @param \VuFind\Date\Converter $dateConverter Date converter object
-     * @param Callable $sessionFactory Factory function returning
-     * SessionContainer object
-     * @param KohaTokens $tokens Db Table with tokens to Koha API
-     */
-    public function __construct(\VuFind\Date\Converter $dateConverter,
-        $sessionFactory, KohaTokens $tokens
-    ) {
+    public function __construct(DateConverter $dateConverter, KohaOAUTH2Service $kohaOAUTH2Service) {
         $this->dateConverter = $dateConverter;
-        $this->sessionFactory = $sessionFactory;
-        $this->tokensTable = $tokens;
+        $this->oauth2Service = $kohaOAUTH2Service;
     }
 
     /**
@@ -191,23 +131,22 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         if (isset($this->config['Availability']['source']))
             $this->source = $this->config['Availability']['source'];
 
-        // Init session cache for session-specific data
-        $namespace = md5($this->config['Catalog']['host']);
-        $factory = $this->sessionFactory;
-        $this->sessionCache = $factory($namespace);
+        $this->oauth2Service->setConfig($this->config);
+        $this->oauth2Service->setSource($this->source);
     }
 
-    /**
-     * Method to ensure uniform cache keys for cached VuFind objects.
-     *
-     * @param string|null $suffix Optional suffix that will get appended to the
-     * object class name calling getCacheKey()
-     *
-     * @return string
-     */
-    protected function getCacheKey($suffix = null)
+    public function setLogger(LoggerInterface $logger)
     {
-        return 'KohaRest' . '-' . md5($this->config['Catalog']['host'] . $suffix);
+        $this->logger = $logger;
+    }
+
+    public function setTranslator(TranslatorInterface $translator)
+    {
+        if (method_exists($translator, "getTranslator")) {
+            $this->translator = $translator->getTranslator();
+        } else {
+            $this->logger->err("Error getting translator.");
+        }
     }
 
     /**
@@ -251,14 +190,13 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      * This is responsible for retrieving the holding information of a certain
      * record.
      *
-     * @param string $id     The record id to retrieve the holdings for
-     * @param array  $patron Patron data
+     * @param string $id The record id to retrieve the holdings for
+     * @param array $patron Patron data
      *
-     * @return mixed     On success, an associative array with the following keys:
-     * id, availability (boolean), status, location, reserve, callnumber, duedate,
-     * number, barcode.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @throws \VuFind\Exception\ILS
+     * @return array         On success, an associative array with the following
+     * keys: id, availability (boolean), status, location, reserve, callnumber,
+     * duedate, number, barcode.
      */
     public function getHolding($id, array $patron = null)
     {
@@ -273,105 +211,12 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      *
      * @param string $id The record id to retrieve the info for
      *
-     * @return mixed     An array with the acquisitions data on success.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @throws \VuFind\Exception\ILS
+     * @return array     An array with the acquisitions data on success.
      */
     public function getPurchaseHistory($id)
     {
         return [];
-    }
-
-    /**
-     * Get New Items
-     *
-     * Retrieve the IDs of items recently added to the catalog.
-     *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
-     * returned by getFunds, or exclude for no limit); note that "fund" may be a
-     * misnomer - if funds are not an appropriate way to limit your new item
-     * results, you can return a different set of values from getFunds. The
-     * important thing is that this parameter supports an ID returned by getFunds,
-     * whatever that may mean.
-     *
-     * @return array       Associative array with 'count' and 'results' keys
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getNewItems($page, $limit, $daysOld, $fundId = null)
-    {
-        return ['count' => 0, 'results' => []];
-    }
-
-    /**
-     * Find Reserves
-     *
-     * Obtain information on course reserves.
-     *
-     * @param string $course ID from getCourses (empty string to match all)
-     * @param string $inst   ID from getInstructors (empty string to match all)
-     * @param string $dept   ID from getDepartments (empty string to match all)
-     *
-     * @return mixed An array of associative arrays representing reserve items.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function findReserves($course, $inst, $dept)
-    {
-        return [];
-    }
-
-    /**
-     * Patron Login
-     *
-     * This is responsible for authenticating a patron against the catalog.
-     *
-     * @param string $username The patron username
-     * @param string $password The patron password
-     *
-     * @return mixed           Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function patronLogin($username, $password)
-    {
-        $patron = ['cat_username' => $username, 'cat_password' => $password];
-
-        if ($this->sessionCache->patron != $username) {
-            if (!$this->renewPatronCookie($patron)) {
-                return null;
-            }
-        }
-
-        list($code, $result) = $this->makeRequest(
-            ['v1', 'patrons', $this->sessionCache->patronId],
-            false,
-            'GET',
-            $patron,
-            true
-        );
-
-        if ($code == 401 || $code == 403) {
-            return null;
-        }
-        if ($code != 200) {
-            throw new ILSException('Problem with Koha REST API.');
-        }
-
-        return [
-            'id' => $result['borrowernumber'],
-            'firstname' => $result['firstname'],
-            'lastname' => $result['surname'],
-            'cat_username' => $username,
-            'cat_password' => $password,
-            'email' => $result['email'],
-            'major' => null,
-            'college' => null
-        ];
     }
 
     /**
@@ -382,7 +227,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      * @return mixed A boolean false if no blocks are in place and an array
      * of block reasons if blocks are in place
      */
-    public function getRequestBlocks($patron)
+    public function getRequestBlocks($patron) //TODO deal if it is needed
     {
         return $this->getPatronBlocks($patron);
     }
@@ -450,6 +295,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     {
         $result = $this->makeRequest(
             ['v1', 'checkouts', 'expanded'],
+            __FUNCTION__,
             ['borrowernumber' => $patron['id']],
             'GET',
             $patron
@@ -516,18 +362,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     }
 
     /**
-     * Get Renew Details
-     *
-     * @param array $checkOutDetails An array of item data
-     *
-     * @return string Data for use in a form field
-     */
-    public function getRenewDetails($checkOutDetails)
-    {
-        return $checkOutDetails['checkout_id'] . '|' . $checkOutDetails['item_id'];
-    }
-
-    /**
      * Renew My Items
      *
      * Function for attempting to renew a patron's items.  The data in
@@ -546,7 +380,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         foreach ($renewDetails['details'] as $details) {
             list($checkoutId, $itemId) = explode('|', $details);
             list($code, $result) = $this->makeRequest(
-                ['v1', 'checkouts', $checkoutId], false, 'PUT', $patron, true
+                ['v1', 'checkouts', $checkoutId], __FUNCTION__,false, 'PUT', $patron, true
             );
             if ($code == 403) {
                 $finalResult['details'][$itemId] = [
@@ -607,6 +441,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         $transactions = $this->makeRequest(
             ['v1', 'checkouts', 'history'],
+            __FUNCTION__,
             $queryParams,
             'GET',
             $patron
@@ -716,22 +551,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     }
 
     /**
-     * Get Cancel Hold Details
-     *
-     * Get required data for canceling a hold. This value is used by relayed to the
-     * cancelHolds function when the user attempts to cancel a hold.
-     *
-     * @param array $holdDetails An array of hold data
-     *
-     * @return string Data for use in a form field
-     */
-    public function getCancelHoldDetails($holdDetails)
-    {
-        return $holdDetails['available'] || $holdDetails['in_transit'] ? ''
-            : $holdDetails['requestId'] . '|' . $holdDetails['item_id'];
-    }
-
-    /**
      * Cancel Holds
      *
      * Attempts to Cancel a hold. The data in $cancelDetails['details'] is determined
@@ -750,11 +569,9 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         $response = [];
 
         foreach ($details as $detail) {
-            //[libraryId.reservationId|itemId] - template of hold detail
             list($holdId, $itemId) = explode('|', $detail, 2);
-            $reservId = explode('.', $holdId)[1];
             list($resultCode) = $this->makeRequest(
-                ['v1', 'holds', $reservId], __FUNCTION__, [], 'DELETE', $patron, true
+                ['v1', 'holds', $holdId], __FUNCTION__, [], 'DELETE', $patron, true
             );
 
             if ($resultCode != 200) {
@@ -798,6 +615,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     {
         $result = $this->makeRequest(
             ['v1', 'libraries'],
+            __FUNCTION__,
             false,
             'GET',
             $patron
@@ -871,6 +689,22 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     }
 
     /**
+     * Get Cancel Hold Details
+     *
+     * Get required data for canceling a hold. This value is used by relayed to the
+     * cancelHolds function when the user attempts to cancel a hold.
+     *
+     * @param array $holdDetails An array of hold data
+     *
+     * @return string Data for use in a form field
+     */
+    public function getCancelHoldDetails($holdDetails)
+    {
+        return $holdDetails['available'] || $holdDetails['in_transit'] ? ''
+            : $holdDetails['requestId'] . '|' . $holdDetails['item_id'];
+    }
+
+    /**
      * Check if request is valid
      *
      * This is responsible for determining if an item is requestable
@@ -892,6 +726,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         if ('title' == $data['level']) {
             $result = $this->makeRequest(
                 ['v1', 'availability', 'biblio', 'hold'],
+                __FUNCTION__,
                 ['biblionumber' => $id, 'borrowernumber' => $patron['id']],
                 'GET',
                 $patron
@@ -909,6 +744,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         }
         $result = $this->makeRequest(
             ['v1', 'availability', 'item', 'hold'],
+            __FUNCTION__,
             ['itemnumber' => $data['item_id'], 'borrowernumber' => $patron['id']],
             'GET',
             $patron
@@ -998,6 +834,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         list($code, $result) = $this->makeRequest(
             ['v1', 'holds'],
+            __FUNCTION__,
             json_encode($request),
             'POST',
             $patron,
@@ -1031,7 +868,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             $patron
         );
 
-
         $fines = [];
         if (empty($result['outstanding_debits']['lines'])) {
             return $fines;
@@ -1041,7 +877,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             $fines[] = [
                 'amount' => $entry['amount'],
                 'checkout' => $entry['date'],
-                'fine' => $this->translator->translate($entry['account_type']),
+                'fine' => $entry['account_type'],
                 'balance' => $entry['amount_outstanding'],
                 'createdate' => '',
                 'duedate' => '',
@@ -1049,236 +885,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             ];
         }
         return $fines;
-    }
-
-    /**
-     * Change Password
-     *
-     * Attempts to change patron password (PIN code)
-     *
-     * @param array $details An array of patron id and old and new password:
-     *
-     * 'patron'      The patron array from patronLogin
-     * 'oldPassword' Old password
-     * 'newPassword' New password
-     *
-     * @return array An array of data on the request including
-     * whether or not it was successful and a system message (if available)
-     */
-    public function changePassword($details)
-    {
-        $patron = $details['patron'];
-        $request = [
-            'new_password' => $details['newPassword'],
-            'current_password' => $details['oldPassword']
-        ];
-
-        list($code, $result) = $this->makeRequest(
-            ['v1', 'patrons', $patron['id'], 'password'],
-            json_encode($request),
-            'PATCH',
-            $patron,
-            true
-        );
-
-        if ($code != 200) {
-            if ($code == 403 || (isset($result['error'])
-                && $result['error'] == 'Wrong current password.')
-            ) {
-                $message = 'authentication_error_invalid';
-            } elseif ($code == 404) {
-                $message = 'An error has occurred';
-            } else {
-                $message = 'password_error_invalid';
-            }
-            return [
-                'success' => false, 'status' => $message
-            ];
-        }
-        return ['success' => true, 'status' => 'change_password_ok'];
-    }
-
-    /**
-     * Public Function which retrieves renew, hold and cancel settings from the
-     * driver ini file.
-     *
-     * @param string $function The name of the feature to be checked
-     * @param array  $params   Optional feature-specific parameters (array)
-     *
-     * @return array An array with key-value pairs.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getConfig($function, $params = null)
-    {
-        if ('getMyTransactionHistory' === $function) {
-            if (empty($this->config['TransactionHistory']['enabled'])) {
-                return false;
-            }
-            return [
-                'max_results' => 100,
-                'sort' => [
-                    'checkout desc' => 'sort_checkout_date_desc',
-                    'checkout asc' => 'sort_checkout_date_asc',
-                    'return desc' => 'sort_return_date_desc',
-                    'return asc' => 'sort_return_date_asc',
-                    'due desc' => 'sort_due_date_desc',
-                    'due asc' => 'sort_due_date_asc'
-                ],
-                'default_sort' => 'checkout desc'
-            ];
-        }
-        return isset($this->config[$function])
-            ? $this->config[$function] : false;
-    }
-
-    /**
-     * Helper method to determine whether or not a certain method can be
-     * called on this driver.  Required method for any smart drivers.
-     *
-     * @param string $method The name of the called method.
-     * @param array  $params Array of passed parameters
-     *
-     * @return bool True if the method can be called with the given parameters,
-     * false otherwise.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function supportsMethod($method, $params)
-    {
-        // Special case: change password is only available if properly configured.
-        if ($method == 'changePassword') {
-            return isset($this->config['changePassword']);
-        }
-        return is_callable([$this, $method]);
-    }
-
-    /**
-     * Create a HTTP client
-     *
-     * @param string $url Request URL
-     *
-     * @return \Zend\Http\Client
-     */
-    protected function createHttpClient($url)
-    {
-        $client = $this->httpService->createClient($url);
-
-        if (isset($this->config['Http']['ssl_verify_peer_name'])
-            && !$this->config['Http']['ssl_verify_peer_name']
-        ) {
-            $adapter = $client->getAdapter();
-            if ($adapter instanceof \Zend\Http\Client\Adapter\Socket) {
-                $context = $adapter->getStreamContext();
-                $res = stream_context_set_option(
-                    $context, 'ssl', 'verify_peer_name', false
-                );
-                if (!$res) {
-                    throw new \Exception('Unable to set sslverifypeername option');
-                }
-            } elseif ($adapter instanceof \Zend\Http\Client\Adapter\Curl) {
-                $adapter->setCurlOption(CURLOPT_SSL_VERIFYHOST, false);
-            }
-        }
-
-        // Set timeout value
-        $timeout = isset($this->config['Catalog']['http_timeout'])
-            ? $this->config['Catalog']['http_timeout'] : 30;
-        $client->setOptions(
-            ['timeout' => $timeout, 'useragent' => 'VuFind', 'keepalive' => true]
-        );
-
-        // Set Accept header
-        $client->getRequest()->getHeaders()->addHeaderLine(
-            'Accept', 'application/json'
-        );
-
-        return $client;
-    }
-
-    protected function requestNewOAUTH2Token()
-    {
-        $tokenEndpoint = $this->config['Catalog']['tokenEndpoint'];
-        $client = $this->createHttpClient($tokenEndpoint);
-
-        $adapter = new \Zend\Http\Client\Adapter\Curl();
-        $client->setAdapter($adapter);
-        $adapter->setOptions([
-            'curloptions' => [
-                CURLOPT_POST => true,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POSTFIELDS => [
-                    'client_id' => $this->config['Catalog']['clientId'],
-                    'client_secret' => $this->config['Catalog']['clientSecret'],
-                    'grant_type' => isset($this->config['Catalog']['grantType'])
-                        ? $this->config['Catalog']['grantType']
-                        : 'client_credentials'
-                ]
-            ]
-        ]);
-
-        try {
-            $response = $client->send();
-        } catch (\Exception $e) {
-            $this->error(
-                "POST request for '$tokenEndpoint' failed: " . $e->getMessage()
-            );
-            throw new ILSException('Problem with getting OAUTH2 access token.');
-        }
-
-        return json_decode($response->getContent(), true);
-    }
-
-    /**
-     * Checks if is token in session. Gets token from DB and validates it
-     *
-     * @return array|bool
-     */
-    public function handleAccessToken()
-    {
-        //Store tokens in session so we dont need to request from database
-        if (!($tokenData = $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'])) {
-            $tokenData = $this->tokensTable->getAccessToken($this->source);
-
-            if (!$tokenData) {
-                $tokenData = $this->tokensTable->createAccessToken(
-                    $this->source,
-                    $this->requestNewOAUTH2Token()
-                );
-            } elseif ($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
-                $tokenData = $this->tokensTable->renewAccessToken(
-                    $this->source,
-                    $this->requestNewOAUTH2Token()
-                );
-            }
-            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
-        } elseif($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
-            $tokenData = $this->tokensTable->renewAccessToken(
-                $this->source,
-                $this->requestNewOAUTH2Token()
-            );
-            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
-        }
-
-        return $tokenData;
-    }
-
-    protected function createOAUTH2Client($url)
-    {
-        $tokenData = $this->handleAccessToken();
-
-        $client = $this->createHttpClient($url);
-
-        $client->getRequest()->getHeaders()->addHeaderLine(
-            'Authorization', $tokenData['token_type'] . ' ' . $tokenData['access_token']
-        );
-
-        return $client;
-    }
-
-    public function isExpired($currentTimestamp, $expiration)
-    {
-        return strtotime($currentTimestamp) >= strtotime($expiration);
     }
 
     /**
@@ -1308,7 +914,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             $apiUrl .= '/' . urlencode($value);
         }
 
-        $client = $this->createOAUTH2Client($apiUrl);
+        $client = $this->oauth2Service->createOAUTH2Client($apiUrl);
 
         // Add params
         if (false !== $params) {
@@ -1341,7 +947,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         try {
             $response = $client->send();
         } catch (\Exception $e) {
-            $this->error(
+            $this->logger->err(
                 "$method request for '$apiUrl' failed: " . $e->getMessage()
             );
             throw new ILSException('Problem with Koha REST API.');
@@ -1349,16 +955,14 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         // If we get a 401, we need to renew the access token and try again
         if ($response->getStatusCode() == 401) {
-            if (!$this->renewPatronCookie($patron)) {
-                return $returnCode ? [401, null] : null;
-            }
-            $client->clearCookies();
-            $client->addCookie($this->sessionCache->patronCookie);
-            $this->debug('Session renewed');
+            $this->oauth2Service->renewToken();
+
+            $client = $this->oauth2Service->createOAUTH2Client($apiUrl);
+
             try {
                 $response = $client->send();
             } catch (\Exception $e) {
-                $this->error(
+                $this->logger->err(
                     "$method request for '$apiUrl' failed: " . $e->getMessage()
                 );
                 throw new ILSException('Problem with Koha REST API.');
@@ -1371,7 +975,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         if ($method == 'GET') {
             $fullUrl .= '?' . $client->getRequest()->getQuery()->toString();
         }
-        $this->debug(
+        $this->logger->debug(
             '[' . round(microtime(true) - $startTime, 4) . 's]'
             . " $method request $fullUrl" . PHP_EOL . 'response: ' . PHP_EOL
             . $result
@@ -1387,7 +991,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             $params = $method == 'GET'
                 ? $client->getRequest()->getQuery()->toString()
                 : $client->getRequest()->getPost()->toString();
-            $this->error(
+            $this->logger->err(
                 "$method request for '$apiUrl' with params '$params' and contents '"
                 . $client->getRequest()->getContent() . "' failed: "
                 . $response->getStatusCode() . ': ' . $response->getReasonPhrase()
@@ -1400,58 +1004,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         return $returnCode ? [$response->getStatusCode(), $decodedResult]
             : $decodedResult;
-    }
-
-    /**
-     * Renew the patron cookie and store it in the cache.
-     * Throw an exception if there is an error.
-     *
-     * @param array $patron Patron information
-     *
-     * @return bool
-     * @throws ILSException
-     */
-    protected function renewPatronCookie($patron)
-    {
-        $apiUrl = $this->config['Catalog']['host'] . '/v1/auth/session';
-
-        // Create proxy request
-        $client = $this->createHttpClient($apiUrl);
-
-        $client->setParameterPost(
-            [
-                'cardnumber' => $patron['cat_username'],
-                'password' => $patron['cat_password']
-            ]
-        );
-
-        try {
-            $response = $client->setMethod('POST')->send();
-        } catch (\Exception $e) {
-            $this->error(
-                "POST request for '$apiUrl' failed: " . $e->getMessage()
-            );
-            throw new ILSException('Problem with Koha REST API.');
-        }
-        if (!$response->isSuccess()) {
-            if (in_array((int)$response->getStatusCode(), [401, 403])) {
-                return false;
-            }
-            $this->error(
-                "POST request for '" . $client->getRequest()->getUriString()
-                . "' did not succeed: "
-                . $response->getStatusCode() . ': '
-                . $response->getReasonPhrase()
-                . ', response content: ' . $response->getBody()
-            );
-            throw new ILSException('Problem with Koha authentication.');
-        }
-
-        $this->sessionCache->patron = $patron['cat_username'];
-        $this->sessionCache->patronCookie = $response->getCookie();
-        $result = json_decode($response->getBody(), true);
-        $this->sessionCache->patronId = $result['borrowernumber'];
-        return true;
     }
 
     /**
@@ -1470,6 +1022,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     {
         $result = $this->makeRequest(
             ['v1', 'availability', 'biblio', 'search'],
+            __FUNCTION__,
             ['biblionumber' => $id],
             'GET',
             $patron
@@ -1501,7 +1054,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 'status' => $status,
                 'status_array' => $statusCodes,
                 'reserve' => 'N',
-                'callnumber' => $this->getItemCallNumber($item),
+                'callnumber' => $item['itemcallnumber'],
                 'duedate' => $duedate,
                 'number' => $item['enumchron'],
                 'barcode' => $item['barcode'],
@@ -1608,7 +1161,7 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 $statuses[] = 'Not Available';
             }
         } else {
-            $this->error(
+            $this->logger->err(
                 "Unable to determine status for item: " . print_r($item, true)
             );
         }
@@ -1700,41 +1253,36 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
      */
     protected function getPatronBlocks($patron)
     {
-        $patronId = $patron['id'];
-        $cacheId = "blocks|$patronId";
-        $blockReason = $this->getCachedData($cacheId);
-        if (null === $blockReason) {
-            $result = $this->makeRequest(
-                ['v1', 'patrons', $patron['id'], 'status'],
-                [],
-                'GET',
-                $patron
-            );
-            $blockReason = [];
-            if (!empty($result['blocks'])) {
-                $blockReason[] = $this->translate('Borrowing Block Message');
-                foreach ($result['blocks'] as $reason => $details) {
-                    $params = [];
-                    if (($reason == 'Patron::Debt'
+        $result = $this->makeRequest(
+            ['v1', 'patrons', $patron['id'], 'status'],
+            __FUNCTION__,
+            [],
+            'GET',
+            $patron
+        );
+        $blockReason = [];
+        if (!empty($result['blocks'])) {
+            $blockReason[] = $this->translate('Borrowing Block Message');
+            foreach ($result['blocks'] as $reason => $details) {
+                $params = [];
+                if (($reason == 'Patron::Debt'
                         || $reason == 'Patron::DebtGuarantees')
-                        && !empty($details['current_outstanding'])
-                        && !empty($details['max_outstanding'])
-                    ) {
-                        $params = [
-                            '%%blockCount%%' => $details['current_outstanding'],
-                            '%%blockLimit%%' => $details['max_outstanding']
-                        ];
-                    }
-                    $reason = 'Borrowing Block Koha Reason '
-                        . str_replace('::', '_', $reason);
-                    $translated = $this->translate($reason, $params);
-                    if ($reason !== $translated) {
-                        $reason = $translated;
-                        $blockReason[] = $reason;
-                    }
+                    && !empty($details['current_outstanding'])
+                    && !empty($details['max_outstanding'])
+                ) {
+                    $params = [
+                        '%%blockCount%%' => $details['current_outstanding'],
+                        '%%blockLimit%%' => $details['max_outstanding']
+                    ];
+                }
+                $reason = 'Borrowing Block Koha Reason '
+                    . str_replace('::', '_', $reason);
+                $translated = $this->translate($reason, $params);
+                if ($reason !== $translated) {
+                    $reason = $translated;
+                    $blockReason[] = $reason;
                 }
             }
-            $this->putCachedData($cacheId, $blockReason);
         }
         return empty($blockReason) ? false : $blockReason;
     }
@@ -1835,32 +1383,16 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             : $item['homebranch'];
         $name = $this->translate("location_$branchId");
         if ($name === "location_$branchId") {
-            $branches = $this->getCachedData('branches');
-            if (null === $branches) {
-                $result = $this->makeRequest(
-                    ['v1', 'libraries'], false, 'GET'
-                );
-                $branches = [];
-                foreach ($result as $branch) {
-                    $branches[$branch['branchcode']] = $branch['branchname'];
-                }
-                $this->putCachedData('branches', $branches);
+            $result = $this->makeRequest(
+                ['v1', 'libraries'], __FUNCTION__,false, 'GET'
+            );
+            $branches = [];
+            foreach ($result as $branch) {
+                $branches[$branch['branchcode']] = $branch['branchname'];
             }
             $name = isset($branches[$branchId]) ? $branches[$branchId] : $branchId;
         }
         return $name;
-    }
-
-    /**
-     * Return a call number for a Koha item
-     *
-     * @param array $item Item
-     *
-     * @return string
-     */
-    protected function getItemCallNumber($item)
-    {
-        return $item['itemcallnumber'];
     }
 
     /**
@@ -1901,89 +1433,12 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     }
 
     /**
-     * Set a cache storage object.
-     *
-     * @param StorageInterface $cache Cache storage interface
-     *
-     * @return void
-     */
-    public function setCacheStorage(StorageInterface $cache = null)
-    {
-        $this->cache = $cache;
-    }
-
-    /**
-     * Helper function for fetching cached data.
-     * Data is cached for up to $this->cacheLifetime seconds so that it would be
-     * faster to process e.g. requests where multiple calls to the backend are made.
-     *
-     * @param string $key Cache entry key
-     *
-     * @return mixed|null Cached entry or null if not cached or expired
-     */
-    protected function getCachedData($key)
-    {
-        // No cache object, no cached results!
-        if (null === $this->cache) {
-            return null;
-        }
-        $fullKey = $this->getCacheKey($key);
-        $item = $this->cache->getItem($fullKey);
-        if (null !== $item) {
-            // Return value if still valid:
-            if (time() - $item['time'] < $this->cacheLifetime) {
-                return $item['entry'];
-            }
-            // Clear expired item from cache:
-            $this->cache->removeItem($fullKey);
-        }
-        return null;
-    }
-    /**
-     * Helper function for storing cached data.
-     * Data is cached for up to $this->cacheLifetime seconds so that it would be
-     * faster to process e.g. requests where multiple calls to the backend are made.
-     *
-     * @param string $key   Cache entry key
-     * @param mixed  $entry Entry to be cached
-     *
-     * @return void
-     */
-    protected function putCachedData($key, $entry)
-    {
-        // Don't write to cache if we don't have a cache!
-        if (null === $this->cache) {
-            return;
-        }
-        $item = [
-            'time' => time(),
-            'entry' => $entry
-        ];
-        $this->cache->setItem($this->getCacheKey($key), $item);
-    }
-    /**
-     * Helper function for removing cached data.
-     *
-     * @param string $key Cache entry key
-     *
-     * @return void
-     */
-    protected function removeCachedData($key)
-    {
-        // Don't write to cache if we don't have a cache!
-        if (null === $this->cache) {
-            return;
-        }
-        $this->cache->removeItem($this->getCacheKey($key));
-    }
-
-    /**
      * Normalizes response from API to needed format
      *
      * @param $method
      * @return KohaRestNormalizer
      */
     public function normalizeResponse($method) {
-        return new KohaRestNormalizer($method, $this->dateConverter);
+        return new KohaRestNormalizer($method, $this->dateConverter, $this->translator, $this->logger);
     }
 }

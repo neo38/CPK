@@ -3,31 +3,33 @@
 namespace CPK\ILS\Logic;
 
 use \VuFind\Date\Converter as DateConverter;
+use Zend\I18n\Translator\TranslatorInterface;
+use Zend\Log\LoggerInterface;
 
 class KohaRestNormalizer
 {
     /**
      * An action driver is doing now
      *
-     * @var
+     * @var string
      */
     protected $methodName;
 
     protected $dateConverter;
+    protected $translator;
+    protected $logger;
 
-    protected $feeTypeMappings = [
-        'A' => 'Service Charge',
-        'F' => 'Fine',
-        'L' => 'Book Replacement Charge',
-        'M' => 'Sundry',
-        'N' => 'Card Replacement Charge',
-        'Res' => 'Reservation Charge'
-    ];
-
-    public function __construct($method, DateConverter $converter)
+    public function __construct(
+        $method,
+        DateConverter $converter,
+        TranslatorInterface $translator,
+        LoggerInterface $logger
+    )
     {
         $this->methodName = $method;
         $this->dateConverter = $converter;
+        $this->translator = $translator;
+        $this->logger = $logger;
     }
 
     public function normalize($response) {
@@ -36,10 +38,10 @@ class KohaRestNormalizer
                 $this->normalizeUserProfileResponse($response);
                 break;
             case 'getMyFines':
-                $this->normalizeLookupUserBlocksAndTraps($response);
+                $this->normalizeUserFinesResponse($response);
                 break;
             case 'getMyHolds':
-                $this->normalizeRequestedItems($response);
+                $this->normalizeHoldItemsResponse($response);
                 break;
         }
 
@@ -53,7 +55,7 @@ class KohaRestNormalizer
             ) : '';
     }
 
-    public function normalizeLookupUserBlocksAndTraps(&$response) {
+    public function normalizeUserFinesResponse(&$response) {
         foreach ($response['outstanding_debits']['lines'] as $key => $entry) {
             if ($entry['account_type'] == 'Pay'
                 || (int)$entry['amount_outstanding'] == 0
@@ -65,9 +67,8 @@ class KohaRestNormalizer
             $entry['date'] = !empty($entry['date'])
                 ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['date'])
                 : '';
-            if (isset($this->feeTypeMappings[$entry['account_type']])) {
-                $entry['account_type'] = $this->feeTypeMappings[$entry['account_type']];
-            }
+
+            $entry['account_type'] = $this->translator->translate('KohaFine_' . $entry['account_type']);
 
             $entry['amount'] *= 100;
             $entry['amount_outstanding'] *= 100;
@@ -77,7 +78,7 @@ class KohaRestNormalizer
         }
     }
 
-    public function normalizeRequestedItems(&$response) {
+    public function normalizeHoldItemsResponse(&$response) {
         foreach ($response as $key => $entry) {
             $entry['biblionumber'] = isset($entry['biblionumber']) ? $entry['biblionumber'] : null; //TODO deal with 'KOHA-OAI-TEST:'
             $entry['itemnumber'] = isset($entry['itemnumber']) ? $entry['itemnumber'] : null;
