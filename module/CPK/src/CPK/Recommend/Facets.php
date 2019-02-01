@@ -151,5 +151,32 @@ class Facets {
         return $this->facetFilter;
     }
 
+    /**
+     * Turn an array into a properly URL-encoded query string.  This is
+     * equivalent to the built-in PHP http_build_query function, but it handles
+     * arrays in a more compact way and ensures that ampersands don't get
+     * messed up based on server-specific settings.
+     *
+     * @param array $a      Array of parameters to turn into a GET string
+     * @param bool  $escape Should we escape the string for use in the view?
+     *
+     * @return string
+     */
+    function buildQueryString($a, $escape = true)
+    {
+        $parts = [];
+        foreach ($a as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $current) {
+                    $parts[] = urlencode($key . '[]') . '=' . urlencode($current);
+                }
+            } else {
+                $parts[] = urlencode($key) . '=' . urlencode($value);
+            }
+        }
+        $retVal = implode('&', $parts);
+        return $escape ? htmlspecialchars($retVal) : $retVal;
+    }
+
 
 }

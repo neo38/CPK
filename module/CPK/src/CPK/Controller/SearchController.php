@@ -1362,31 +1362,7 @@ class SearchController extends SearchControllerBase
 	    //$sideFacets = $this->getSideFacetsHtml($viewData);
         //$mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results']);
         $mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results'], $postParams['FConfig']);
-        // TODO tady do prepare davat jenom hodnoty facet a ne cely objekt
-        //$viewData['results'] = array('dffsdfsdf', 'asdasdasds');
-        /*$mojeData['data'] = array(
-                'label' => 'Institution',
-                'show' => true,
-                'list' =>
-                        array(
-                                'Institution:0-Library' =>
-                                        array(
-                                                'name' => 'Institution:0-Library',
-                                                'value' => '0/Library/',
-                                                'displayText' => 'Katalogy knihoven',
-                                                'tooltipText' => 'Katalogy knihoven',
-                                                'count' => null,
-                                                'operator' => 'OR',
-                                                'isApplied' => false,
-                                                'fullActive' => false,
-                                                'show' => true,
-                                                'open' => false,
-                                                'parent' => 'Institution',
-                                                'children' => true,
-                                                'link' => '',
-                                                'bold' => false,
-                                                'dataFacet' => '~local_institution_facet_str_mv:"0/Library/"'
-                                        )));*/
+
         $sideFacets = $this->doSomethingCrazyAction($mojeData);
         //$sideFacets = $this->doMyAction($mojeData);
 

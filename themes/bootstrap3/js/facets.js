@@ -138,10 +138,23 @@ function buildFacetNodes(data, currentPath, allowExclude, excludeTitle, counts)
 
 jQuery( document ).ready( function( $ ) {
 
-    $( 'body' ).on( 'click', '.show-all-facets, .hide-some-facets', function( event ) {
+    $( 'body' ).on( 'click', '.hide-some-facets', function( event ) {
         var parentId = "#"+event.target.parentNode.id;
+        var lastEl = '#' + ($(parentId).children(".show-all-facets").attr('id').substring(5));
+        var lastId = $(parentId).children('li').index($(lastEl));
 
-        $(parentId).children('li').slice(resultDef).toggleClass("hide");
+        $(parentId).children('li').slice(lastId+1).toggleClass("hide");
+        $(parentId+' .show-all-facets').toggleClass('hide');
+        $(parentId+' .hide-some-facets').toggleClass('hide');
+    });
+
+    $( 'body' ).on( 'click', '.show-all-facets', function( event ) {
+        var parentId = "#"+event.target.parentNode.id;
+        var lastEl = $('#' + ($(this).attr('id').substring(5)));
+
+        var lastId = $(parentId).children('li').index($(lastEl));
+
+        $(parentId).children('li').slice(lastId+1).toggleClass("hide");
         $(parentId+' .show-all-facets').toggleClass('hide');
         $(parentId+' .hide-some-facets').toggleClass('hide');
     });

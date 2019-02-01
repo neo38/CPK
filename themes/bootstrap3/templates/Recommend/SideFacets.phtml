@@ -59,6 +59,7 @@
             echo '</ul></div>';
             continue;
         }
+        $more = false;
         ?>
         <? foreach ($filter['list'] as $facet) { //echo $facet['value']?>
           <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=str_replace(':', '', $facet['name'])?>">
@@ -71,49 +72,24 @@
             </span>
               <b class="badge"><?=(!is_null($facet['count'])) ? $facet['count'] : ''?></b>
             </a>
+
+          <?if ($facet['children']) {?>
+            <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
+          <?}?>
+          <? if ($facet['parent'] != $filter['label']) { ?>
+            <script>
+                $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
+                $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
+            </script>
+        <? }?>
           </li>
-        <?if ($facet['children']) {?>
-          <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
-        <?}?>
-        <? if ($facet['parent'] != $filter['label']) { ?>
-          <script>
-              $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
-              $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
-          </script>
-        <? }
-        echo ($facet['value'] == $filter['more'])? '<span>Vice facet</span>' : '';
+        <?
+        $moreF = ($facet['value'] == $filter['more'] && !$more)? '<span id="more-facet-'.str_replace(':', '', $facet['name']).'" class="show-all-facets narrow-toggle">'.$this->transEsc("More options").'</span>' : '';
+        echo $moreF;
+        if (!empty($moreF)) $more = true;
         } ?>
-      <?=($filter['more'])? '<span class="hide">mene facet</span>' : ''?>
+      <?=(!empty($more))? '<span id="less-'.$filter['label'].'" class="hide hide-some-facets narrow-toggle">'.$this->transEsc("less").'</span>' : ''?>
     </ul>
 
   </div>
 <? } ?>
-
-<?php
-/**
- * Turn an array into a properly URL-encoded query string.  This is
- * equivalent to the built-in PHP http_build_query function, but it handles
- * arrays in a more compact way and ensures that ampersands don't get
- * messed up based on server-specific settings.
- *
- * @param array $a      Array of parameters to turn into a GET string
- * @param bool  $escape Should we escape the string for use in the view?
- *
- * @return string
- */
-function buildQueryString($a, $escape = true)
-{
-    $parts = [];
-    foreach ($a as $key => $value) {
-        if (is_array($value)) {
-            foreach ($value as $current) {
-                $parts[] = urlencode($key . '[]') . '=' . urlencode($current);
-            }
-        } else {
-            $parts[] = urlencode($key) . '=' . urlencode($value);
-        }
-    }
-    $retVal = implode('&', $parts);
-    return $escape ? htmlspecialchars($retVal) : $retVal;
-}
-?>
