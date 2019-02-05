@@ -371,6 +371,10 @@ class Results extends \VuFind\Search\Base\Results
         return $this->getFacetList();
     }
 
+    public function getFilt() {
+        return $this->getParams()->getFilterList();
+    }
+
     public function fConfig() {
         return array("allFieldsSection" => [
                 'Institution',
@@ -405,6 +409,7 @@ class Results extends \VuFind\Search\Base\Results
                 'online',
         ], "count" => [
                 "default" => 6,
+                "DocumentType" => 2,
                 "Institution" => -1,
         ], "number" => [
                 'Conspectus',

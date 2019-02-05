@@ -434,14 +434,25 @@ jQuery( document ).ready( function( $ ) {
             var fConf = {};
             $('.FacetConfig').each(function() {
                 var name = $(this).attr('id');
-                fConf[name] = [];
                 $('.'+name).each(function() {
                     var value = $(this).attr('value');
-                    fConf[name].push(value);
+                    var coll = $(this).attr('data-coll');
+                    if (coll.length !== 0) {
+                        if (typeof fConf[name.substr(10)] == 'undefined'){
+                            fConf[name.substr(10)] = {};
+                        }
+                        fConf[name.substr(10)][coll] = parseInt(value);
+                    } else {
+                        if (typeof fConf[name.substr(10)] == 'undefined'){
+                            fConf[name.substr(10)] = [];
+                        }
+                        fConf[name.substr(10)].push(value);
+                    }
                 });
             });
             console.log(fConf);
             dataForAjax['FConfig'] = fConf;
+            console.log(dataForAjax);
             // TODO do dataForAjax pridat pole s configem, skryty div s inputama
             /*
              * Get search results from Solr and display them
@@ -514,7 +525,7 @@ jQuery( document ).ready( function( $ ) {
                             }
 
                             var responseData = response.data;
-                            //console.log(responseData);
+                            console.log(responseData);
                             var title = response.data.title;
                             var resultsHtml = JSON.parse(responseData.resultsHtml);
                             var facetsHtml = JSON.parse(responseData.sideFacets);
@@ -541,7 +552,10 @@ jQuery( document ).ready( function( $ ) {
                             $('#results-amount-info-placeholder').html(resultsAmountInfoHtml.html);
                             $('#result-list-placeholder, #pagination-placeholder, #results-amount-info-placeholder').show('blind', {}, 500);
                             //$('#side-facets-placeholder').show('blind', {}, 500);
+                            $('#side-facets-placeholder').html('');
                             if (facetsHtml.html !== "") {
+                                console.log(typeof facetsHtml);
+                                console.log(facetsHtml.html);
                                 $('#side-facets-placeholder').html(facetsHtml.html);
                                 $('.loader').addClass('loader-hide');
                                 $('.list-group').removeClass('load-facet');

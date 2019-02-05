@@ -9,11 +9,41 @@
 </script>
 
 <?
-    $facetFilter = $this->data;
-    foreach ($facetFilter as $facets) {
-        //var_dump($facets);
+    $facetFilter = $data;
+    //foreach ($test as $facets) {
+    //var_dump($local_institution_facet_str_mv);
+    //var_dump($datak);
+    //}
+    /*$neco = [];
+    foreach ($facetFilter as $key => $hodnoty) {
+        $neco[key($hodnoty)] = $hodnoty[key($hodnoty)];
     }
+    var_dump($neco);*/
 
+
+    /*foreach ($facetFilter as $fac) {
+        var_dump($fac);
+    }*/
+
+  if (empty($facetFilter)) {
+      $facetFilter['local_institution_facet_str_mv'] = $local_institution_facet_str_mv;
+      $facetFilter['cpk_detected_format_facet_str_mv'] = $cpk_detected_format_facet_str_mv;
+      $facetFilter['local_statuses_facet_str_mv'] = $local_statuses_facet_str_mv;
+      //$facetFilter['subject_facet_str_mv'] = $subject_facet_str_mv;
+      //$facetFilter['source_title_facet_str'] = $source_title_facet_str;
+      $facetFilter['conspectus_str_mv'] = $conspectus_str_mv;
+      //$facetFilter['publisher_str_mv'] = $publisher_str_mv;
+      $facetFilter['author_facet_str_mv'] = $author_facet_str_mv;
+      $facetFilter['language'] = $language;
+      $facetFilter['publishDate'] = $publishDate;
+      //$facetFilter['genre_facet_str_mv'] = $genre_facet_str_mv;
+      $facetFilter['country_str_mv'] = $country_str_mv;
+  }
+
+  //var_dump($facetFilter);
+    //}
+
+// TODO skrute to je po asynchronni protoze musim dopsat v tom configu kde si beru data pro asynchorni jak je ulozeno v hidden aji klice z poli
 ?>
   <!-- hlavni nadpis facet hledani BEGIN -->
 

@@ -25,6 +25,7 @@
 namespace CPK\Controller;
 
 use CPK\Recommend\Facets;
+use function PHPSTORM_META\type;
 use VuFind\Controller\SearchController as SearchControllerBase;
 use VuFind\Exception\Mail as MailException;
 use VuFind\Exception\RecordMissing as RecordMissingException;
@@ -1361,9 +1362,27 @@ class SearchController extends SearchControllerBase
 
 	    //$sideFacets = $this->getSideFacetsHtml($viewData);
         //$mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results']);
-        $mojeData['data'] = (new Facets())->prepareFacetDataAsync($viewData['results'], $postParams['FConfig']);
 
+        //$kokot = $this->getSideFacetsData($viewData['results']->getParams()->getFilterList());
+        //$mojeData['data'] = (new Facets())->prepareFacetDataAsync($kokot, $postParams['FConfig']);
+        //$sideFacets = $this->doSomethingCrazyAction($mojeData);
+
+        //$sideFacets = $viewData['results']->getParams()->getFilterList();
+        //$sideFacets = $viewData['results']->getFacetList();
+
+
+        $mojeData = (new Facets())->prepareFacetDataAsync($viewData['results']->getFacetList(), $postParams['FConfig']);
         $sideFacets = $this->doSomethingCrazyAction($mojeData);
+
+
+        //$sideFacets = array_keys($mojeData);
+        //$sideFacets = (string)$sideFacets;
+
+        //$sideFacets = $postParams['FConfig'];
+
+
+        //$sideFacets = $postParams['FConfig'];
+
         //$sideFacets = $this->doMyAction($mojeData);
 
         //$sideFacets = $viewData['results'];
@@ -1545,6 +1564,18 @@ class SearchController extends SearchControllerBase
         $viewRender = $this->getServiceLocator()->get('ViewRenderer');
         $html = $viewRender->render($viewModel);
         return $html;
+    }
+
+    public function getSideFacetsData(array $viewData)
+    {
+
+        $viewModel = array();
+
+        foreach($viewData as $key => $data) {
+            $viewModel->$key = $data;
+        }
+
+        return $viewModel;
     }
 
     protected function base64url_encode($data)
@@ -1751,15 +1782,61 @@ class SearchController extends SearchControllerBase
 
     public function doSomethingCrazyAction($viewData)
     {
-        $viewModel = $this->createViewModel();
+        /*$viewModel = $this->createViewModel();
         $viewModel->setTemplate('Recommend/SideFacets');
 
+        //$viewModel->setVariabe('data', 'asadasd');
         foreach($viewData as $key => $data) {
             $viewModel->$key = $data;
         }
 
         $viewRender = $this->getServiceLocator()->get('ViewRenderer');
         $html = $viewRender->render($viewModel);
+        return $html;*/
+
+        //$viewModel = $this->createViewModel(array('local_institution_facet_str_mv' => ['asssd','bbbb'], 'cpk_detected_format_facet_str_mv' => [['asssd' => ['asssd','bbbb']]]));
+        //$test = array('local_institution_facet_str_mv' => ['asssd','bbbb'], 'cpk_detected_format_facet_str_mv' => [['asssd' => ['asssd','bbbb']]]);
+
+
+        $keys = array_keys($viewData);
+
+        //$test = array_fill_keys($keys, array());
+        //$test = array_fill_keys($keys,array());
+        $test = array();
+        //$test = array_fill_keys($keys, '');
+        /*foreach($viewData as $key => $data) {
+            //array_push($test[$key], ['label' => $data['label'], 'show' => $data['show'], 'list' => $data['list'], 'display' => $data['display'], 'count' => $data['count'], 'more' => $data['more']]);
+
+            //$pole = $viewData[$key];
+            //array_push($test, [$pole => $viewData[$pole]]);
+            //$test = array($key => ['label' => $data['label'], 'show' => $data['show'], 'list' => $data['list'], 'display' => $data['display'], 'count' => $data['count'], 'more' => $data['more']]);
+
+            // TODO proc to takhle nefunguje
+            $test[$key] = $data;
+
+            //$test = array($key => $data);
+
+            //array_push($test, [$key => ['label' => $data['label'], 'show' => $data['show'], 'list' => $data['list'], 'display' => $data['display'], 'count' => $data['count'], 'more' => $data['more']]]);
+        }*/
+
+
+        // FIXME proc nemuzu ulozit klasicky asociativni poleeee!!!!!!!
+
+
+        // TODO spravne by melo stacit toho
+        //$viewModel = $this->createViewModel(array('data' =>  $viewData));
+
+        //$viewModel = $this->createViewModel(array('data' =>  $test));
+        $viewModel = $this->createViewModel();
+        $viewModel->setTemplate('Recommend/SideFacets');
+
+        foreach($viewData as $key => &$data) {
+            $viewModel->$key = $data;
+        }
+
+        $viewRender = $this->getServiceLocator()->get('ViewRenderer');
+        $html = $viewRender->render($viewModel);
+
         return $html;
     }
 

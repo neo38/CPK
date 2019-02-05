@@ -7,11 +7,11 @@ class Facets {
 
     protected $facetSettings = [];
 
-    public function prepareFacetDataFresh($data, $config) {
+    public function prepareFacetDataFresh($data, $config, $filterList) {
         $newData = $data;
         $newConfig = $config;
 
-        $prepared = $this->getDataFacets($newData, $newConfig);
+        $prepared = $this->getDataFacets($newData, $newConfig, array());
 
         return $prepared;
     }
@@ -22,17 +22,18 @@ class Facets {
         $newConfig = $config;
 
 
-        $prepared = $this->getDataFacets($newData, $newConfig);
+        $prepared = $this->getDataFacets($newData, $newConfig, array());
 
         return $prepared;
+        //return array($newData, $newConfig);
     }
 
     // TODO tady ziskat data z configu
 
-    public function getDataFacets($facetsData, $config) {
+    public function getDataFacets($facetsData, $config, $filterList) {
         //$facetSet = parent::getFacetSet();
         $facetSet = $facetsData;
-        $this->facetSettings = $config;
+        $facetSettings = $config;
         $keys = array_keys($facetSet);
         $filter = array_fill_keys($keys,['label' => '', 'show' => '', 'list' => array()]);
         foreach ($facetSet as $key => $facets) {
@@ -40,13 +41,13 @@ class Facets {
             $facets['label'] = str_replace(' ', '', $facets['label']);
             $filter[$key]['label'] = $facets['label'];
             $filter[$key]['show'] = false;
-            if (in_array($facets['label'], $this->facetSettings['open'], true)) {
+            if (in_array($facets['label'], $facetSettings['open'], true)) {
                 $filter[$key]['show'] = true;
             }
-            $maxItems = $this->facetSettings['count'];
+            $maxItems = $facetSettings['count'];
             $maxItems = (array_key_exists($facets['label'], $maxItems))? $maxItems[$facets['label']] : $maxItems['default'];
             $number = false;
-            if (in_array($facets['label'], $this->facetSettings['number'], true)) {
+            if (in_array($facets['label'], $facetSettings['number'], true)) {
                 $number = true;
             }
             $filter[$key]['count'] = $maxItems;
@@ -108,16 +109,16 @@ class Facets {
                     $count = $facet['count'];
                 }
                 $open = false;
-                if (in_array($facet['displayText'], $this->facetSettings['subOpen'], true)) {
+                if (in_array($facet['displayText'], $facetSettings['subOpen'], true)) {
                     $open = True;
                 }
                 $bold = false;
-                if (in_array($facet['displayText'], $this->facetSettings['bold'], true)) {
+                if (in_array($facet['displayText'], $facetSettings['bold'], true)) {
                     $bold = true;
                 }
                 $dataFacet = (($facet['operator'] == "OR")? '~' : '') . $key . ':"' . $facet['value'] . '"';
                 /*if ($facet['isApplied']) {
-                    array_push($this->usedFacetFilter, ['category' => $facets['label'], 'dataFacet' => $dataFacet, 'displayText' => $facet['displayText'], 'operator' => $facet['operator']]);
+                    array_push($usedFacetFilter, ['category' => $facets['label'], 'dataFacet' => $dataFacet, 'displayText' => $facet['displayText'], 'operator' => $facet['operator']]);
                 }*/
                 $show = true;
                 if ($sequence > $filter[$key]['count'] && $filter[$key]['count'] != -1 && !$facet['isApplied'] && $more) {
@@ -147,8 +148,7 @@ class Facets {
                 ];
             }
         }
-        $this->facetFilter = $filter;
-        return $this->facetFilter;
+        return $filter;
     }
 
     /**
