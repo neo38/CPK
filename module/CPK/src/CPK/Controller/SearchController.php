@@ -1361,7 +1361,7 @@ class SearchController extends SearchControllerBase
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
 
-        $mojeData = (new Facets())->prepareFacetDataAsync($viewData['results']->getFacetList(), $postParams['FConfig']);
+        $mojeData = (new Facets())->prepareFacetDataAsync($viewData['results']->getFacetList(), $postParams['FConfig'], $viewData['results']->getParams()->getFilterList());
         $sideFacets = $this->doSomethingCrazyAction($mojeData);
 
 	    /* // TODO zkusit toto s mojeData a az pote je poslat do doSomethingCrazy()
@@ -1371,7 +1371,7 @@ class SearchController extends SearchControllerBase
             $noveData[$key] = $data;
         }
         $sideFacets = $noveData;*/
-
+        //$sideFacets = $viewData['results']->getParams()->getFilterList();
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 
@@ -1777,14 +1777,22 @@ class SearchController extends SearchControllerBase
         // FIXME proc nemuzu ulozit klasicky asociativni poleeee!!!!!!!
 
         // TODO spravne by melo stacit toho
-        //$viewModel = $this->createViewModel(array('data' =>  $viewData));
-        //$viewModel = $this->createViewModel(array('data' =>  $test));
+        //$viewModel = $this->createViewModel(array('data' =>  &$viewData[0], 'usedFilter' =>  &$viewData[1]));
+
 
         $viewModel = $this->createViewModel();
         $viewModel->setTemplate('Recommend/SideFacets');
-        foreach($viewData as $key => &$data) {
+        foreach($viewData[0] as $key => &$data) {
             $viewModel->$key = $data;
         }
+
+        $uprava = array();
+        $uprava['usedFilter'] = &$viewData[1];
+        foreach($uprava as $key => &$data) {
+            $viewModel->$key = $data;
+        }
+
+
 
         /*$novePole = array();
         foreach($viewData as $key => &$data) {

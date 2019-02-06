@@ -1122,9 +1122,16 @@ jQuery( document ).ready( function( $ ) {
     });
 
 
-    /*
-     * Add or remove clicked facet
-     */
+    $( 'body' ).on( 'click', '.activedF', function( event ) {
+        event.preventDefault();
+
+        ADVSEARCH.removeFacetFilter($( this ).attr( 'data-facet' ), true );
+    });
+
+
+        /*
+         * Add or remove clicked facet
+         */
     // @TODO tady se to vyhledava... a jeste zkontrolovt ty dalsi minimalne dve funkce
     $( 'body' ).on( 'click', '.facet-filter', function( event ) {
         event.preventDefault();

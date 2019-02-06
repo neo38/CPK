@@ -11,18 +11,18 @@ class Facets {
         $newData = $data;
         $newConfig = $config;
 
-        $prepared = $this->getDataFacets($newData, $newConfig, array());
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList);
 
         return $prepared;
     }
 
 
-    public function prepareFacetDataAsync($data, $config) {
+    public function prepareFacetDataAsync($data, $config, $filterList) {
         $newData = $data;
         $newConfig = $config;
 
 
-        $prepared = $this->getDataFacets($newData, $newConfig, array());
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList);
 
         return $prepared;
         //return array($newData, $newConfig);
@@ -148,7 +148,24 @@ class Facets {
                 ];
             }
         }
-        return $filter;
+
+        $usedF = array();
+        foreach ($filterList as $key => $sub) {
+            $usedF[$key];
+            foreach ($sub as $id => $usedFacet) {
+                $display = $usedFacet['displayText'];
+                $operator = $usedFacet['operator'];
+                $dataFacet = (($operator == 'OR')? '~' : '') . $usedFacet['field'] . ':"' . $usedFacet['value'] . '"';
+                $usedF[$key][] = [
+                        'display' => $display,
+                        'operator' => $operator,
+                        'dataFacet' => $dataFacet,
+                ];
+            }
+        }
+
+        //return array($filter, array('dasdads', 'hgjvdf'));
+        return array($filter, $usedF);
     }
 
     /**

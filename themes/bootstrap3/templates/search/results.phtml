@@ -236,10 +236,10 @@
             //var_dump($config);
             //var_dump($facetsData);
 
-            $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $this->filterList);
+            $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt);
 
           ?>
-          <?= $this->render('Recommend/SideFacets.phtml', array('data' => $facetsData))?>
+          <?= $this->render('Recommend/SideFacets.phtml', array('data' => $facetsData[0], 'usedFilter' => $facetsData[1]))?>
       </div>
       <? /* End Narrow Search Options */ ?>
     </div>

@@ -29,6 +29,7 @@
   /*foreach ($facetFilter as $fac) {
     var_dump($fac);
   }*/
+  //var_dump($facetFilter);
 ?>
   <!-- hlavni nadpis facet hledani BEGIN -->
   <h3 class='side-facets-header facets-questionmark-help'>
@@ -37,15 +38,20 @@
   </h3>
   <!-- hlavni nadpis facet hledani END -->
 
-<? // TODO udelat vypis filtru?>
 <? // $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
   <!-- vypis filtr BEGIN -->
-<?if (!empty($filterList)): ?>
+<?if (!empty($usedFilter)): ?>
+  <? //var_dump($usedFilter); ?>
+  <? $filterList = $usedFilter; ?>
   <div class="list-group filters">
       <? foreach ($filterList as $field => $filters): ?>
+
+        <ul style="padding: 0; cursor: pointer;">
           <? foreach ($filters as $i => $filter): ?>
-              <?= $filter['displayText'].'<br>'; ?>
+            <li class="active activedF" data-facet='<?=$filter['dataFacet']?>' style="padding-left: <?=($i > 0)? '20px' : '0px'?>;"><?=($i <= 0)?$this->transEsc($field) . ': ': ''?><b  style="color: grey; display: inline-block; width: <?=($i > 0)? '30px' : '0px'?>; font-weight: normal; font-size: 12px;"><?=($i > 0)? $filter['operator']: ''?></b>
+            <span style="color: red;"><?= $filter['display']; ?></span></li>
           <? endforeach; ?>
+        </ul>
       <? endforeach; ?>
     <div class='text-center'>
       <a id='remove-all-filters-async' href='<? //=$removeFilterUrl?>'><div class="btn btn-primary btn-sm"><?=$this->transEsc('Remove Filters')?></div></a>
