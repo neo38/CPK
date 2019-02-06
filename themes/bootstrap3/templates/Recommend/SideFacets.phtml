@@ -10,20 +10,6 @@
 
 <?
     $facetFilter = $data;
-    //foreach ($test as $facets) {
-    //var_dump($local_institution_facet_str_mv);
-    //var_dump($datak);
-    //}
-    /*$neco = [];
-    foreach ($facetFilter as $key => $hodnoty) {
-        $neco[key($hodnoty)] = $hodnoty[key($hodnoty)];
-    }
-    var_dump($neco);*/
-
-
-    /*foreach ($facetFilter as $fac) {
-        var_dump($fac);
-    }*/
 
   if (empty($facetFilter)) {
       $facetFilter['local_institution_facet_str_mv'] = $local_institution_facet_str_mv;
@@ -40,21 +26,18 @@
       $facetFilter['country_str_mv'] = $country_str_mv;
   }
 
-  //var_dump($facetFilter);
-    //}
-
-// TODO skrute to je po asynchronni protoze musim dopsat v tom configu kde si beru data pro asynchorni jak je ulozeno v hidden aji klice z poli
+  /*foreach ($facetFilter as $fac) {
+    var_dump($fac);
+  }*/
 ?>
   <!-- hlavni nadpis facet hledani BEGIN -->
-
   <h3 class='side-facets-header facets-questionmark-help'>
       <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
       <?= ($this->librarySearch)? ('adr-facets') : ($filterClass)? $this->help()->getQuestionMarkHelp('ci-facets') : $this->help()->getQuestionMarkHelp('facets') ;?>
   </h3>
-
   <!-- hlavni nadpis facet hledani END -->
-  <!-- TODO kouknout co je to extra filters a jestli by ty pouzity filtry nesli vyresit jednoduseji...
-        napriklad pritom vytvareni pole facet uz rovnou si zapamatovavat ktere maji active -->
+
+<? // TODO udelat vypis filtru?>
 <? // $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
   <!-- vypis filtr BEGIN -->
 <?if (!empty($filterList)): ?>
@@ -69,11 +52,6 @@
     </div>
   </div>
 <? endif; ?>
-<?
-/*foreach ($usedFacetFilter as $filter) {
-    var_dump($filter);
-}*/
-?>
   <!-- vypis filtr END -->
 <? foreach ($facetFilter as $key => $filter) {?>
   <div id="side-panel-<?=$filter['label']?>" class="col-xs-12 list-group">
