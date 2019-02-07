@@ -9,48 +9,27 @@
 </script>
 
 <?
-    $facetFilter = $data;
-
-  if (empty($facetFilter)) {
-      $facetFilter['local_institution_facet_str_mv'] = $local_institution_facet_str_mv;
-      $facetFilter['cpk_detected_format_facet_str_mv'] = $cpk_detected_format_facet_str_mv;
-      $facetFilter['local_statuses_facet_str_mv'] = $local_statuses_facet_str_mv;
-      //$facetFilter['subject_facet_str_mv'] = $subject_facet_str_mv;
-      //$facetFilter['source_title_facet_str'] = $source_title_facet_str;
-      $facetFilter['conspectus_str_mv'] = $conspectus_str_mv;
-      //$facetFilter['publisher_str_mv'] = $publisher_str_mv;
-      $facetFilter['author_facet_str_mv'] = $author_facet_str_mv;
-      $facetFilter['language'] = $language;
-      $facetFilter['publishDate'] = $publishDate;
-      //$facetFilter['genre_facet_str_mv'] = $genre_facet_str_mv;
-      $facetFilter['country_str_mv'] = $country_str_mv;
-  }
-
-  /*foreach ($facetFilter as $fac) {
-    var_dump($fac);
-  }*/
-  //var_dump($facetFilter);
+$facetFilter = $data;
 ?>
-  <!-- hlavni nadpis facet hledani BEGIN -->
-  <h3 class='side-facets-header facets-questionmark-help'>
-      <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
-      <?= ($this->librarySearch)? ('adr-facets') : ($filterClass)? $this->help()->getQuestionMarkHelp('ci-facets') : $this->help()->getQuestionMarkHelp('facets') ;?>
-  </h3>
-  <!-- hlavni nadpis facet hledani END -->
+<!-- hlavni nadpis facet hledani BEGIN -->
+<h3 class='side-facets-header facets-questionmark-help'>
+    <?= $this->transEsc(isset($this->overrideSideFacetCaption) ? $this->overrideSideFacetCaption : 'Narrow Search') ?>
+</h3>
+<!-- hlavni nadpis facet hledani END -->
 
 <? // $filterList = array_merge($results->getParams()->getFilterList(true), $extraFilters); ?>
-  <!-- vypis filtr BEGIN -->
+<!-- vypis filtr BEGIN -->
 <?if (!empty($usedFilter)): ?>
-  <? //var_dump($usedFilter); ?>
-  <? $filterList = $usedFilter; ?>
+    <? //var_dump($usedFilter); ?>
+    <? $filterList = $usedFilter; ?>
   <div class="list-group filters">
       <? foreach ($filterList as $field => $filters): ?>
 
         <ul style="padding: 0; cursor: pointer;">
-          <? foreach ($filters as $i => $filter): ?>
-            <li class="active activedF" data-facet='<?=$filter['dataFacet']?>' style="padding-left: <?=($i > 0)? '20px' : '0px'?>;"><?=($i <= 0)?$this->transEsc($field) . ': ': ''?><b  style="color: grey; display: inline-block; width: <?=($i > 0)? '30px' : '0px'?>; font-weight: normal; font-size: 12px;"><?=($i > 0)? $filter['operator']: ''?></b>
-            <span style="color: red;"><?= $filter['display']; ?></span></li>
-          <? endforeach; ?>
+            <? foreach ($filters as $i => $filter): ?>
+              <li class="active activedF" data-facet='<?=$filter['dataFacet']?>' style="padding-left: <?=($i > 0)? '20px' : '0px'?>;"><?=($i <= 0)?$this->transEsc($field) . ': ': ''?><b  style="color: grey; display: inline-block; width: <?=($i > 0)? '30px' : '0px'?>; font-weight: normal; font-size: 12px;"><?=($i > 0)? $filter['operator']: ''?></b>
+                <span style="color: red;"><?= $filter['display']; ?></span></li>
+            <? endforeach; ?>
         </ul>
       <? endforeach; ?>
     <div class='text-center'>
@@ -58,7 +37,7 @@
     </div>
   </div>
 <? endif; ?>
-  <!-- vypis filtr END -->
+<!-- vypis filtr END -->
 <? foreach ($facetFilter as $key => $filter) {?>
   <div id="side-panel-<?=$filter['label']?>" class="col-xs-12 list-group">
     <li class="arrow list-group-item title" id="facet-<?=$filter['label']?>">
@@ -87,22 +66,22 @@
               <b class="badge"><?=(!is_null($facet['count'])) ? $facet['count'] : ''?></b>
             </a>
 
-          <?if ($facet['children']) {?>
-            <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
-          <?}?>
-          <? if ($facet['parent'] != $filter['label']) { ?>
-            <script>
-                $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
-                $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
-            </script>
-        <? }?>
+              <?if ($facet['children']) {?>
+                <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
+              <?}?>
+              <? if ($facet['parent'] != $filter['label']) { ?>
+                <script>
+                    $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
+                    $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
+                </script>
+              <? }?>
           </li>
-        <?
-        $moreF = ($facet['value'] == $filter['more'] && !$more)? '<span id="more-facet-'.str_replace(':', '', $facet['name']).'" class="show-all-facets narrow-toggle">'.$this->transEsc("More options").'</span>' : '';
-        echo $moreF;
-        if (!empty($moreF)) $more = true;
+            <?
+            $moreF = ($facet['value'] == $filter['more'] && !$more)? '<span id="more-facet-'.str_replace(':', '', $facet['name']).'" class="show-all-facets narrow-toggle">'.$this->transEsc("More options").'</span>' : '';
+            echo $moreF;
+            if (!empty($moreF)) $more = true;
         } ?>
-      <?=(!empty($more))? '<span id="less-'.$filter['label'].'" class="hide hide-some-facets narrow-toggle">'.$this->transEsc("less").'</span>' : ''?>
+        <?=(!empty($more))? '<span id="less-'.$filter['label'].'" class="hide hide-some-facets narrow-toggle">'.$this->transEsc("less").'</span>' : ''?>
     </ul>
 
   </div>

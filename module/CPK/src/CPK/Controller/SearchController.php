@@ -1371,7 +1371,6 @@ class SearchController extends SearchControllerBase
             $noveData[$key] = $data;
         }
         $sideFacets = $noveData;*/
-        //$sideFacets = $viewData['results']->getParams()->getFilterList();
 
 	    $recordTotal = $viewData['results']->getResultTotal();
 
@@ -1782,11 +1781,36 @@ class SearchController extends SearchControllerBase
 
         $viewModel = $this->createViewModel();
         $viewModel->setTemplate('Recommend/SideFacets');
-        foreach($viewData[0] as $key => &$data) {
+
+        /*foreach($viewData[0] as $key => &$data) {
             $viewModel->$key = $data;
-        }
+        }*/
 
         $uprava = array();
+
+        /*$facetFilter['local_institution_facet_str_mv'] = $local_institution_facet_str_mv;
+        $facetFilter['cpk_detected_format_facet_str_mv'] = $cpk_detected_format_facet_str_mv;
+        $facetFilter['local_statuses_facet_str_mv'] = $local_statuses_facet_str_mv;
+        //$facetFilter['subject_facet_str_mv'] = $subject_facet_str_mv;
+        //$facetFilter['source_title_facet_str'] = $source_title_facet_str;
+        $facetFilter['conspectus_str_mv'] = $conspectus_str_mv;
+        //$facetFilter['publisher_str_mv'] = $publisher_str_mv;
+        $facetFilter['author_facet_str_mv'] = $author_facet_str_mv;
+        $facetFilter['language'] = $language;
+        $facetFilter['publishDate'] = $publishDate;
+        //$facetFilter['genre_facet_str_mv'] = $genre_facet_str_mv;
+        $facetFilter['country_str_mv'] = $country_str_mv;*/
+
+        $uprava['data']['local_institution_facet_str_mv'] = &$viewData[0]['local_institution_facet_str_mv'];
+        $uprava['data']['cpk_detected_format_facet_str_mv'] = &$viewData[0]['cpk_detected_format_facet_str_mv'];
+        $uprava['data']['local_statuses_facet_str_mv'] = &$viewData[0]['local_statuses_facet_str_mv'];
+        $uprava['data']['conspectus_str_mv'] = &$viewData[0]['conspectus_str_mv'];
+        $uprava['data']['author_facet_str_mv'] = &$viewData[0]['author_facet_str_mv'];
+        $uprava['data']['language'] = &$viewData[0]['language'];
+        $uprava['data']['publishDate'] = &$viewData[0]['publishDate'];
+        $uprava['data']['country_str_mv'] = &$viewData[0]['country_str_mv'];
+
+        //$uprava['data'] = &$viewData[0]; // FIXME v idealu by melo stacit toto, mozna bude potreba pred to: $uprava['data'] = array();
         $uprava['usedFilter'] = &$viewData[1];
         foreach($uprava as $key => &$data) {
             $viewModel->$key = $data;

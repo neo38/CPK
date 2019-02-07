@@ -214,7 +214,7 @@
 
       <? /* Narrow Search Options */ ?>
       <div class="hidden" id="hiddenFacetConfig">
-        <? $config = $this->results->fConfig();?>
+        <? $config = $this->results->getConfigFacet();?>
         <? foreach ($config as $key => $species) {?>
           <div id="FCSpecies_<?=$key?>" class="FacetConfig">
             <? foreach ($species as $nextKey => $value) {?>
@@ -224,11 +224,21 @@
         <? }?>
       </div>
       <div class="<?=$this->layoutClass('sidebar')?>" id='side-facets-placeholder'>
+
+        <li class="list-group-item" id="facet-Availability0-absent">
+          <a href="" class="facet-filter list-group-item or-facet  " data-facet="~local_statuses_facet_str_mv:&quot;0/absent/&quot;">
+            <span class="item">
+                            absenční                          </span>
+            <b class="badge"></b>
+          </a>
+
+        </li>
       <?
           // TODO zjistit jak a kde se pri refreshy berou data facet a tam to upravit
             //$facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh([]);
             //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction(["?lookfor0%5B%5D=&type0%5B%5D=AllFields&bool0%5B%5D=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=20&sort=relevance&page=1&searchTypeTemplate=basic&database=Solr&keepFacetsEnabled=true&join=AND"]);
             //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction('aHR0cDovL3d3dy5rbmlob3ZueS5jei9TZWFyY2gvUmVzdWx0cz9sb29rZm9yMFtdPSZ0eXBlMFtdPUFsbEZpZWxkcyZzZWFyY2hUeXBlVGVtcGxhdGU9YmFzaWMmcGFnZT0xJmJvb2wwW109QU5EJmpvaW49QU5EJmxpbWl0PTIwJnNvcnQ9cmVsZXZhbmNlJmtlZXBFbmFibGVkRmlsdGVycz10cnVlJmRhdGFiYXNlPVNvbHI');
+
             $facetsData = $this->results->getSome();
             $facetsFilt = $this->results->getFilt();
 

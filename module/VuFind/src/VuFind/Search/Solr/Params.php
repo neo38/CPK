@@ -56,6 +56,8 @@ class Params extends \VuFind\Search\Base\Params
      */
     protected $facetLimitByField = [];
 
+    protected $facetMy = [];
+
     /**
      * Offset for facet results
      *
@@ -130,6 +132,10 @@ class Params extends \VuFind\Search\Base\Params
             foreach ($config->Results_Settings->facet_limit_by_field as $k => $v) {
                 $this->facetLimitByField[$k] = $v;
             }
+        }
+
+        if (isset($config->Facet_Settings)) {
+            $this->facetMy = $config->Facet_Settings->toArray();
         }
 
         if (isset($config->Results_Settings->sorted_by_index)
@@ -311,6 +317,11 @@ class Params extends \VuFind\Search\Base\Params
     public function getHierarchicalFacets() {
         return $this->hierarchicalFacets;
     }
+
+    public function getFacetMy() {
+        return $this->facetMy;
+    }
+
 
     /**
      *
