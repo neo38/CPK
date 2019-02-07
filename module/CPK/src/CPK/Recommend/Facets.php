@@ -7,27 +7,27 @@ class Facets {
 
     protected $facetSettings = [];
 
-    public function prepareFacetDataFresh($data, $config, $filterList) {
+    public function prepareFacetDataFresh($data, $config, $filterList, $usedF) {
         $newData = $data;
         $newConfig = $config;
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF);
 
         return $prepared;
     }
 
 
-    public function prepareFacetDataAsync($data, $config, $filterList) {
+    public function prepareFacetDataAsync($data, $config, $filterList, $usedF) {
         $newData = $data;
         $newConfig = $config;
 
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF);
 
         return $prepared;
     }
 
-    public function getDataFacets($facetsData, $config, $filterList) {
+    public function getDataFacets($facetsData, $config, $filterList, $usedF) {
         $facetSet = $facetsData;
         $facetSettings = $config;
         $keys = array_keys($facetSet);
@@ -98,7 +98,6 @@ class Facets {
                     $sequence += 1;
                     $parent = $facets['encoded'];
                 }
-                $link = ''; // TODO vlozit odkaz ktery se pote vlozi do href=""
                 $count = null;
                 if ($number) {
                     $count = $facet['count'];
@@ -112,6 +111,7 @@ class Facets {
                     $bold = true;
                 }
                 $dataFacet = (($facet['operator'] == "OR")? '~' : '') . $key . ':"' . $facet['value'] . '"';
+                $link = $this->createLink($usedF, $dataFacet, $facet['isApplied']);
                 /*if ($facet['isApplied']) {
                     array_push($usedFacetFilter, ['category' => $facets['label'], 'dataFacet' => $dataFacet, 'displayText' => $facet['displayText'], 'operator' => $facet['operator']]);
                 }*/
@@ -126,10 +126,12 @@ class Facets {
                     $name = substr(str_replace('/', '-', $name), 0, strlen($name) - 1);
                 }*/
 
+                $displayText = $this->repairConspectus($key, $facet['displayText']);
+
                 $filter[$key]['list'][$name] = [
                         'name' => $name,
                         'value' => $facet['value'], // TODO nahradit diakritiku a mezery, upravy co se provadi s name musi se provadet aji s parent
-                        'displayText' => $facet['displayText'],
+                        'displayText' => $displayText,
                         'tooltipText' => $facet['tooltiptext'],
                         'count' => $count,
                         'operator' => $facet['operator'],
@@ -151,7 +153,7 @@ class Facets {
         foreach ($filterList as $key => $sub) {
             $usedF[$key];
             foreach ($sub as $id => $usedFacet) {
-                $display = $usedFacet['displayText'];
+                $display = $this->repairConspectus($key, $usedFacet['displayText']);
                 $operator = $usedFacet['operator'];
                 $dataFacet = (($operator == 'OR')? '~' : '') . $usedFacet['field'] . ':"' . $usedFacet['value'] . '"';
                 $usedF[$key][] = [
@@ -168,6 +170,35 @@ class Facets {
     public function repairId($input) {
         $output = base64_encode($input);
         return str_replace(array('=', '/'), "", $output);
+    }
+
+    public function repairConspectus($key, $input) {
+        if ($key == 'conspectus_str_mv' || $key == 'Conspectus') {
+            $pole = explode('/', substr($input, 0, strlen($input) - 1));
+            return array_pop($pole);
+        }
+        return $input;
+    }
+
+    public function createLink($usedF, $newF, $add) {
+        // TODO ty co jsou hierarch a maji nejake pod sebou tak sejeste musi dotunit :D
+        if ($add) {
+            array_splice($usedF,array_search($newF,$usedF),1);
+//            /unset($usedF[array_search($newF,$usedF)]);
+            $str = implode('|', $usedF);
+        } else {
+            $usedF[] = $newF;
+            $str = implode('|', $usedF);
+        }
+        return $str;
+        //return "http://localhost:8080/Search/Results/?bool0%5B%5D=AND&type0%5B%5D=AllFields&lookfor0%5B%5D=&join=AND&searchTypeTemplate=basic&database=Solr" . "&filter%5B%5D=" . specialUrlEncode(base64_encode($str));
+
+        /*
+         * var filtersAsString = filters.join( '|' );
+         * compressedFilters = specialUrlEncode( LZString.compressToBase64( filtersAsString ) );
+         * href': window.location.href + "&filter%5B%5D=" + compressedFilters ,
+         */
+
     }
 
     /**

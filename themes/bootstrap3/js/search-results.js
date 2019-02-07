@@ -451,7 +451,12 @@ jQuery( document ).ready( function( $ ) {
                 });
             });
             console.log(fConf);
+            var usedF = [];
+            $('#hiddenFacetFilters .hidden-filter').each(function() {
+                usedF.push($(this).attr('value'));
+            });
             dataForAjax['FConfig'] = fConf;
+            dataForAjax['usedF'] = usedF;
             console.log(dataForAjax);
             // TODO do dataForAjax pridat pole s configem, skryty div s inputama
             /*

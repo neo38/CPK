@@ -57,7 +57,15 @@ $facetFilter = $data;
         <? foreach ($filter['list'] as $facet) { //echo $facet['value']?>
           <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=$facet['name']?>">
               <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
-            <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['actived'] != 0)? ($facet['seq'] == $facet['actived'])? 'active full-active' : 'half-active' : ''?> <?=($facet['fullActive'])? 'active full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
+            <a href='<?=$facet['link']?>' class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['actived'] != 0)? ($facet['seq'] == $facet['actived'])? 'active full-active' : 'half-active' : ''?> <?=($facet['fullActive'])? 'active full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
+              <script>
+                  var el = document.getElementById('facet-<?=$facet['name']?>');
+                  var moje = window.location.href;
+                  moje = moje.substr(0, moje.indexOf('&filter'));
+                  moje = moje + "&filter%5B%5D=";
+                  var link = moje + specialUrlEncode(LZString.compressToBase64('<?=$facet['link']?>'));
+                  el.getElementsByClassName('facet-filter')[0].href = link;
+              </script>
             <span class="<?=($facet['operator'] == "OR")? 'item' : ''?>">
               <?=($facet['bold'])? '<b>' : '';?>
               <?=$facet['displayText']?>

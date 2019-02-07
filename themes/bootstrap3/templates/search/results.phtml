@@ -224,31 +224,23 @@
         <? }?>
       </div>
       <div class="<?=$this->layoutClass('sidebar')?>" id='side-facets-placeholder'>
-
-        <li class="list-group-item" id="facet-Availability0-absent">
-          <a href="" class="facet-filter list-group-item or-facet  " data-facet="~local_statuses_facet_str_mv:&quot;0/absent/&quot;">
-            <span class="item">
-                            absenční                          </span>
-            <b class="badge"></b>
-          </a>
-
-        </li>
-      <?
-          // TODO zjistit jak a kde se pri refreshy berou data facet a tam to upravit
-            //$facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh([]);
-            //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction(["?lookfor0%5B%5D=&type0%5B%5D=AllFields&bool0%5B%5D=AND&filter=&daterange=&publishDatefrom=&publishDateto=&limit=20&sort=relevance&page=1&searchTypeTemplate=basic&database=Solr&keepFacetsEnabled=true&join=AND"]);
-            //$facetsData = (new \CPK\Controller\SearchController())->ajaxResultsAction('aHR0cDovL3d3dy5rbmlob3ZueS5jei9TZWFyY2gvUmVzdWx0cz9sb29rZm9yMFtdPSZ0eXBlMFtdPUFsbEZpZWxkcyZzZWFyY2hUeXBlVGVtcGxhdGU9YmFzaWMmcGFnZT0xJmJvb2wwW109QU5EJmpvaW49QU5EJmxpbWl0PTIwJnNvcnQ9cmVsZXZhbmNlJmtlZXBFbmFibGVkRmlsdGVycz10cnVlJmRhdGFiYXNlPVNvbHI');
-
-            $facetsData = $this->results->getSome();
-            $facetsFilt = $this->results->getFilt();
-
-            //var_dump($facetsFilt);
-            //var_dump($config);
-            //var_dump($facetsData);
-
-            $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt);
-
-          ?>
+        <script>
+          var usedF = [];
+          $('#hiddenFacetFilters .hidden-filter').each(function() {
+            usedF.push($(this).attr('value'));
+          });
+        </script>
+        <?
+          $facetsData = $this->results->getSome();
+          $facetsFilt = $this->results->getFilt();
+          $usedF = array();
+          foreach ($facetsFilt as $subb) {
+              foreach ($subb as $used) {
+                  $usedF[] = (($used['operator'])? '~': '') . $used['field'] . ':"' . $used['value'] . '"';
+              }
+          }
+          $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt, $usedF);
+        ?>
           <?= $this->render('Recommend/SideFacets.phtml', array('data' => $facetsData[0], 'usedFilter' => $facetsData[1]))?>
       </div>
       <? /* End Narrow Search Options */ ?>
