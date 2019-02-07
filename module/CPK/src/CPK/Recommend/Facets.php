@@ -25,13 +25,9 @@ class Facets {
         $prepared = $this->getDataFacets($newData, $newConfig, $filterList);
 
         return $prepared;
-        //return array($newData, $newConfig);
     }
 
-    // TODO tady ziskat data z configu
-
     public function getDataFacets($facetsData, $config, $filterList) {
-        //$facetSet = parent::getFacetSet();
         $facetSet = $facetsData;
         $facetSettings = $config;
         $keys = array_keys($facetSet);
@@ -55,9 +51,7 @@ class Facets {
             $sequence = 0;
             foreach ($facets['list'] as $facet) {
                 $name = $facets['label'].':'.$facet['value'];
-                $children = false;
                 $more = true;
-                $active = false;
                 if ($facet['operator'] == "OR") {
                     if (is_numeric($facet['value'][0])) {
                         if ($facet['value'][0] == '0') {
@@ -127,7 +121,10 @@ class Facets {
                 if ($more && $sequence >= $filter[$key]['count'] && $filter[$key]['count'] != -1 && $filter[$key]['more'] == '-') {
                      $filter[$key]['more'] = $facet['value'];
                 }
-                $name = substr(str_replace('/', '-', $name),0, strlen($name)-1);
+                if ($facet['operator'] == "OR") {
+                    $name = substr(str_replace('/', '-', $name), 0, strlen($name) - 1);
+                }
+
                 $filter[$key]['list'][$name] = [
                         'name' => $name,
                         'value' => $facet['value'], // TODO nahradit diakritiku a mezery, upravy co se provadi s name musi se provadet aji s parent
@@ -139,7 +136,6 @@ class Facets {
                         'show' => $show,
                         'open' => $open,
                         'parent' => $parent,
-                        'children' => $children,
                         'link' => $link,
                         'bold' => $bold,
                         'dataFacet' => $dataFacet,
@@ -164,7 +160,6 @@ class Facets {
             }
         }
 
-        //return array($filter, array('dasdads', 'hgjvdf'));
         return array($filter, $usedF);
     }
 
