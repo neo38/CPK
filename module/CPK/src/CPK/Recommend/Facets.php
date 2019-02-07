@@ -35,7 +35,9 @@ class Facets {
         foreach ($facetSet as $key => $facets) {
             $filter[$key]['display'] = $facets['label'];
             $facets['label'] = str_replace(' ', '', $facets['label']);
-            $filter[$key]['label'] = $facets['label'];
+            $facets['encoded'] = $this->repairId($facets['label']);
+            $filter[$key]['encoded'] = $facets['encoded'];
+            //$filter[$key]['label'] = $facets['label'];
             $filter[$key]['show'] = false;
             if (in_array($facets['label'], $facetSettings['open'], true)) {
                 $filter[$key]['show'] = true;
@@ -50,13 +52,14 @@ class Facets {
             $filter[$key]['more'] = '-';
             $sequence = 0;
             foreach ($facets['list'] as $facet) {
-                $name = $facets['label'].':'.$facet['value'];
+                $name = $facets['encoded'].$this->repairId($facet['value']);
                 $more = true;
+                $children = false;
                 if ($facet['operator'] == "OR") {
                     if (is_numeric($facet['value'][0])) {
                         if ($facet['value'][0] == '0') {
                             $sequence += 1;
-                            $parent = $facets['label'];
+                            $parent = $facets['encoded'];
                             $filter[$key]['list'][$parent]['seq'] = 0;
                             $filter[$key]['list'][$parent]['actived'] = 0;
                             if ($facet['isApplied']) {
@@ -67,9 +70,8 @@ class Facets {
                             $retezec = (string)(((int)$facet['value'][0]) - 1) . substr($facet['value'], 1, strlen($facet['value']) - 2);
                             $pole = explode('/', $retezec);
                             array_pop($pole);
-                            $zbytek = implode('/', $pole);
-                            $parent = $facets['label'] . ':' . $zbytek;
-                            $parent = str_replace('/', '-', $parent);
+                            $zbytek = implode('/', $pole) . '/';
+                            $parent = $facets['encoded'] . $this->repairId($zbytek);
                             $filter[$key]['list'][$parent]['children'] = true;
                             $filter[$key]['list'][$parent]['seq'] += 1;
                             if ($facet['isApplied']) {
@@ -83,19 +85,18 @@ class Facets {
                                     array_pop($pole);
                                     $rekName = implode('/', $pole);
                                     //echo $rekName;
-                                    $rekParent = $facets['label'] . ':' . (string)$rek . '/' . $rekName;
-                                    $rekParent = str_replace('/', '-', $rekParent);
+                                    $rekParent = $facets['encoded'] . $this->repairId((string)$rek . '/' . $rekName . '/');
                                     $filter[$key]['list'][$rekParent]['actived'] += 1;
                                 }
                             }
                         }
                     } else {
                         $sequence += 1;
-                        $parent = $facets['label'];
+                        $parent = $facets['encoded'];
                     }
                 } else {
                     $sequence += 1;
-                    $parent = $facets['label'];
+                    $parent = $facets['encoded'];
                 }
                 $link = ''; // TODO vlozit odkaz ktery se pote vlozi do href=""
                 $count = null;
@@ -118,12 +119,12 @@ class Facets {
                 if ($sequence > $filter[$key]['count'] && $filter[$key]['count'] != -1 && !$facet['isApplied'] && $more) {
                     $show = false; // TODO pokud je isApplied tak ji zobrazit vzdy
                 }
-                if ($more && $sequence >= $filter[$key]['count'] && $filter[$key]['count'] != -1 && $filter[$key]['more'] == '-') {
-                     $filter[$key]['more'] = $facet['value'];
+                if ($more && $sequence > $filter[$key]['count'] && $filter[$key]['count'] != -1 && $filter[$key]['more'] == '-') {
+                     $filter[$key]['more'] = $facet['value'];// TODO mozna tady
                 }
-                if ($facet['operator'] == "OR") {
+                /*if ($facet['operator'] == "OR") {
                     $name = substr(str_replace('/', '-', $name), 0, strlen($name) - 1);
-                }
+                }*/
 
                 $filter[$key]['list'][$name] = [
                         'name' => $name,
@@ -139,6 +140,7 @@ class Facets {
                         'link' => $link,
                         'bold' => $bold,
                         'dataFacet' => $dataFacet,
+                        'children' => $children,
                         'actived' => 0,
                         'seq' => 0,
                 ];
@@ -161,6 +163,11 @@ class Facets {
         }
 
         return array($filter, $usedF);
+    }
+
+    public function repairId($input) {
+        $output = base64_encode($input);
+        return str_replace(array('=', '/'), "", $output);
     }
 
     /**

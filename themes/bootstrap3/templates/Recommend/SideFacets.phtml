@@ -39,13 +39,13 @@ $facetFilter = $data;
 <? endif; ?>
 <!-- vypis filtr END -->
 <? foreach ($facetFilter as $key => $filter) {?>
-  <div id="side-panel-<?=$filter['label']?>" class="col-xs-12 list-group">
-    <li class="arrow list-group-item title" id="facet-<?=$filter['label']?>">
+  <div id="side-panel-<?=$filter['encoded']?>" class="col-xs-12 list-group">
+    <li class="arrow list-group-item title" id="facet-<?=$filter['encoded']?>">
       <span class="arrow-title">
           <?=$this->transEsc($filter['display'])?>
       </span>
     </li>
-    <ul id="ul-facet-<?=$filter['label']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
+    <ul id="ul-facet-<?=$filter['encoded']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
         <?
         if ($filter['label'] == 'adv_search_year') {
             //include_once 'SideFacets/PublishDate.phtml';
@@ -55,7 +55,7 @@ $facetFilter = $data;
         $more = false;
         ?>
         <? foreach ($filter['list'] as $facet) { //echo $facet['value']?>
-          <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=str_replace(':', '', $facet['name'])?>">
+          <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=$facet['name']?>">
               <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
             <a href="<?=$facet['link']?>" class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['actived'] != 0)? ($facet['seq'] == $facet['actived'])? 'active full-active' : 'half-active' : ''?> <?=($facet['fullActive'])? 'active full-active' : ''?>" data-facet='<?=$facet['dataFacet']?>'>
             <span class="<?=($facet['operator'] == "OR")? 'item' : ''?>">
@@ -67,21 +67,21 @@ $facetFilter = $data;
             </a>
 
               <?if ($facet['children']) {?>
-                <ul id="ul-facet-<?=str_replace(':', '', $facet['name'])?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
+                <ul id="ul-facet-<?=$facet['name']?>" class="<?=(!$facet['open'] && !$facet['fullActive'] && !$facet['actived'])? 'hide': ''?>"></ul>
               <?}?>
-              <? if ($facet['parent'] != $filter['label']) { ?>
+              <? if ($facet['parent'] != $filter['encoded']) { ?>
                 <script>
-                    $('#ul-facet-<?=str_replace(':', '', $facet['parent'])?>').append($('#facet-<?=str_replace(':', '', $facet['name'])?>'));
-                    $('#facet-<?=str_replace(':', '', $facet['name'])?>').append($('#ul-facet-<?=str_replace(':', '', $facet['name'])?>'));
+                    $('#ul-facet-<?=$facet['parent']?>').append($('#facet-<?=$facet['name']?>'));
+                    $('#facet-<?=$facet['name']?>').append($('#ul-facet-<?=$facet['name']?>'));
                 </script>
               <? }?>
           </li>
             <?
-            $moreF = ($facet['value'] == $filter['more'] && !$more)? '<span id="more-facet-'.str_replace(':', '', $facet['name']).'" class="show-all-facets narrow-toggle">'.$this->transEsc("More options").'</span>' : '';
+            $moreF = ($facet['value'] == $filter['more'] && !$more)? '<span id="more-facet-'.$facet['name'].'" class="show-all-facets narrow-toggle">'.$this->transEsc("More options").'</span>' : '';
             echo $moreF;
             if (!empty($moreF)) $more = true;
         } ?>
-        <?=(!empty($more))? '<span id="less-'.$filter['label'].'" class="hide hide-some-facets narrow-toggle">'.$this->transEsc("less").'</span>' : ''?>
+        <?=(!empty($more))? '<span id="less-'.$filter['encoded'].'" class="hide hide-some-facets narrow-toggle">'.$this->transEsc("less").'</span>' : ''?>
     </ul>
 
   </div>
