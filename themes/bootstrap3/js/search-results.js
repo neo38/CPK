@@ -724,7 +724,7 @@ jQuery( document ).ready( function( $ ) {
             //~cpk_detected_format_facet_str_mv:"0/ARTICLES/
 
             //if (enabledFacets == 0) { /* This filter not applied yet, apply it now */
-            var html = "<input type='hidden' class='hidden-filter' name='filter[]' value='" + value + "'>";
+            var html = "<input type='hidden' class='hidden-filter' name='filter[]' value='" + value.replace("'", "&#039;") + "'>";
             $('#hiddenFacetFilters').append(html);
             //console.log(html);
             //}
@@ -1149,9 +1149,9 @@ jQuery( document ).ready( function( $ ) {
         $( "input[name='page']" ).val( '1' );
 
         compare = $(this);
-        if (compare.closest('.list-group').attr('id') === 'side-panel-Institution' ) {
+        if (compare.closest('.list-group').attr('id') === 'side-panel-SW5zdGl0dXRpb24' ) {
             $('.facet-filter').each(function(){
-                if ($(this).closest('.list-group').attr('id') !== 'side-panel-Institution' ) {
+                if ($(this).closest('.list-group').attr('id') !== 'side-panel-SW5zdGl0dXRpb24' ) {
                     $(this).removeClass('facet-filter');
                 }
             });
@@ -1161,12 +1161,14 @@ jQuery( document ).ready( function( $ ) {
             });
         }
 
+        var dataFacet = $(this).attr('data-facet');
+
         // @TODO projet vsechny facet-fiter porovnat s id a pokud porovnavana faceta obsahuje id tohoto tak pridat do addfacetfilter s druhou hodnotou false
         var useFacet = 1;
         if ( $( this ).hasClass( 'active' ) ) {
             //console.log( 'Removing facet filter.' );
             useFacet = 0;
-            parent = createParent($(this).attr('data-facet'), + 1);
+            parent = createParent(dataFacet, + 1);
             //console.log(parent);
             var parrr = $(this);
             if ($(this).hasClass('or-facet')) {
@@ -1179,7 +1181,7 @@ jQuery( document ).ready( function( $ ) {
                     if($(this).attr('data-facet').search(parent) >= 0) {
                         count = count + 1;
                         console.log(count);
-                        ADVSEARCH.removeFacetFilter($(this).attr('data-facet'), false);
+                        ADVSEARCH.removeFacetFilter(dataFacet, false);
                     }
                 });
                 if (count > 0)
@@ -1188,7 +1190,7 @@ jQuery( document ).ready( function( $ ) {
                     console.log('jsem tu');
                 ADVSEARCH.removeFacetFilter(parrr.attr('data-facet'), true );
             } else {
-                ADVSEARCH.removeFacetFilter($( this ).attr( 'data-facet' ), true );
+                ADVSEARCH.removeFacetFilter(dataFacet, true );
             }
         } else {
             //console.log( 'Adding facet filter.' );
@@ -1197,17 +1199,17 @@ jQuery( document ).ready( function( $ ) {
             //console.log(parent);
             if ($(this).hasClass('or-facet')) {
                 var count = 0;
-                var parent = createParent($(this).attr('data-facet'), +1);
+                var parent = createParent(dataFacet, +1);
                 console.log(parent);
-                var parent2 = createParent($(this).attr('data-facet'), +2);
+                var parent2 = createParent(dataFacet, +2);
                 // @TODO toto hodit do rekurze musi prohledat vsechny pod a pridat je
                 $('.or-facet').each(function(index, value) {
                     //console.log($(this).attr('data-facet'));
                     //console.log(parent);
-                    if($(this).attr('data-facet').search(parent) >= 0 || $(this).attr('data-facet').search(parent2) >= 0) {
+                    if(dataFacet.search(parent) >= 0 || dataFacet.search(parent2) >= 0) {
                         count = count + 1;
                         //console.log(value);
-                        ADVSEARCH.addFacetFilter($(this).attr('data-facet'), false);
+                        ADVSEARCH.addFacetFilter(dataFacet, false);
                     }
                 });
 
@@ -1215,9 +1217,9 @@ jQuery( document ).ready( function( $ ) {
                 if (count > 0)
                     ADVSEARCH.updateSearchResults(undefined, undefined, undefined, undefined, undefined, undefined, true);
                 else
-                    ADVSEARCH.addFacetFilter($(this).attr('data-facet'), true );
+                    ADVSEARCH.addFacetFilter(dataFacet, true );
             } else {
-                ADVSEARCH.addFacetFilter($( this ).attr( 'data-facet' ), true );
+                ADVSEARCH.addFacetFilter(dataFacet, true );
             }
         }
 
@@ -1225,8 +1227,8 @@ jQuery( document ).ready( function( $ ) {
             'event': 'action.facet',
             'actionContext': {
                 'eventCategory': 'facet',
-                'eventAction': $(this).attr('data-facet').split(':')[0],
-                'eventLabel': $(this).attr('data-facet').split(':')[1],
+                'eventAction': dataFacet.split(':')[0],
+                'eventLabel': dataFacet.split(':')[1],
                 'eventValue': useFacet,
                 'nonInteraction': false
             }

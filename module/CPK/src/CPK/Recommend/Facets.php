@@ -117,10 +117,10 @@ class Facets {
                 }*/
                 $show = true;
                 if ($sequence > $filter[$key]['count'] && $filter[$key]['count'] != -1 && !$facet['isApplied'] && $more) {
-                    $show = false; // TODO pokud je isApplied tak ji zobrazit vzdy
+                    $show = false;
                 }
                 if ($more && $sequence > $filter[$key]['count'] && $filter[$key]['count'] != -1 && $filter[$key]['more'] == '-') {
-                     $filter[$key]['more'] = $facet['value'];// TODO mozna tady
+                     $filter[$key]['more'] = $facet['value'];
                 }
                 /*if ($facet['operator'] == "OR") {
                     $name = substr(str_replace('/', '-', $name), 0, strlen($name) - 1);
@@ -130,7 +130,7 @@ class Facets {
 
                 $filter[$key]['list'][$name] = [
                         'name' => $name,
-                        'value' => $facet['value'], // TODO nahradit diakritiku a mezery, upravy co se provadi s name musi se provadet aji s parent
+                        'value' => $facet['value'],
                         'displayText' => $displayText,
                         'tooltipText' => $facet['tooltiptext'],
                         'count' => $count,
@@ -139,7 +139,7 @@ class Facets {
                         'show' => $show,
                         'open' => $open,
                         'parent' => $parent,
-                        'link' => $link,
+                        'link' => str_replace("'","\'", $link),
                         'bold' => $bold,
                         'dataFacet' => $dataFacet,
                         'children' => $children,
@@ -169,7 +169,7 @@ class Facets {
 
     public function repairId($input) {
         $output = base64_encode($input);
-        return str_replace(array('=', '/'), "", $output);
+        return str_replace(array('=', '/', '+'), "", $output);
     }
 
     public function repairConspectus($key, $input) {
@@ -181,23 +181,21 @@ class Facets {
     }
 
     public function createLink($usedF, $newF, $add) {
-        // TODO ty co jsou hierarch a maji nejake pod sebou tak sejeste musi dotunit :D
+        // TODO ty co jsou hierarch a maji nejake pod sebou tak se jeste musi dotunit :D
         if ($add) {
-            array_splice($usedF,array_search($newF,$usedF),1);
-//            /unset($usedF[array_search($newF,$usedF)]);
-            $str = implode('|', $usedF);
+            // FIXME funguje jen na to posledni
+            $index = array_search($newF,$usedF);
+            if ($index >= 0) {
+                array_splice($usedF, $index,1);
+                $str = implode('|', $usedF);
+            } else {
+                return [];
+            }
         } else {
             $usedF[] = $newF;
             $str = implode('|', $usedF);
         }
         return $str;
-        //return "http://localhost:8080/Search/Results/?bool0%5B%5D=AND&type0%5B%5D=AllFields&lookfor0%5B%5D=&join=AND&searchTypeTemplate=basic&database=Solr" . "&filter%5B%5D=" . specialUrlEncode(base64_encode($str));
-
-        /*
-         * var filtersAsString = filters.join( '|' );
-         * compressedFilters = specialUrlEncode( LZString.compressToBase64( filtersAsString ) );
-         * href': window.location.href + "&filter%5B%5D=" + compressedFilters ,
-         */
 
     }
 

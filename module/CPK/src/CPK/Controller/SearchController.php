@@ -1763,7 +1763,7 @@ class SearchController extends SearchControllerBase
         $viewModel->setTemplate('Recommend/SideFacets');
 
         $uprava = array();
-        $uprava['data'] = &$viewData[0]; // FIXME v idealu by melo stacit toto, mozna bude potreba pred to: $uprava['data'] = array();
+        $uprava['data'] = &$viewData[0];
         $uprava['usedFilter'] = &$viewData[1];
         foreach($uprava as $key => &$data) {
             $viewModel->$key = $data;

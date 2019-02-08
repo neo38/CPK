@@ -236,7 +236,7 @@
           $usedF = array();
           foreach ($facetsFilt as $subb) {
               foreach ($subb as $used) {
-                  $usedF[] = (($used['operator'])? '~': '') . $used['field'] . ':"' . $used['value'] . '"';
+                  $usedF[] = (($used['operator'] == 'OR')? '~': '') . $used['field'] . ':"' . $used['value'] . '"';
               }
           }
           $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt, $usedF);
