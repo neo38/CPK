@@ -147,6 +147,33 @@ class Facets {
                         'seq' => 0,
                 ];
             }
+
+            // TODO bude jeste komplikovanejsi protoze chci zatrhnout aji vsechny sub co maji sub
+            foreach ($filter[$key]['list'] as $dalsi => $facet) {
+                $myF = $usedF;
+                if ($facet['children']) {
+                    $pod = $this->poduroven($filter[$key]['list'], $facet); // TODO mozna u slice $key+1
+                    if ($facet['seq'] == $facet['actived']) {
+                        // vsechny odebrat
+                        foreach ($pod as $subKey => $cleanF) {
+                            $index = array_search($cleanF,$myF);
+                            if ($index >= 0) {
+                                array_splice($myF, $index,1);
+                            }
+                        }
+                    } else {
+                        // vsechny co nejsou pridat
+                        foreach ($pod as $subKey => $cleanF) {
+                            if (!in_array($cleanF,$myF)) {
+                                $myF[] = $cleanF;
+                            }
+                        }
+                    }
+                    $str = implode('|', $myF);
+                    $filter[$key]['list'][$dalsi]['link'] = str_replace("'","\'", $str);
+                }
+            }
+
         }
 
         $usedF = array();
@@ -165,6 +192,24 @@ class Facets {
         }
 
         return array($filter, $usedF);
+    }
+
+    public function poduroven($filter, $main) {
+        $pod = array();
+        foreach ($filter as $key => $facet) {
+            if ((((int)$facet['value'][0]) - 1) == ((int)$main['value'][0])) {
+                $parent = substr($main['value'], 1);
+                $find = substr($facet['value'], 1);
+                $pole = explode('/', $find);
+                array_pop($pole);
+                array_pop($pole);
+                $zbytek = implode('/', $pole) . '/';
+                if ($zbytek == $parent) {
+                    $pod[] = $facet['dataFacet'];
+                }
+            }
+        }
+        return $pod;
     }
 
     public function repairId($input) {

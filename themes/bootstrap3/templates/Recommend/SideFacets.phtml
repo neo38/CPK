@@ -68,7 +68,6 @@ $facetFilter = $data;
           <li class="list-group-item <?=(!$facet['show']? 'hide' : '')?>" id="facet-<?=$facet['name']?>">
               <?=($facet['children'])? '<b class="arrow"></b>' : ''?>
             <a href='<?=$facet['link']?>' class="facet-filter <?=($facet['operator'] == "OR")? 'list-group-item or-facet' : 'and-facet facetAND'?> <?=($facet['actived'] != 0)? ($facet['seq'] == $facet['actived'])? 'active full-active' : 'half-active' : ''?> <?=($facet['fullActive'])? 'active full-active' : ''?>" data-facet='<?=str_replace("'", "&#039;", $facet['dataFacet'])?>'>
-              <? // FIXME dela problem ' v dataFacet?>
               <script>
                   var el = document.getElementById('facet-<?=$facet['name']?>');
                   var moje = window.location.href;

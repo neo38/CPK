@@ -1168,8 +1168,8 @@ jQuery( document ).ready( function( $ ) {
         if ( $( this ).hasClass( 'active' ) ) {
             //console.log( 'Removing facet filter.' );
             useFacet = 0;
-            parent = createParent(dataFacet, + 1);
-            //console.log(parent);
+            parent = createParent(dataFacet, +1);
+            console.log(parent);
             var parrr = $(this);
             if ($(this).hasClass('or-facet')) {
                 count = 0;
@@ -1181,7 +1181,7 @@ jQuery( document ).ready( function( $ ) {
                     if($(this).attr('data-facet').search(parent) >= 0) {
                         count = count + 1;
                         console.log(count);
-                        ADVSEARCH.removeFacetFilter(dataFacet, false);
+                        ADVSEARCH.removeFacetFilter($(this).attr('data-facet'), false);
                     }
                 });
                 if (count > 0)
@@ -1200,16 +1200,17 @@ jQuery( document ).ready( function( $ ) {
             if ($(this).hasClass('or-facet')) {
                 var count = 0;
                 var parent = createParent(dataFacet, +1);
+                console.log(dataFacet);
                 console.log(parent);
                 var parent2 = createParent(dataFacet, +2);
                 // @TODO toto hodit do rekurze musi prohledat vsechny pod a pridat je
                 $('.or-facet').each(function(index, value) {
                     //console.log($(this).attr('data-facet'));
                     //console.log(parent);
-                    if(dataFacet.search(parent) >= 0 || dataFacet.search(parent2) >= 0) {
+                    if($(this).attr('data-facet').search(parent) >= 0 || $(this).attr('data-facet').search(parent2) >= 0) {
                         count = count + 1;
                         //console.log(value);
-                        ADVSEARCH.addFacetFilter(dataFacet, false);
+                        ADVSEARCH.addFacetFilter($(this).attr('data-facet'), false);
                     }
                 });
 
