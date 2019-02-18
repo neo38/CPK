@@ -84,8 +84,6 @@ class KohaRestNormalizer
     public function normalizeHoldItemsResponse(&$response) {
         foreach ($response as $key => $entry) {
             $entry['biblionumber'] = isset($entry['biblionumber']) ? $entry['biblionumber'] : null; //TODO deal with 'KOHA-OAI-TEST:'
-            $entry['itemnumber'] = isset($entry['itemnumber']) ? $entry['itemnumber'] : null;
-
             $entry['reservedate'] = !empty($entry['reservedate'])
                 ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['reservedate'])
                 : '';

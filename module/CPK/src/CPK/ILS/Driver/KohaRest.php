@@ -507,7 +507,7 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
         foreach ($result as $entry) {
             $holds[] = [
                 'id' => $entry['biblionumber'],
-                'item_id' => $entry['itemnumber'] ? $entry['itemnumber'] : $entry['reserve_id'],
+                'item_id' => $entry['biblionumber'] ? $entry['biblionumber'] : $entry['reserve_id'],
                 'location' => $entry['branchcode'],
                 'create' => $entry['reservedate'],
                 'expire' => $entry['expirationdate'],
