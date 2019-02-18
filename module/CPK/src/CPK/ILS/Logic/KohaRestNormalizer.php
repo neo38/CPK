@@ -43,6 +43,9 @@ class KohaRestNormalizer
             case 'getMyHolds':
                 $this->normalizeHoldItemsResponse($response);
                 break;
+            case 'getMyTransactions':
+                $this->normalizeCheckoutsResponse($response);
+                break;
         }
 
         return $response;
@@ -89,6 +92,22 @@ class KohaRestNormalizer
             $entry['expirationdate'] = !empty($entry['expirationdate'])
                 ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['expirationdate'])
                 : '';
+
+            $response[$key] = $entry;
+        }
+    }
+
+    public function normalizeCheckoutsResponse(&$response) {
+        foreach ($response as $key => $entry) {
+            $entry['item_id'] = isset($entry['item_id']) ? $entry['item_id'] : null;
+            $entry['due_date'] = !empty($entry['due_date'])
+                ? $this->dateConverter->convertToDisplayDate('Y-m-d', $entry['due_date'])
+                : '';
+
+            //check if overdue
+            $today_time = strtotime(date('Y-m-d'));
+            $expire_time = strtotime(str_replace(' ', '', $entry['due_date']));
+            $entry['due_status'] = ($expire_time < $today_time) ? 'overdue' : false;
 
             $response[$key] = $entry;
         }

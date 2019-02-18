@@ -246,6 +246,18 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
     }
 
     /**
+     * Get Renew Details
+     *
+     * @param array $checkOutDetails An array of item data
+     *
+     * @return string Data for use in a form field
+     */
+    public function getRenewDetails($checkOutDetails)
+    {
+        return $checkOutDetails['checkout_id'] . '|' . $checkOutDetails['item_id'];
+    }
+
+    /**
      * Get Patron Profile
      *
      * This is responsible for retrieving the profile for a specific patron.
@@ -294,68 +306,27 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
     public function getMyTransactions($patron)
     {
         $result = $this->makeRequest(
-            ['v1', 'checkouts', 'expanded'],
+            ['v1', 'checkouts'],
             __FUNCTION__,
-            ['borrowernumber' => $patron['id']],
+            ['patron_id' => $patron['id']],
             'GET',
             $patron
         );
-        if (empty($result)) {
-            return [];
-        }
+
         $transactions = [];
+        if (empty($result)) {
+            return $transactions;
+        }
         foreach ($result as $entry) {
-            $item = $this->getItem($entry['itemnumber']);
-            $volume = isset($item['enumchron'])
-                ? $item['enumchron'] : '';
-            $title = '';
-            if (!empty($item['biblionumber'])) {
-                $bib = $this->getBibRecord($item['biblionumber']);
-                if (!empty($bib['title'])) {
-                    $title = $bib['title'];
-                }
-                if (!empty($bib['title_remainder'])) {
-                    $title .= ' ' . $bib['title_remainder'];
-                    $title = trim($title);
-                }
-            }
-
-            $dueStatus = false;
-            $now = time();
-            $dueTimeStamp = strtotime($entry['date_due']);
-            if (is_numeric($dueTimeStamp)) {
-                if ($now > $dueTimeStamp) {
-                    $dueStatus = 'overdue';
-                } elseif ($now > $dueTimeStamp - (1 * 24 * 60 * 60)) {
-                    $dueStatus = 'due';
-                }
-            }
-
-            $renewable = $entry['renewable'];
-            $message = '';
-            if (!$renewable) {
-                $message = $this->mapRenewalBlockReason(
-                    $entry['renewability_error']
-                );
-            }
-
-            $transaction = [
-                'id' => isset($item['biblionumber']) ? $item['biblionumber'] : '',
-                'checkout_id' => $entry['issue_id'],
-                'item_id' => $entry['itemnumber'],
-                'title' => $title,
-                'volume' => $volume,
-                'duedate' => $this->dateConverter->convertToDisplayDate(
-                    'Y-m-d\TH:i:sP', $entry['date_due']
-                ),
-                'dueStatus' => $dueStatus,
+            $transactions[] = [
+                'id' => $entry['item_id'],
+                'checkout_id' => $entry['checkout_id'],
+                'item_id' => $entry['item_id'],
+                'duedate' => $entry['due_date'],
+                'dueStatus' => $entry['due_status'],
                 'renew' => $entry['renewals'],
-                'renewLimit' => $entry['max_renewals'],
-                'renewable' => $renewable,
-                'message' => $message
+                'barcode' => '',
             ];
-
-            $transactions[] = $transaction;
         }
 
         return $transactions;
