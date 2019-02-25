@@ -7,32 +7,42 @@ class Facets {
 
     protected $facetSettings = [];
 
-    public function prepareFacetDataFresh($data, $config, $filterList, $usedF) {
+    public function prepareFacetDataFresh($data, $config, $filterList, $usedF, $type) {
         $newData = $data;
         $newConfig = $config;
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type);
 
         return $prepared;
     }
 
 
-    public function prepareFacetDataAsync($data, $config, $filterList, $usedF) {
+    public function prepareFacetDataAsync($data, $config, $filterList, $usedF, $type) {
         $newData = $data;
         $newConfig = $config;
 
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type);
 
         return $prepared;
     }
 
-    public function getDataFacets($facetsData, $config, $filterList, $usedF) {
+    public function getDataFacets($facetsData, $config, $filterList, $usedF, $type) {
         $facetSet = $facetsData;
         $facetSettings = $config;
         $keys = array_keys($facetSet);
-        $filter = array_fill_keys($keys,['label' => '', 'show' => '', 'list' => array()]);
+        $filter = array();
+        foreach ($keys as $key) {
+            if (!in_array($key ,$config[$type])) {
+                continue;
+            }
+            $filter[$key] = ['label' => '', 'show' => '', 'list' => array()];
+        }
+        //$filter = array_fill_keys($keys,['label' => '', 'show' => '', 'list' => array()]);
         foreach ($facetSet as $key => $facets) {
+            if (!in_array($facets['label'] ,$config[$type])) {
+                continue;
+            }
             $filter[$key]['display'] = $facets['label'];
             $facets['label'] = str_replace(' ', '', $facets['label']);
             $facets['encoded'] = $this->repairId($facets['label']);
@@ -218,7 +228,7 @@ class Facets {
     }
 
     public function repairConspectus($key, $input) {
-        if ($key == 'conspectus_str_mv' || $key == 'Conspectus') {
+        if ($key == 'conspectus_str_mv' || $key == 'Conspectus' || $key == 'region' || $key == 'region_disctrict_facet_str_mv') {
             $pole = explode('/', substr($input, 0, strlen($input) - 1));
             return array_pop($pole);
         }
