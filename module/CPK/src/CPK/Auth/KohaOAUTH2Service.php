@@ -58,6 +58,13 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
 
     protected $logger;
 
+    /**
+     * Max time different between real expiration and saved expiration in seconds
+     *
+     * @var
+     */
+    protected $tokenExpirationDiff = 30;
+
     public function __construct(KohaTokens $kohaTokens)
     {
         $this->tokensTable = $kohaTokens;
@@ -140,7 +147,7 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
     public function handleAccessToken()
     {
         //Store tokens in session so we dont need to request from database
-        if (!($tokenData = $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'])) {
+        if (!($tokenData = $_SESSION['CPK\ILS\Driver\KohaRest'][$this->source]['accessToken'])) {
             $tokenData = $this->tokensTable->getAccessToken($this->source);
 
             if (!$tokenData) {
@@ -148,19 +155,19 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
                     $this->source,
                     $this->requestNewOAUTH2Token()
                 );
-            } elseif ($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
+            } elseif ($this->isExpired($tokenData['timestamp_expiration'])) {
                 $tokenData = $this->tokensTable->renewAccessToken(
                     $this->source,
                     $this->requestNewOAUTH2Token()
                 );
             }
-            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
-        } elseif($this->isExpired(date('Y-m-d H:i:s'), $tokenData['timestamp_expiration'])) {
+            $_SESSION['CPK\ILS\Driver\KohaRest'][$this->source]['accessToken'] = $tokenData;
+        } elseif($this->isExpired($tokenData['timestamp_expiration'])) {
             $tokenData = $this->tokensTable->renewAccessToken(
                 $this->source,
                 $this->requestNewOAUTH2Token()
             );
-            $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
+            $_SESSION['CPK\ILS\Driver\KohaRest'][$this->source]['accessToken'] = $tokenData;
         }
 
         return $tokenData;
@@ -179,9 +186,9 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
         return $client;
     }
 
-    public function isExpired($currentTimestamp, $expiration)
+    public function isExpired($expiration)
     {
-        return strtotime($currentTimestamp) >= strtotime($expiration);
+        return strtotime(date('Y-m-d H:i:s')) >= strtotime($expiration) - $this->tokenExpirationDiff;
     }
 
     public function renewToken()
@@ -190,7 +197,7 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
             $this->source,
             $this->requestNewOAUTH2Token()
         );
-        $_SESSION['CPK\ILS\Driver\KohaRest']['accessToken'] = $tokenData;
+        $_SESSION['CPK\ILS\Driver\KohaRest'][$this->source]['accessToken'] = $tokenData;
     }
 
     public function setSource($source)
