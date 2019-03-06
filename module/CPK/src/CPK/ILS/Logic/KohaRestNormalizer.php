@@ -46,6 +46,9 @@ class KohaRestNormalizer
             case 'getMyTransactions':
                 $this->normalizeCheckoutsResponse($response);
                 break;
+            case 'renewMyItems':
+                $this->normalizeRenewItem($response);
+                break;
         }
 
         return $response;
@@ -109,5 +112,11 @@ class KohaRestNormalizer
 
             $response[$key] = $entry;
         }
+    }
+
+    public function normalizeRenewItem(&$response) {
+        $response['due_date'] = !empty($response['due_date'])
+            ? $this->dateConverter->convertToDisplayDate('Y-m-d', $response['due_date'])
+            : '';
     }
 }

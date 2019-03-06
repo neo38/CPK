@@ -320,16 +320,35 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
         foreach ($result as $entry) {
             $transactions[] = [
                 'id' => $entry['item_id'],
-                'checkout_id' => $entry['checkout_id'],
+                'loan_id' => $entry['checkout_id'],
                 'item_id' => $entry['item_id'],
                 'duedate' => $entry['due_date'],
                 'dueStatus' => $entry['due_status'],
                 'renew' => $entry['renewals'],
                 'barcode' => '',
+                'renewable' => $this->isItemRenewable($entry['checkout_id']),
             ];
         }
 
         return $transactions;
+    }
+
+    /**
+     * Checks if item is renewable
+     *
+     * @param $checkoutId
+     * @return bool
+     * @internal param $checkout_id
+     */
+    public function isItemRenewable($checkoutId) {
+        $result = $this->makeRequest(
+            ['v1', 'checkouts', $checkoutId, 'renewability'],
+            __FUNCTION__,
+            [],
+            'GET'
+        );
+
+        return $result['renewable'] && !$result['error'];
     }
 
     /**
@@ -351,7 +370,12 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
         foreach ($renewDetails['details'] as $details) {
             list($checkoutId, $itemId) = explode('|', $details);
             list($code, $result) = $this->makeRequest(
-                ['v1', 'checkouts', $checkoutId], __FUNCTION__,false, 'PUT', $patron, true
+                ['v1', 'checkouts', $checkoutId, 'renewal'],
+                __FUNCTION__,
+                false,
+                'POST',
+                $patron,
+                true
             );
             if ($code == 403) {
                 $finalResult['details'][$itemId] = [
@@ -359,13 +383,10 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
                     'success' => false
                 ];
             } else {
-                $newDate = $this->dateConverter->convertToDisplayDate(
-                    'Y-m-d\TH:i:sP', $result['date_due']
-                );
                 $finalResult['details'][$itemId] = [
                     'item_id' => $itemId,
                     'success' => true,
-                    'new_date' => $newDate
+                    'new_date' => $result['date_due']
                 ];
             }
         }
