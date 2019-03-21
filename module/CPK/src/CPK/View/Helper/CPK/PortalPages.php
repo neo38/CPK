@@ -72,4 +72,35 @@ class PortalPages extends \Zend\View\Helper\AbstractHelper
     {
         return $this->portalPageTable->getAllPages($this->languageCode);
     }
+
+    /**
+     * @param string $currentURL
+     *
+     * @return array of filters and current url
+     */
+    public function getArrayOfFilters(string $currentURL)
+    {
+        // Purge limit parameter ..
+        $currentURL = preg_replace('/(&?)limit=\d+[&?]/', '\\1', $currentURL);
+        // Get array of filters
+        $filtersFromURL = preg_split('/[?&]/', $currentURL);
+        array_shift($filtersFromURL);
+        $filters = [];
+        foreach ($filtersFromURL as $filterFromURL) {
+            $exploded = explode('=', $filterFromURL, 2);
+            // Apply html escaping ..
+            array_walk($exploded, function (&$val) {
+                $val = $this->view->escapeHtmlAttr(urldecode($val));
+            });
+
+            if (isset($exploded[0]) && isset($exploded[1])) {
+                $part = [];
+            }
+            $part[$exploded[0]] = $exploded[1];
+            $filters[]          = $part;
+        }
+        // Leave only the domain ..
+        $currentURL = explode('?', $currentURL, 1)[0];
+        return [$filters, $currentURL];
+    }
 }
