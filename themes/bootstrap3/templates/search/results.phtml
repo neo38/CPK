@@ -239,7 +239,7 @@
                   $usedF[] = (($used['operator'] == 'OR')? '~': '') . $used['field'] . ':"' . $used['value'] . '"';
               }
           }
-          $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt, $usedF, $_GET['type0'][0]);
+          $facetsData = (new \CPK\Recommend\Facets())->prepareFacetDataFresh($facetsData, $config, $facetsFilt, $usedF, $_GET['type0'][0], $_GET['database']);
         ?>
           <?= $this->render('Recommend/SideFacets.phtml', array('data' => $facetsData[0], 'usedFilter' => $facetsData[1]))?>
       </div>

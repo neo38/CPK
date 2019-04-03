@@ -38,6 +38,13 @@
       font-size: 15px;
       padding-left: 0;
       padding-right: 0;
+      a:hover {
+        .or-facet::before {
+          color: grey;
+          content: "\eb06";
+          font-weight: bold;
+        }
+      }
       .item {
         color: @link-hover-color;
         cursor: pointer;
@@ -82,12 +89,26 @@
         font-size: 15px;
         font-weight: bold;
       }
+      &:hover {
+        &::before {
+          color: @brand-primary;
+          content: "\eb06";
+          font-weight: bold;
+        }
+      }
       &.half-active {
         font-weight: normal;
         &::before {
           color: @brand-primary;
           content: "\e92c";
           font-weight: bold;
+        }
+        &:hover {
+          &::before {
+            color: @brand-primary;
+            content: "\eb06";
+            font-weight: bold;
+          }
         }
       }
       &.full-active {
@@ -100,19 +121,9 @@
       }
     }
     .and-facet {
-      &::before {
-        font-family: pr-icons;
-        content: "\eacc";
+      color: black;
+      &.full-active, &:hover {
         color: @brand-primary;
-        font-size: 15px;
-      }
-      &.full-active {
-        font-weight: normal;
-        &::before {
-          content: "\eacd";
-          font-weight: normal;
-        }
-        font-weight: bold;
       }
     }
 
@@ -150,6 +161,19 @@
       text-align: center;
       cursor: pointer;
     }
+  }
+}
+
+.activedF{
+  &:after {
+    font-family: pr-icons;
+    content: "\eace";
+    color: @brand-primary;
+    float: right !important;
+    font-weight: bold !important;
+  }
+  a:hover {
+    color: black !important;
   }
 }
 

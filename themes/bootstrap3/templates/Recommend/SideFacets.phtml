@@ -38,7 +38,7 @@ $facetFilter = $data;
         <ul style="padding: 0; cursor: pointer;">
             <? foreach ($filters as $i => $filter): ?>
               <li class="active activedF" data-facet='<?=$filter['dataFacet']?>' style="padding-left: <?=($i > 0)? '20px' : '0px'?>;"><?=($i <= 0)?$this->transEsc($field) . ': ': ''?><b  style="color: grey; display: inline-block; width: <?=($i > 0)? '30px' : '0px'?>; font-weight: normal; font-size: 12px;"><?=($i > 0)? $filter['operator']: ''?></b>
-                <span style="color: red;"><?= $filter['display']; ?></span></li>
+                <a><?= $filter['display']; ?></a></li>
             <? endforeach; ?>
         </ul>
       <? endforeach; ?>
@@ -48,6 +48,41 @@ $facetFilter = $data;
   </div>
 <? endif; ?>
 <!-- vypis filtr END -->
+
+<?
+/*
+    $filterTranslations = [
+        'eds_limiter_FT'        => 'find_fulltext_documents_only',
+        'eds_limiter_RV'        => 'find_reviewed_documents_only',
+        'eds_expander_fulltext' => 'serach_also_fulltexts_of_documents',
+    ];
+  $html = '';
+  $shown = 0;
+  foreach ($checkboxFilters as $current) {
+    $html .= '<label class="checkbox';
+    if($results->getResultTotal() < 1 && !$current['selected'] && !$current['alwaysVisible']) {
+      $html .= ' hidden';
+    } else {
+      $shown ++;
+    }
+    $html .= '"><input type="checkbox" class="jsTreeLikeCheckbox" name="filter[]" value="'.$this->escapeHtmlAttr($current['filter']).'"
+      '. ($current['selected'] ? 'checked="checked"' : '') .' id="'.$this->escapeHtmlAttr(str_replace(' ', '', $current['desc'])).'"/>';
+    $html .= '<span class="jsTreeLikeCheckboxDescription">'.$this->translate($filterTranslations[$current['desc']]).'</span>';
+    $html .= '</label>';
+  }
+*/
+?>
+
+<div class="checkboxFilter <?=(!empty($_GET['database']) && $_GET['database'] == "EDS")? '' : 'hidden'?>">
+  <div id="side-panel-eds-filters">
+    <label class="checkbox"><input type="checkbox" class="jsTreeLikeCheckbox" name="filter[]" value="LIMIT!FT:y"
+                                   id="eds_limiter_FT"><span class="jsTreeLikeCheckboxDescription">Vyhledej pouze dokumenty s existujícím plným textem</span></label><label
+        class="checkbox"><input type="checkbox" class="jsTreeLikeCheckbox" name="filter[]" value="LIMIT!RV:y"
+                                id="eds_limiter_RV"><span class="jsTreeLikeCheckboxDescription">Vyhledej pouze recenzované dokumenty</span></label><label
+        class="checkbox"><input type="checkbox" class="jsTreeLikeCheckbox" name="filter[]" value="EXPAND:fulltext"
+                                id="eds_expander_fulltext"><span class="jsTreeLikeCheckboxDescription">Prohledej i plné texty dokumentů</span></label>
+  </div>
+</div>
 <? foreach ($facetFilter as $key => $filter) {?>
   <div id="side-panel-<?=$filter['encoded']?>" class="col-xs-12 list-group">
     <li class="arrow list-group-item title" id="facet-<?=$filter['encoded']?>">
@@ -56,6 +91,56 @@ $facetFilter = $data;
       </span>
     </li>
     <ul id="ul-facet-<?=$filter['encoded']?>" class="<?=(!$filter['show'])? 'hide': ''?>">
+
+      <!-- vypis instituce icons nerest,favorite... BEGIN -->
+        <? //if($filter['display'] == 'Institution'): ?>
+        <? if(0): ?>
+          <div class='col-xs-5 col-sm-12 col-lg-5 institutions-loaders'>
+              <? if($this->auth()->isLoggedIn()): ?>
+                <a href='#' title='<?=$this->translate('Load preferred institutions')?>' data-toggle="tooltip" id='load-saved-institutions'>
+                  <i class='pr-web-uploadarrow'> </i>
+                </a>
+              <? endif; ?>
+
+            <? // FIXME data se musi ziskat uz v Results a jen je predat pres controller sem?>
+              <? if ($this->recommend instanceof \CPK\Recommend\SideFacets && isset($myLibs) && is_array($myLibs) && count($myLibs) > 0):
+                  $urlParams = $results->getUrlQuery()->getParamArray();
+                  $newParams = array('type' => 'AllFields');
+                  $filtered = array();
+                  if (isset($urlParams['filter'])) {
+                      $decompressedFilters = explode("|", \LZCompressor\LZString::decompressFromBase64(specialUrlDecode($urlParams['filter'])));
+                      foreach ($decompressedFilters as $param) {
+                          if (strpos($param, '~institution:') === 0) {
+                              continue;
+                          }
+                          $filtered[] = $param;
+                      }
+                  }
+                  $newParams = $urlParams;
+                  $newParams['filter'] = $filtered;
+                  $firstLib = true;
+                  $myLibraries = '';
+                  foreach ($myLibs as $myLib) {
+                      $myLibraries .= $this->recommend->getInstutitionMapping($myLib).';';
+                  }
+                  $myLibraries = substr($myLibraries, 0, -1);
+                  echo "<div class='hidden' id='my-libraries-container'>$myLibraries</div>";
+                  ?>
+                <a href='#' title='<?=$this->translate('Load my institutions')?>' data-toggle="tooltip" id='load-my-institutions'>
+                  <i class='pr-interface-househome2'> </i>
+                </a>
+              <? endif; ?>
+
+            <a href='#' title='<?=$this->translate('Load nearest institutions')?>' data-toggle="tooltip" id='load-nearest-institutions'>
+              <i class='pr-location-pinmap5'> </i>
+            </a>
+          </div>
+        <? endif; ?>
+      <!-- vypis instituce icons nerest,favorite... END -->
+
+
+
+
         <?
         if ($filter['label'] == 'adv_search_year') {
             //include_once 'SideFacets/PublishDate.phtml';

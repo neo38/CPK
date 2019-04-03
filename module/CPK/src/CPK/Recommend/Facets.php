@@ -7,31 +7,34 @@ class Facets {
 
     protected $facetSettings = [];
 
-    public function prepareFacetDataFresh($data, $config, $filterList, $usedF, $type) {
+    public function prepareFacetDataFresh($data, $config, $filterList, $usedF, $type, $database) {
         $newData = $data;
         $newConfig = $config;
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type, $database);
 
         return $prepared;
     }
 
 
-    public function prepareFacetDataAsync($data, $config, $filterList, $usedF, $type) {
+    public function prepareFacetDataAsync($data, $config, $filterList, $usedF, $type, $database) {
         $newData = $data;
         $newConfig = $config;
 
 
-        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type);
+        $prepared = $this->getDataFacets($newData, $newConfig, $filterList, $usedF, $type, $database);
 
         return $prepared;
     }
 
-    public function getDataFacets($facetsData, $config, $filterList, $usedF, $type) {
+    public function getDataFacets($facetsData, $config, $filterList, $usedF, $type, $database) {
         $facetSet = $facetsData;
         $facetSettings = $config;
         $keys = array_keys($facetSet);
         $filter = array();
+        if ($database == "EDS") {
+            $type = $database . $type;
+        }
         foreach ($keys as $key) {
             if (!in_array($key ,$config[$type])) {
                 continue;

@@ -1361,7 +1361,7 @@ class SearchController extends SearchControllerBase
 	    $resultsAmountInfoHtml = $this->getResultsAmountInfoHtml($viewData);
 
 
-        $mojeData = (new Facets())->prepareFacetDataAsync($viewData['results']->getFacetList(), $postParams['FConfig'], $viewData['results']->getParams()->getFilterList(), $postParams['usedF'], $postParams['type0'][0]);
+        $mojeData = (new Facets())->prepareFacetDataAsync($viewData['results']->getFacetList(), $postParams['FConfig'], $viewData['results']->getParams()->getFilterList(), $postParams['usedF'], $postParams['type0'][0], $postParams['database']);
         $sideFacets = $this->doSomethingCrazyAction($mojeData);
         //$sideFacets = $mojeData;
 

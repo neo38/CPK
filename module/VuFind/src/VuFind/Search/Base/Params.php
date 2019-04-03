@@ -64,6 +64,8 @@ class Params implements ServiceLocatorAwareInterface
      */
     protected $page = 1;
 
+    protected $facetMy = [];
+
     /**
      * Sort setting
      *
@@ -174,6 +176,10 @@ class Params implements ServiceLocatorAwareInterface
 
         // Make sure we have some sort of query object:
         $this->query = new Query();
+
+        if (isset($config->Facet_Settings)) {
+            $this->facetMy = $this->getFacetConfig()->Facet_Settings->toArray();
+        }
     }
 
     /**
@@ -1718,5 +1724,9 @@ class Params implements ServiceLocatorAwareInterface
     public function hasDefaultsApplied()
     {
         return $this->defaultsApplied;
+    }
+
+    public function getFacetMy() {
+        return $this->facetMy;
     }
 }

@@ -622,4 +622,14 @@ abstract class Results implements ServiceLocatorAwareInterface
             [$this->getOptions(), 'translate'], func_get_args()
         );
     }
+
+    public function getSome() {
+        return $this->getFacetList();
+    }
+    public function getFilt() {
+        return $this->getParams()->getFilterList();
+    }
+    public function getConfigFacet() {
+        return $this->getParams()->getFacetMy();
+    }
 }

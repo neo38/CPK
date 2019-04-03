@@ -366,16 +366,4 @@ class Results extends \VuFind\Search\Base\Results
         $flare->children = $visualFacets;
         return $flare;
     }
-
-    public function getSome() {
-        return $this->getFacetList();
-    }
-
-    public function getFilt() {
-        return $this->getParams()->getFilterList();
-    }
-
-    public function getConfigFacet() {
-        return $this->getParams()->getFacetMy();
-    }
 }
