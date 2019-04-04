@@ -22,6 +22,7 @@
  * @category VuFind2
  * @package  ILS_Drivers
  * @author   Bohdan Inhliziian <bohdan.inhliziian@gmail.com.cz>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/vufind2:building_an_ils_driver Wiki
  */
@@ -44,6 +45,7 @@ use Zend\Log\LoggerInterface;
  * @category VuFind
  * @package  ILS_Drivers
  * @author   Bohdan Inhliziian <bohdan.inhliziian@gmail.com>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:ils_drivers Wiki
  */

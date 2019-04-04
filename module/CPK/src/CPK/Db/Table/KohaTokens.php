@@ -49,8 +49,6 @@ class KohaTokens extends Gateway
             ),
         ];
 
-        // This will prevent autocommit to Db
-        $this->getDbConnection()->beginTransaction();
         $this->getDbTable($this->table)->insert($token);
 
         // Now commit whole transaction
