@@ -359,6 +359,13 @@ class DeduplicationListener
         $recordSources, $sourcePriority
     ) {
         $localRecordData['local_ids_str_mv'] = $dedupRecordData['local_ids_str_mv'];
+
+        //first check existence, then copy, add wanted keys to array
+        $keys = array('summary_display_mv');
+        foreach ($keys as $key)
+            if((empty($localRecordData[$key]) && ! empty($dedupRecordData[$key])))
+                $localRecordData[$key] = $dedupRecordData[$key];
+
         return $localRecordData;
     }
 

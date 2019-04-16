@@ -77,23 +77,21 @@
                   <?= $this->translate('Want it') ?>
               </div>
             </div>
-          <? endif; ?>
-
-          <? $summ = $this->driver->getSummary(); if (!empty($summ)): ?>
-            <? foreach ($summ as $field): ?>
-              <p><?=$this->escapeHtml($field)?></p>
-            <? endforeach; ?>
-
-            <? else: ?>
-              <p class="obalkysumm"><i class="fa fa-spinner fa-spin"></i><?=$this->transEsc('loading_obalkyknih_summary')?><br/></p>
-
-              <script type="text/javascript">
-                obalky.display_summary(".obalkysumm", <?=$bibinfo?>);
-              </script>
-
-            <? endif; ?>
-
-            <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+          <? endif;
+          /**
+           * @var array $summaryTexts Contains array of summaries from local sources
+           */
+          //true is default
+          $summaryTexts = $this->driver->getSummary();
+          //if the $summ contains any summaries, write it out, otherwise try to find it on Obalkyknih.cz
+          if (!empty($summaryTexts)):
+              //write down all sumaries
+              foreach ($summaryTexts as $summaryText): ?>
+              <p><?= $this->escapeHtml($summaryText) ?></p>
+          <?
+              endforeach;
+          endif;
+          if ($this->userlist()->getMode() !== 'disabled'): ?>
               <? /* Display the lists that this record is saved to */ ?>
               <div class="savedLists hidden alert alert-info" id="savedLists">
                 <strong><?=$this->transEsc("Saved in")?>:</strong>
