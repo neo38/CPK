@@ -408,6 +408,9 @@
             	});
 
             	$( 'body' ).on('click', '.want-it', function(){
+            	    //logout option exists, someone must be logged
+            	    if($("#logoutOptions").size() > 0)
+            	        $("#loginModal").modal('show');
             		$( 'html,body' ).animate( {
             	        scrollTop: $( '#records-in-groups-container' ).offset().top
             	    }, 1000);
