@@ -31,7 +31,7 @@ use VuFindHttp\HttpServiceAwareTrait;
 use \Zend\Log\LoggerAwareInterface;
 use Zend\Log\LoggerInterface;
 
-class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterface
+class KohaRestService implements HttpServiceAwareInterface, LoggerAwareInterface
 {
     use HttpServiceAwareTrait;
 
@@ -70,7 +70,7 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
         $this->tokensTable = $kohaTokens;
     }
 
-    public function createHttpClient($url)
+    public function createHttpClient($url, $basicAuth = false)
     {
         $client = $this->httpService->createClient($url);
 
@@ -102,6 +102,10 @@ class KohaOAUTH2Service implements HttpServiceAwareInterface, LoggerAwareInterfa
         $client->getRequest()->getHeaders()->addHeaderLine(
             'Accept', 'application/json'
         );
+
+        if($basicAuth) {
+            $client->setAuth($basicAuth['username'], $basicAuth['password']);
+        }
 
         return $client;
     }

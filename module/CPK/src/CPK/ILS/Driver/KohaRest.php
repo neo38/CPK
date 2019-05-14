@@ -28,9 +28,9 @@
  */
 namespace CPK\ILS\Driver;
 
+use CPK\Auth\KohaRestService;
 use VuFind\ILS\Driver\AbstractBase;
 use CPK\ILS\Logic\KohaRestNormalizer;
-use CPK\Auth\KohaOAUTH2Service;
 use VuFind\Exception\Date as DateException;
 use VuFind\Exception\ILS as ILSException;
 use Zend\I18n\Translator\TranslatorInterface;
@@ -60,7 +60,7 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
 
     protected $dateConverter;
     protected $defaultPickUpLocation;
-    protected $oauth2Service;
+    protected $kohaRestService;
     protected $translator;
     protected $logger;
 
@@ -92,9 +92,9 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
         'debt' => 'renew_debt'
     ];
 
-    public function __construct(DateConverter $dateConverter, KohaOAUTH2Service $kohaOAUTH2Service) {
+    public function __construct(DateConverter $dateConverter, KohaRestService $kohaRestService) {
         $this->dateConverter = $dateConverter;
-        $this->oauth2Service = $kohaOAUTH2Service;
+        $this->kohaRestService = $kohaRestService;
     }
 
     /**
@@ -133,8 +133,8 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
         if (isset($this->config['Availability']['source']))
             $this->source = $this->config['Availability']['source'];
 
-        $this->oauth2Service->setConfig($this->config);
-        $this->oauth2Service->setSource($this->source);
+        $this->kohaRestService->setConfig($this->config);
+        $this->kohaRestService->setSource($this->source);
     }
 
     public function setLogger(LoggerInterface $logger)
@@ -894,11 +894,13 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
      * @param array $patron Patron information when using patron APIs
      * @param bool $returnCode If true, returns HTTP status code in addition to
      * the result
+     * @param bool $oauth2Needed
      * @return mixed
      * @throws ILSException
+     * @internal param bool $authNeeded
      */
     protected function makeRequest($hierarchy, $action, $params = false, $method = 'GET',
-        $patron = null, $returnCode = false
+        $patron = null, $returnCode = false, $oauth2Needed = true
     ) {
         // Set up the request
         $apiUrl = $this->config['Catalog']['host'];
@@ -908,7 +910,9 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
             $apiUrl .= '/' . urlencode($value);
         }
 
-        $client = $this->oauth2Service->createOAUTH2Client($apiUrl);
+        $client = $oauth2Needed
+            ? $this->kohaRestService->createOAUTH2Client($apiUrl)
+            : $this->kohaRestService->createHttpClient($apiUrl, ['username' => 'cpk', 'password' => 'cpk']);
 
         // Add params
         if (false !== $params) {
@@ -949,9 +953,9 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
 
         // If we get a 401, we need to renew the access token and try again
         if ($response->getStatusCode() == 401) {
-            $this->oauth2Service->renewToken();
+            $this->kohaRestService->renewToken();
 
-            $client = $this->oauth2Service->createOAUTH2Client($apiUrl);
+            $client = $this->kohaRestService->createOAUTH2Client($apiUrl);
 
             try {
                 $response = $client->send();
@@ -1015,11 +1019,13 @@ class KohaRest extends AbstractBase implements LoggerAwareInterface, TranslatorA
     protected function getItemStatusesForBiblio($id, $patron = null)
     {
         $result = $this->makeRequest(
-            ['v1', 'availability', 'biblio', 'search'],
+            ['v1', 'contrib', 'knihovny_cz', 'biblios', $id, 'allows_checkout'],
             __FUNCTION__,
-            ['biblionumber' => $id],
+            [],
             'GET',
-            $patron
+            $patron,
+            false,
+            false
         );
         if (empty($result[0]['item_availabilities'])) {
             return [];
