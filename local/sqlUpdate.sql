@@ -831,3 +831,13 @@ DROP COLUMN `user_requested`,
 DROP COLUMN `timestamp_approved`,
 CHANGE COLUMN `timestamp_requested` `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 UPDATE `system` SET `value` = '64' WHERE `key`='DB_VERSION';
+
+/* feature-1107 */
+CREATE TABLE `vufind`.`koha_tokens` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `source` VARCHAR(45) NOT NULL,
+  `access_token` TEXT NOT NULL,
+  `timestamp_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `timestamp_expiration` TIMESTAMP NULL,
+  `token_type` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`));
